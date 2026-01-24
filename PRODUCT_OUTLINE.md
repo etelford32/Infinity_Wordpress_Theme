@@ -2,9 +2,42 @@
 
 ## Vision Statement
 
-**Infinity** is a cutting-edge WordPress theme that brings astrophysical simulations to the web through interactive, gamified experiences. By combining Three.js, TypeScript, React, and modern physics engines, we create an immersive platform where students, researchers, hobbyists, and gaming enthusiasts can explore the cosmos, learn through play, and share their discoveries with a global community.
+**Infinity** is a cutting-edge **distributable WordPress theme** that brings astrophysical simulations to the web through interactive, gamified experiences. By combining Three.js, TypeScript, React, and modern physics engines, we create an immersive platform where students, researchers, hobbyists, and gaming enthusiasts can explore the cosmos, learn through play, and share their discoveries with a global community.
 
 **Tagline:** *"Explore. Simulate. Create. Share."*
+
+---
+
+## 🎁 Product Type: WordPress Theme for Distribution
+
+**IMPORTANT:** This is NOT a single website - it's a **WordPress theme product** that:
+
+✅ **Other users can install** on their own WordPress sites
+✅ **Comes packaged** with all simulation infrastructure built-in
+✅ **Is configurable** via WordPress Customizer & settings panels
+✅ **Supports multiple sites** from a single codebase
+✅ **Includes documentation** for theme users and developers
+✅ **Has Stripe integration** so theme users can monetize their own content
+
+### Two User Types
+
+1. **Theme Users** (Site Owners)
+   - Install Infinity theme on their WordPress site
+   - Configure design (3 visual themes: Dark Cosmic, Light Playful, Science Mode)
+   - Create/curate simulation content
+   - Set up subscriptions/monetization for their audience
+   - Customize branding (logo, colors, etc.)
+
+2. **End Users** (Visitors)
+   - Browse simulations on theme user's site
+   - Free tier or premium subscriptions (set by site owner)
+   - Create blueprints, share in community
+   - Consume educational content
+
+**Business Model:**
+- We use the theme for our own site (dogfooding)
+- We sell/distribute the theme to other WordPress users
+- Theme users set their own pricing for their audience
 
 ---
 
@@ -544,30 +577,54 @@ Traditional educational platforms face critical pain points:
    - Prove 60fps on desktop, 30fps on mobile
    - Test WebGPU vs WebGL performance
 
-### Questions for You
+### Project Specifications
 
-1. **Branding**: Do you have a logo, color scheme, or design preferences for "Infinity"?
-2. **Hosting**: Do you have WordPress hosting already, or should we recommend providers?
-3. **Timeline Pressure**: Is there a hard deadline (e.g., launch at a conference, school semester start)?
-4. **Team**: Are you solo, or do you have designers/developers helping?
-5. **Budget**: Any constraints on paid tools (WordPress plugins, hosting, Stripe fees)?
+1. **Branding & Design**
+   - **Logo**: 3D Möbius strip (infinity symbol)
+   - **Three Visual Themes** (switchable by theme users):
+     - 🌌 **Dark Cosmic**: Deep space blacks, nebula purples/blues, star whites
+     - ☀️ **Light Playful**: Bright whites, cheerful pastels, friendly UI
+     - 🔬 **Science Mode**: Toggle-able light/dark with professional academic styling
+   - Design system should be token-based for easy theme switching
+
+2. **Hosting & Infrastructure**
+   - **WordPress**: WP Engine (headless CMS backend)
+   - **Frontend**: Vercel (static site generation + edge deployment)
+   - **Assets**: User will create custom 3D models, textures, skyboxes
+
+3. **Timeline & Priorities**
+   - No hard deadlines - **full build prioritized over MVP speed**
+   - Focus on building robust, extensible infrastructure
+   - Quality over speed - make it right the first time
+
+4. **Development Approach**
+   - Build simulation infrastructure that supports all planned simulations
+   - Start with **Solar System** (flagship), then **Galaxy**
+   - Create as distributable WordPress theme (not single-site)
+   - Include Stripe integration for theme users to monetize
+
+5. **Target Market**
+   - **Dual Product**: Personal use + theme distribution
+   - Theme users install on their sites, configure, and monetize
+   - End users consume content on theme user sites
 
 ---
 
 ## 🎉 Why This Will Succeed
 
-1. **Underserved Market**: No direct competitor offers web-based, mobile-friendly astrophysics simulations with community features
-2. **Viral Potential**: Users sharing cool simulations on social media = free marketing
-3. **Scalable**: Client-side physics = minimal server costs as we grow
-4. **Ecosystem Play**: Web theme is marketing funnel for high-margin Atomik app
-5. **Educational Tailwinds**: $300B global edtech market, STEM funding increasing
-6. **Technical Moat**: WebGPU expertise + Three.js optimization = 6-12 month head start on competitors
+1. **Underserved Market**: No WordPress theme offers web-based, mobile-friendly astrophysics simulations with community features
+2. **Viral Potential**: Users sharing cool simulations on social media = free marketing for theme
+3. **Scalable**: Client-side physics = minimal server costs, theme scales to any size site
+4. **Distribution Model**: Theme users become evangelists, creates network effects
+5. **Educational Tailwinds**: $300B global edtech market, schools need engaging tools
+6. **Technical Moat**: WebGPU + Three.js expertise = 6-12 month head start on competitors
+7. **Dual Revenue**: We use it ourselves + sell theme to others = dogfooding ensures quality
 
 **This is a product people will love.** Let's build it! 🚀
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 2.0*
 *Last Updated: 2026-01-24*
-*Owner: [Your Name]*
-*Status: Draft - Awaiting Approval*
+*Product Type: Distributable WordPress Theme*
+*Status: Approved - Ready for Development*
