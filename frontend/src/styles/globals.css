@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply h-full;
+  }
+
+  body {
+    @apply h-full antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    font-variation-settings: 'opsz' auto;
+  }
+
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-cosmic-accent-primary;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Reduced motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Canvas container */
+  .simulation-canvas-container {
+    @apply relative w-full h-full overflow-hidden;
+    touch-action: none;
+  }
+
+  /* Loading states */
+  .skeleton {
+    @apply animate-pulse bg-cosmic-bg-tertiary rounded;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply backdrop-blur-md bg-opacity-10;
+  }
+
+  /* Glow effect for stars/particles */
+  .glow {
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+}
+
+/* Theme-specific overrides */
+[data-theme='dark-cosmic'] {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #141824;
+  --bg-tertiary: #1e2330;
+  --text-primary: #ffffff;
+  --text-secondary: #b8c0d4;
+  --text-tertiary: #7a8199;
+  --accent-primary: #6366f1;
+  --accent-secondary: #8b5cf6;
+  --accent-tertiary: #06b6d4;
+}
+
+[data-theme='light-playful'] {
+  --bg-primary: #fef3f2;
+  --bg-secondary: #fff7ed;
+  --bg-tertiary: #ffffff;
+  --text-primary: #1e1b4b;
+  --text-secondary: #4c1d95;
+  --text-tertiary: #6b21a8;
+  --accent-primary: #f472b6;
+  --accent-secondary: #fb923c;
+  --accent-tertiary: #fbbf24;
+}
+
+[data-theme='science-light'] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-tertiary: #64748b;
+  --accent-primary: #3b82f6;
+  --accent-secondary: #06b6d4;
+  --accent-tertiary: #8b5cf6;
+}
+
+[data-theme='science-dark'] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --accent-primary: #60a5fa;
+  --accent-secondary: #22d3ee;
+  --accent-tertiary: #a78bfa;
+}
+
+/* Three.js canvas specific styles */
+canvas {
+  display: block;
+  touch-action: none;
+  outline: none;
+}
+
+/* Loading spinner */
+.spinner {
+  @apply animate-spin rounded-full border-4 border-cosmic-bg-tertiary border-t-cosmic-accent-primary;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* Print styles */
+@media print {
+  canvas,
+  .simulation-canvas-container {
+    display: none !important;
+  }
+}
