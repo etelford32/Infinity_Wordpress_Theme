@@ -661,4 +661,19 @@ function infinity_navigation_body_classes($classes) {
     }
     return $classes;
 }
-add_filter('body_class', 'infinity_navigation_body_classes')
+add_filter('body_class', 'infinity_navigation_body_classes');
+
+/**
+ * Load Admin Files
+ *
+ * Include admin-specific functionality.
+ *
+ * @since 1.0.0
+ */
+if (is_admin()) {
+    require_once INFINITY_DIR . '/inc/admin/welcome.php';
+    require_once INFINITY_DIR . '/inc/admin/dashboard-widget.php';
+}
+
+// Block patterns are loaded on both frontend and admin
+require_once INFINITY_DIR . '/inc/admin/block-patterns.php';

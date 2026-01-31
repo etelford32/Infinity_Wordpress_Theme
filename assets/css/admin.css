@@ -1,0 +1,869 @@
+/**
+ * Infinity Theme - Admin Styles
+ *
+ * Styles for the welcome page, dashboard widgets, and admin customizations.
+ *
+ * @package Infinity
+ * @since 1.0.0
+ */
+
+/* ==========================================================================
+   CSS Variables
+   ========================================================================== */
+
+:root {
+    --infinity-primary: #6366f1;
+    --infinity-secondary: #8b5cf6;
+    --infinity-accent: #06b6d4;
+    --infinity-success: #10b981;
+    --infinity-warning: #f59e0b;
+    --infinity-error: #ef4444;
+    --infinity-bg-dark: #0a0e1a;
+    --infinity-bg-card: #ffffff;
+    --infinity-text-primary: #1e293b;
+    --infinity-text-secondary: #64748b;
+    --infinity-border: #e2e8f0;
+    --infinity-radius: 12px;
+    --infinity-radius-sm: 8px;
+    --infinity-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --infinity-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --infinity-transition: 200ms ease;
+}
+
+/* ==========================================================================
+   Welcome Page Layout
+   ========================================================================== */
+
+.infinity-welcome-wrap {
+    max-width: 1200px;
+    margin: 20px 20px 20px 0;
+}
+
+.infinity-welcome-header {
+    background: linear-gradient(135deg, var(--infinity-primary) 0%, var(--infinity-secondary) 100%);
+    border-radius: var(--infinity-radius);
+    padding: 40px;
+    margin-bottom: 24px;
+    color: #ffffff;
+}
+
+.infinity-welcome-header-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.infinity-logo svg {
+    display: block;
+}
+
+.infinity-welcome-title h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #ffffff;
+}
+
+.infinity-version {
+    font-size: 14px;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.infinity-welcome-description {
+    font-size: 18px;
+    opacity: 0.9;
+    margin: 0;
+    max-width: 600px;
+}
+
+/* ==========================================================================
+   Tab Navigation
+   ========================================================================== */
+
+.infinity-welcome-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--infinity-bg-card);
+    border-radius: var(--infinity-radius);
+    padding: 6px;
+    margin-bottom: 24px;
+    box-shadow: var(--infinity-shadow);
+}
+
+.infinity-tab {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--infinity-text-secondary);
+    text-decoration: none;
+    border-radius: var(--infinity-radius-sm);
+    transition: all var(--infinity-transition);
+}
+
+.infinity-tab:hover {
+    color: var(--infinity-text-primary);
+    background: #f8fafc;
+}
+
+.infinity-tab.active {
+    background: var(--infinity-primary);
+    color: #ffffff;
+}
+
+.infinity-tab:focus {
+    outline: 2px solid var(--infinity-primary);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Content Sections
+   ========================================================================== */
+
+.infinity-welcome-content {
+    background: var(--infinity-bg-card);
+    border-radius: var(--infinity-radius);
+    padding: 32px;
+    box-shadow: var(--infinity-shadow);
+}
+
+.infinity-welcome-content h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--infinity-text-primary);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--infinity-border);
+}
+
+.infinity-welcome-content h2:not(:first-child) {
+    margin-top: 40px;
+}
+
+/* ==========================================================================
+   Quick Actions Grid
+   ========================================================================== */
+
+.infinity-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.infinity-action-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: #f8fafc;
+    border: 1px solid var(--infinity-border);
+    border-radius: var(--infinity-radius-sm);
+    text-decoration: none;
+    transition: all var(--infinity-transition);
+}
+
+.infinity-action-card:hover {
+    border-color: var(--infinity-primary);
+    box-shadow: var(--infinity-shadow);
+    transform: translateY(-2px);
+}
+
+.infinity-action-card:focus {
+    outline: 2px solid var(--infinity-primary);
+    outline-offset: 2px;
+}
+
+.action-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: #ffffff;
+    border-radius: var(--infinity-radius-sm);
+    color: var(--infinity-text-secondary);
+    flex-shrink: 0;
+    box-shadow: var(--infinity-shadow);
+}
+
+.action-icon.accent {
+    background: linear-gradient(135deg, var(--infinity-primary), var(--infinity-secondary));
+    color: #ffffff;
+}
+
+.action-content h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--infinity-text-primary);
+    margin: 0 0 4px;
+}
+
+.action-content p {
+    font-size: 13px;
+    color: var(--infinity-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   Checklist
+   ========================================================================== */
+
+.infinity-checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+    transition: background var(--infinity-transition);
+}
+
+.checklist-item.complete {
+    background: #f0fdf4;
+}
+
+.checklist-status {
+    flex-shrink: 0;
+}
+
+.checklist-label {
+    flex: 1;
+    font-size: 14px;
+    color: var(--infinity-text-primary);
+}
+
+.checklist-item.complete .checklist-label {
+    color: var(--infinity-success);
+}
+
+.checklist-action {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--infinity-primary);
+    text-decoration: none;
+    padding: 6px 12px;
+    background: #ffffff;
+    border-radius: var(--infinity-radius-sm);
+    transition: all var(--infinity-transition);
+}
+
+.checklist-action:hover {
+    background: var(--infinity-primary);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   Resources Grid
+   ========================================================================== */
+
+.infinity-resource-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.infinity-resource-card {
+    padding: 24px;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+    border: 1px solid var(--infinity-border);
+}
+
+.infinity-resource-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--infinity-text-primary);
+    margin: 0 0 8px;
+}
+
+.infinity-resource-card p {
+    font-size: 13px;
+    color: var(--infinity-text-secondary);
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+.infinity-resource-card a {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--infinity-primary);
+    text-decoration: none;
+}
+
+.infinity-resource-card a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   Features Tab
+   ========================================================================== */
+
+.infinity-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.infinity-feature-card {
+    padding: 24px;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+    border: 1px solid var(--infinity-border);
+    transition: all var(--infinity-transition);
+}
+
+.infinity-feature-card:hover {
+    border-color: var(--infinity-primary);
+    box-shadow: var(--infinity-shadow);
+}
+
+.feature-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--infinity-primary), var(--infinity-secondary));
+    border-radius: var(--infinity-radius-sm);
+    color: #ffffff;
+    margin-bottom: 16px;
+}
+
+.infinity-feature-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--infinity-text-primary);
+    margin: 0 0 8px;
+}
+
+.infinity-feature-card p {
+    font-size: 14px;
+    color: var(--infinity-text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Theme Variants */
+.infinity-theme-variants {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--infinity-border);
+}
+
+.infinity-theme-variants > p {
+    color: var(--infinity-text-secondary);
+    margin-bottom: 20px;
+}
+
+.infinity-variants-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.variant-card {
+    text-align: center;
+}
+
+.variant-preview {
+    height: 100px;
+    border-radius: var(--infinity-radius-sm);
+    margin-bottom: 8px;
+    border: 2px solid var(--infinity-border);
+    transition: border-color var(--infinity-transition);
+}
+
+.variant-card:hover .variant-preview {
+    border-color: var(--infinity-primary);
+}
+
+.variant-card.dark-cosmic .variant-preview {
+    background: linear-gradient(135deg, #0a0e1a 0%, #141824 50%, #6366f1 100%);
+}
+
+.variant-card.light-playful .variant-preview {
+    background: linear-gradient(135deg, #fef3f2 0%, #fff7ed 50%, #f472b6 100%);
+}
+
+.variant-card.science-light .variant-preview {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #3b82f6 100%);
+}
+
+.variant-card.science-dark .variant-preview {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #60a5fa 100%);
+}
+
+.variant-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--infinity-text-primary);
+}
+
+/* ==========================================================================
+   Setup Wizard Tab
+   ========================================================================== */
+
+.infinity-setup-wizard {
+    /* Container styles */
+}
+
+.wizard-intro {
+    margin-bottom: 32px;
+}
+
+.wizard-intro h2 {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 8px;
+}
+
+.wizard-intro p {
+    color: var(--infinity-text-secondary);
+    margin: 0;
+}
+
+.wizard-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.wizard-step {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 24px;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+    border: 1px solid var(--infinity-border);
+    transition: all var(--infinity-transition);
+}
+
+.wizard-step:hover {
+    border-color: var(--infinity-primary);
+    box-shadow: var(--infinity-shadow);
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--infinity-primary), var(--infinity-secondary));
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--infinity-text-primary);
+    margin: 0 0 4px;
+}
+
+.step-content p {
+    font-size: 13px;
+    color: var(--infinity-text-secondary);
+    margin: 0;
+}
+
+/* Plugins Grid */
+.wizard-plugins h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px;
+}
+
+.wizard-plugins > p {
+    color: var(--infinity-text-secondary);
+    margin: 0 0 20px;
+}
+
+.plugins-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.plugin-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+    border: 1px solid var(--infinity-border);
+}
+
+.plugin-card.installed {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.plugin-info strong {
+    display: block;
+    font-size: 14px;
+    color: var(--infinity-text-primary);
+    margin-bottom: 2px;
+}
+
+.plugin-info p {
+    font-size: 13px;
+    color: var(--infinity-text-secondary);
+    margin: 0;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 9999px;
+}
+
+.status-badge.active {
+    background: var(--infinity-success);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   Support Tab
+   ========================================================================== */
+
+.support-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.support-card {
+    padding: 32px;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius);
+    border: 1px solid var(--infinity-border);
+    text-align: center;
+    transition: all var(--infinity-transition);
+}
+
+.support-card:hover {
+    border-color: var(--infinity-primary);
+    box-shadow: var(--infinity-shadow);
+}
+
+.support-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--infinity-primary), var(--infinity-secondary));
+    border-radius: 50%;
+    color: #ffffff;
+    margin: 0 auto 20px;
+}
+
+.support-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--infinity-text-primary);
+    margin: 0 0 8px;
+}
+
+.support-card p {
+    font-size: 14px;
+    color: var(--infinity-text-secondary);
+    margin: 0 0 20px;
+    line-height: 1.5;
+}
+
+/* System Info Table */
+.system-info h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 16px;
+}
+
+.system-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+    overflow: hidden;
+}
+
+.system-info-table th,
+.system-info-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--infinity-border);
+}
+
+.system-info-table th {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--infinity-text-secondary);
+    width: 200px;
+}
+
+.system-info-table td {
+    font-size: 14px;
+    color: var(--infinity-text-primary);
+}
+
+.system-info-table tr:last-child th,
+.system-info-table tr:last-child td {
+    border-bottom: none;
+}
+
+.system-info-table .success {
+    color: var(--infinity-success);
+    font-weight: 500;
+}
+
+.system-info-table .inactive {
+    color: var(--infinity-text-secondary);
+}
+
+.system-info-table .warning {
+    color: var(--infinity-warning);
+    font-size: 12px;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.infinity-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--infinity-radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: all var(--infinity-transition);
+}
+
+.infinity-btn:focus {
+    outline: 2px solid var(--infinity-primary);
+    outline-offset: 2px;
+}
+
+.infinity-btn-primary {
+    background: linear-gradient(135deg, var(--infinity-primary), var(--infinity-secondary));
+    color: #ffffff;
+}
+
+.infinity-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    color: #ffffff;
+}
+
+.infinity-btn-secondary {
+    background: #ffffff;
+    color: var(--infinity-primary);
+    border: 1px solid var(--infinity-border);
+}
+
+.infinity-btn-secondary:hover {
+    border-color: var(--infinity-primary);
+    background: #f8fafc;
+    color: var(--infinity-primary);
+}
+
+.infinity-btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* ==========================================================================
+   Dashboard Widget
+   ========================================================================== */
+
+.infinity-dashboard-widget {
+    padding: 0;
+}
+
+.infinity-dashboard-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--infinity-primary), var(--infinity-secondary));
+    color: #ffffff;
+    margin: -12px -12px 16px;
+}
+
+.infinity-dashboard-header svg {
+    flex-shrink: 0;
+}
+
+.infinity-dashboard-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.infinity-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.infinity-stat {
+    text-align: center;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+}
+
+.infinity-stat-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--infinity-primary);
+    line-height: 1.2;
+}
+
+.infinity-stat-label {
+    font-size: 11px;
+    color: var(--infinity-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.infinity-quick-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.infinity-quick-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--infinity-text-primary);
+    text-decoration: none;
+    background: #f8fafc;
+    border-radius: var(--infinity-radius-sm);
+    transition: all var(--infinity-transition);
+}
+
+.infinity-quick-link:hover {
+    background: var(--infinity-primary);
+    color: #ffffff;
+}
+
+.infinity-quick-link svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .infinity-variants-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 782px) {
+    .infinity-welcome-wrap {
+        margin: 10px;
+    }
+
+    .infinity-welcome-header {
+        padding: 24px;
+    }
+
+    .infinity-welcome-header-content {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .infinity-welcome-title h1 {
+        font-size: 24px;
+    }
+
+    .infinity-welcome-description {
+        font-size: 15px;
+    }
+
+    .infinity-welcome-tabs {
+        flex-wrap: wrap;
+    }
+
+    .infinity-tab {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .infinity-welcome-content {
+        padding: 20px;
+    }
+
+    .infinity-action-grid,
+    .infinity-features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .infinity-variants-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .wizard-step {
+        flex-wrap: wrap;
+    }
+
+    .step-content {
+        flex-basis: calc(100% - 60px);
+    }
+
+    .wizard-step .infinity-btn {
+        width: 100%;
+        margin-top: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .infinity-variants-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .infinity-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .support-grid {
+        grid-template-columns: 1fr;
+    }
+}
