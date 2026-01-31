@@ -429,3 +429,236 @@ if (class_exists('WooCommerce')) {
 if (function_exists('graphql')) {
     require_once INFINITY_DIR . '/inc/graphql-extensions.php';
 }
+
+/**
+ * Breadcrumb Navigation
+ *
+ * Displays breadcrumb navigation for improved UX and SEO.
+ *
+ * @since 1.0.0
+ */
+function infinity_breadcrumbs() {
+    // Don't show on front page
+    if (is_front_page()) {
+        return;
+    }
+
+    $separator = '<span class="breadcrumb-separator" aria-hidden="true">/</span>';
+    $home_title = __('Home', 'infinity');
+
+    echo '<nav class="breadcrumbs" aria-label="' . esc_attr__('Breadcrumb', 'infinity') . '">';
+    echo '<div class="container">';
+    echo '<ol class="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">';
+
+    // Home link
+    echo '<li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+    echo '<a href="' . esc_url(home_url('/')) . '" itemprop="item"><span itemprop="name">' . esc_html($home_title) . '</span></a>';
+    echo '<meta itemprop="position" content="1" />';
+    echo '</li>';
+
+    $position = 2;
+
+    if (is_archive()) {
+        echo $separator;
+
+        if (is_post_type_archive()) {
+            $post_type = get_queried_object();
+            echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+            echo '<span itemprop="name" aria-current="page">' . esc_html($post_type->label) . '</span>';
+            echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+            echo '</li>';
+        } elseif (is_category() || is_tag() || is_tax()) {
+            $term = get_queried_object();
+
+            // Show post type archive link for custom taxonomies
+            if (is_tax()) {
+                $taxonomy = get_taxonomy($term->taxonomy);
+                if (!empty($taxonomy->object_type)) {
+                    $post_type = get_post_type_object($taxonomy->object_type[0]);
+                    if ($post_type && $post_type->has_archive) {
+                        echo '<li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+                        echo '<a href="' . esc_url(get_post_type_archive_link($taxonomy->object_type[0])) . '" itemprop="item">';
+                        echo '<span itemprop="name">' . esc_html($post_type->label) . '</span></a>';
+                        echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+                        echo '</li>';
+                        echo $separator;
+                        $position++;
+                    }
+                }
+            }
+
+            echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+            echo '<span itemprop="name" aria-current="page">' . esc_html($term->name) . '</span>';
+            echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+            echo '</li>';
+        } elseif (is_date()) {
+            if (is_year()) {
+                echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+                echo '<span itemprop="name" aria-current="page">' . esc_html(get_the_date('Y')) . '</span>';
+                echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+                echo '</li>';
+            } elseif (is_month()) {
+                echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+                echo '<span itemprop="name" aria-current="page">' . esc_html(get_the_date('F Y')) . '</span>';
+                echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+                echo '</li>';
+            } elseif (is_day()) {
+                echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+                echo '<span itemprop="name" aria-current="page">' . esc_html(get_the_date()) . '</span>';
+                echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+                echo '</li>';
+            }
+        } elseif (is_author()) {
+            echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+            echo '<span itemprop="name" aria-current="page">' . esc_html(get_the_author()) . '</span>';
+            echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+            echo '</li>';
+        }
+    } elseif (is_singular()) {
+        echo $separator;
+
+        $post_type = get_post_type();
+        $post_type_obj = get_post_type_object($post_type);
+
+        // Show post type archive link
+        if ($post_type !== 'page' && $post_type_obj && $post_type_obj->has_archive) {
+            echo '<li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+            echo '<a href="' . esc_url(get_post_type_archive_link($post_type)) . '" itemprop="item">';
+            echo '<span itemprop="name">' . esc_html($post_type_obj->label) . '</span></a>';
+            echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+            echo '</li>';
+            echo $separator;
+            $position++;
+        }
+
+        // Show parent page hierarchy for pages
+        if (is_page()) {
+            $ancestors = array_reverse(get_post_ancestors(get_the_ID()));
+            foreach ($ancestors as $ancestor_id) {
+                echo '<li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+                echo '<a href="' . esc_url(get_permalink($ancestor_id)) . '" itemprop="item">';
+                echo '<span itemprop="name">' . esc_html(get_the_title($ancestor_id)) . '</span></a>';
+                echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+                echo '</li>';
+                echo $separator;
+                $position++;
+            }
+        }
+
+        // Current page
+        echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+        echo '<span itemprop="name" aria-current="page">' . esc_html(get_the_title()) . '</span>';
+        echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+        echo '</li>';
+
+    } elseif (is_search()) {
+        echo $separator;
+        echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+        /* translators: %s: search query */
+        echo '<span itemprop="name" aria-current="page">' . sprintf(esc_html__('Search: %s', 'infinity'), get_search_query()) . '</span>';
+        echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+        echo '</li>';
+
+    } elseif (is_404()) {
+        echo $separator;
+        echo '<li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">';
+        echo '<span itemprop="name" aria-current="page">' . esc_html__('Page Not Found', 'infinity') . '</span>';
+        echo '<meta itemprop="position" content="' . esc_attr($position) . '" />';
+        echo '</li>';
+    }
+
+    echo '</ol>';
+    echo '</div>';
+    echo '</nav>';
+}
+
+/**
+ * Enqueue Navigation Scripts
+ *
+ * @since 1.0.0
+ */
+function infinity_enqueue_navigation_scripts() {
+    wp_enqueue_script(
+        'infinity-navigation',
+        INFINITY_URI . '/assets/js/navigation.js',
+        array(),
+        INFINITY_VERSION,
+        true
+    );
+
+    // Pass settings to JavaScript
+    wp_localize_script('infinity-navigation', 'infinityNav', array(
+        'stickyHeader'   => get_theme_mod('infinity_sticky_header', false),
+        'backToTopText'  => __('Back to top', 'infinity'),
+    ));
+}
+add_action('wp_enqueue_scripts', 'infinity_enqueue_navigation_scripts');
+
+/**
+ * Add Navigation Customizer Settings
+ *
+ * @since 1.0.0
+ */
+function infinity_navigation_customize_register($wp_customize) {
+    // Navigation Section
+    $wp_customize->add_section('infinity_navigation', array(
+        'title'    => esc_html__('Navigation & UX', 'infinity'),
+        'priority' => 35,
+    ));
+
+    // Sticky Header Option
+    $wp_customize->add_setting('infinity_sticky_header', array(
+        'default'           => false,
+        'sanitize_callback' => 'rest_sanitize_boolean',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('infinity_sticky_header', array(
+        'label'       => esc_html__('Enable Sticky Header', 'infinity'),
+        'description' => esc_html__('Header will remain fixed at the top while scrolling.', 'infinity'),
+        'section'     => 'infinity_navigation',
+        'type'        => 'checkbox',
+    ));
+
+    // Show Breadcrumbs Option
+    $wp_customize->add_setting('infinity_show_breadcrumbs', array(
+        'default'           => true,
+        'sanitize_callback' => 'rest_sanitize_boolean',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('infinity_show_breadcrumbs', array(
+        'label'       => esc_html__('Show Breadcrumbs', 'infinity'),
+        'description' => esc_html__('Display breadcrumb navigation on inner pages.', 'infinity'),
+        'section'     => 'infinity_navigation',
+        'type'        => 'checkbox',
+    ));
+
+    // Back to Top Option
+    $wp_customize->add_setting('infinity_show_back_to_top', array(
+        'default'           => true,
+        'sanitize_callback' => 'rest_sanitize_boolean',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('infinity_show_back_to_top', array(
+        'label'       => esc_html__('Show Back to Top Button', 'infinity'),
+        'description' => esc_html__('Display a button to scroll back to the top.', 'infinity'),
+        'section'     => 'infinity_navigation',
+        'type'        => 'checkbox',
+    ));
+}
+add_action('customize_register', 'infinity_navigation_customize_register');
+
+/**
+ * Conditionally hide back-to-top button via body class
+ *
+ * @since 1.0.0
+ */
+function infinity_navigation_body_classes($classes) {
+    if (!get_theme_mod('infinity_show_back_to_top', true)) {
+        $classes[] = 'hide-back-to-top';
+    }
+    return $classes;
+}
+add_filter('body_class', 'infinity_navigation_body_classes')

@@ -15,7 +15,7 @@
 </a>
 
 <div id="page" class="site">
-    <header id="masthead" class="site-header" role="banner">
+    <header id="masthead" class="site-header<?php echo get_theme_mod('infinity_sticky_header', false) ? ' sticky-header' : ''; ?>" role="banner">
         <div class="container">
             <div class="site-branding">
                 <?php
@@ -33,16 +33,39 @@
                 ?>
             </div>
 
-            <nav id="site-navigation" class="main-navigation" role="navigation">
+            <button
+                type="button"
+                class="mobile-menu-toggle"
+                aria-controls="site-navigation"
+                aria-expanded="false"
+                aria-label="<?php esc_attr_e('Toggle navigation menu', 'infinity'); ?>"
+            >
+                <span class="hamburger-icon">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </span>
+            </button>
+
+            <nav id="site-navigation" class="main-navigation" role="navigation" aria-label="<?php esc_attr_e('Primary Menu', 'infinity'); ?>">
                 <?php
                 wp_nav_menu(array(
                     'theme_location' => 'primary',
                     'menu_id'        => 'primary-menu',
+                    'menu_class'     => 'nav-menu',
+                    'container'      => false,
                     'fallback_cb'    => false,
                 ));
                 ?>
             </nav>
         </div>
     </header>
+
+    <?php
+    // Display breadcrumbs on appropriate pages
+    if (!is_front_page() && get_theme_mod('infinity_show_breadcrumbs', true)) {
+        infinity_breadcrumbs();
+    }
+    ?>
 
     <main id="main-content" class="site-main" role="main">
