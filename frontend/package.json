@@ -21,6 +21,7 @@
     "three": "^0.160.0",
     "cannon-es": "^0.20.0",
     "@react-three/cannon": "^6.6.0",
+    "ammo.js": "^0.0.10",
     "zustand": "^4.4.7",
     "jotai": "^2.6.0",
     "@tanstack/react-query": "^5.17.0",
