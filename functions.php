@@ -95,7 +95,7 @@ function infinity_enqueue_scripts() {
     }
 
     // Pass PHP data to JavaScript
-    wp_localize_script('infinity-app', 'infinityData', array(
+    $frontend_data = array(
         'restUrl'        => esc_url_raw(rest_url()),
         'nonce'          => wp_create_nonce('wp_rest'),
         'graphqlUrl'     => esc_url_raw(home_url('/graphql')),
@@ -105,7 +105,32 @@ function infinity_enqueue_scripts() {
         'isUserLoggedIn' => is_user_logged_in(),
         'theme'          => get_option('infinity_theme_mode', 'dark-cosmic'),
         'stripeKey'      => get_option('infinity_stripe_publishable_key', ''),
-    ));
+        'stripe'         => array(
+            'enabled'        => infinity_stripe_configured(),
+            'publishableKey' => get_option('infinity_stripe_publishable_key', ''),
+            'prices'         => array(
+                'monthly' => get_option('infinity_stripe_price_monthly', ''),
+                'yearly'  => get_option('infinity_stripe_price_yearly', ''),
+            ),
+            'premiumPrice'   => infinity_get_premium_price(),
+        ),
+    );
+
+    // Add user subscription data if logged in
+    if (is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        $frontend_data['subscription'] = array(
+            'status'            => infinity_get_user_subscription_status($user_id),
+            'isPremium'         => infinity_has_active_subscription($user_id),
+            'currentPeriodEnd'  => (int) get_user_meta($user_id, 'infinity_subscription_current_period_end', true),
+            'cancelAtPeriodEnd' => get_user_meta($user_id, 'infinity_subscription_cancel_at_period_end', true) === '1',
+        );
+    }
+
+    // Allow filtering of frontend data
+    $frontend_data = apply_filters('infinity_frontend_data', $frontend_data);
+
+    wp_localize_script('infinity-app', 'infinityData', $frontend_data);
 
     // Comment reply script
     if (is_singular() && comments_open() && get_option('thread_comments')) {
@@ -361,6 +386,32 @@ function infinity_customize_register($wp_customize) {
         'type'        => 'text',
     ));
 
+    // Stripe Secret Key (stored securely)
+    $wp_customize->add_setting('infinity_stripe_secret_key', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('infinity_stripe_secret_key', array(
+        'label'       => esc_html__('Stripe Secret Key', 'infinity'),
+        'description' => esc_html__('Enter your Stripe secret key (starts with sk_)', 'infinity'),
+        'section'     => 'infinity_stripe_settings',
+        'type'        => 'password',
+    ));
+
+    // Stripe Webhook Secret
+    $wp_customize->add_setting('infinity_stripe_webhook_secret', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('infinity_stripe_webhook_secret', array(
+        'label'       => esc_html__('Stripe Webhook Secret', 'infinity'),
+        'description' => esc_html__('Enter your Stripe webhook signing secret (starts with whsec_)', 'infinity'),
+        'section'     => 'infinity_stripe_settings',
+        'type'        => 'password',
+    ));
+
     // Premium Pricing
     $wp_customize->add_setting('infinity_premium_price', array(
         'default'           => '20',
@@ -376,6 +427,31 @@ function infinity_customize_register($wp_customize) {
             'max'  => 1000,
             'step' => 1,
         ),
+    ));
+
+    // Stripe Price IDs
+    $wp_customize->add_setting('infinity_stripe_price_monthly', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('infinity_stripe_price_monthly', array(
+        'label'       => esc_html__('Stripe Monthly Price ID', 'infinity'),
+        'description' => esc_html__('Price ID from Stripe dashboard (starts with price_)', 'infinity'),
+        'section'     => 'infinity_stripe_settings',
+        'type'        => 'text',
+    ));
+
+    $wp_customize->add_setting('infinity_stripe_price_yearly', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('infinity_stripe_price_yearly', array(
+        'label'       => esc_html__('Stripe Yearly Price ID', 'infinity'),
+        'description' => esc_html__('Yearly price ID from Stripe dashboard', 'infinity'),
+        'section'     => 'infinity_stripe_settings',
+        'type'        => 'text',
     ));
 }
 add_action('customize_register', 'infinity_customize_register');
@@ -419,6 +495,7 @@ require_once INFINITY_DIR . '/inc/user-roles.php';
 require_once INFINITY_DIR . '/inc/subscription-functions.php';
 require_once INFINITY_DIR . '/inc/simulation-meta.php';
 require_once INFINITY_DIR . '/inc/api-endpoints.php';
+require_once INFINITY_DIR . '/inc/stripe-api.php';
 
 // Load WooCommerce compatibility if plugin is active
 if (class_exists('WooCommerce')) {
