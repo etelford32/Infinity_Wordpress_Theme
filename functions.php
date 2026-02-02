@@ -496,6 +496,7 @@ require_once INFINITY_DIR . '/inc/subscription-functions.php';
 require_once INFINITY_DIR . '/inc/simulation-meta.php';
 require_once INFINITY_DIR . '/inc/api-endpoints.php';
 require_once INFINITY_DIR . '/inc/stripe-api.php';
+require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 
 // Load WooCommerce compatibility if plugin is active
 if (class_exists('WooCommerce')) {
