@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaCreditCard, FaCalendar, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import { useAuth } from '@context/AuthContext';
-import { apiClient } from '@lib/api';
+import { useAuth } from '@lib/auth/AuthProvider';
+import { apiClient } from '@lib/api/client';
 
 interface Subscription {
   id: string;
@@ -34,7 +34,7 @@ export function SubscriptionManager({
   paymentMethod,
   onUpdate,
 }: SubscriptionManagerProps) {
-  const { user } = useAuth();
+  useAuth();
   const [loading, setLoading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 

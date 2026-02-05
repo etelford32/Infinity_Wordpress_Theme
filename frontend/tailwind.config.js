@@ -79,6 +79,12 @@ export default {
         success: '#10b981',
         warning: '#f59e0b',
         error: '#ef4444',
+
+        // Border color (uses CSS variable)
+        border: 'var(--bg-tertiary, #1e2330)',
+      },
+      borderColor: {
+        border: 'var(--bg-tertiary, #1e2330)',
       },
       fontFamily: {
         sans: [

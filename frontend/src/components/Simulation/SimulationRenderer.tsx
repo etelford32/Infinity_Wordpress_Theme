@@ -4,7 +4,6 @@ import { useSimulation } from '@hooks/useSimulation';
 import { SimulationControls } from './SimulationControls';
 import { SimulationStats } from './SimulationStats';
 import { BaseSimulationConfig } from '@lib/simulation';
-import { LoadingScreen } from '@components/UI/LoadingScreen';
 
 interface SimulationRendererProps {
   simulationId: string;
@@ -87,7 +86,7 @@ export function SimulationRenderer({
   useEffect(() => {
     if (!sceneReady || !scene || !camera || !renderer) return;
 
-    startRenderLoop((deltaTime) => {
+    startRenderLoop((_deltaTime) => {
       incrementFrame();
 
       // Update simulation-specific data

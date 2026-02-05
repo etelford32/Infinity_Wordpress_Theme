@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { PricingCard, PricingTier } from './PricingCard';
-import { useAuth } from '@context/AuthContext';
+import { useAuth } from '@lib/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
-import { apiClient } from '@lib/api';
+import { apiClient } from '@lib/api/client';
 
 interface PricingPageProps {
   tiers?: PricingTier[];
