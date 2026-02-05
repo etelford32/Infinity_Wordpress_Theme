@@ -14,6 +14,7 @@ const ChallengePage = lazy(() => import('@components/Pages/ChallengePage'));
 const DashboardPage = lazy(() => import('@components/Pages/DashboardPage'));
 const PricingPage = lazy(() => import('@components/Pages/PricingPage'));
 const NotFoundPage = lazy(() => import('@components/Pages/NotFoundPage'));
+const AdminDashboard = lazy(() => import('@components/Admin/AdminDashboard'));
 
 export function AppRoutes() {
   return (
@@ -96,6 +97,15 @@ export function AppRoutes() {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PricingPage />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="admin"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AdminDashboard />
             </Suspense>
           }
         />
