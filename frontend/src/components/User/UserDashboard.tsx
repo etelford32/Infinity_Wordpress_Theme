@@ -15,8 +15,8 @@ import {
   FaCreditCard,
   FaSignInAlt,
 } from 'react-icons/fa';
-import { useAuth } from '@context/AuthContext';
-import { apiClient } from '@lib/api';
+import { useAuth } from '@lib/auth/AuthProvider';
+import { apiClient } from '@lib/api/client';
 
 interface UserStats {
   totalSimulations: number;

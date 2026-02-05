@@ -226,7 +226,7 @@ export class CameraController {
   /**
    * Update orbit mode
    */
-  private updateOrbit(deltaTime: number): void {
+  private updateOrbit(_deltaTime: number): void {
     if (!this.target) return;
 
     // Clamp phi (vertical angle) to prevent gimbal lock
@@ -461,7 +461,7 @@ export class CameraController {
     }
   }
 
-  private onMouseUp(event: MouseEvent): void {
+  private onMouseUp(_event: MouseEvent): void {
     this.input.mouseDown = false;
   }
 

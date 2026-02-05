@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { FaUser, FaEnvelope, FaSave, FaCamera, FaCog } from 'react-icons/fa';
-import { useAuth } from '@context/AuthContext';
-import { apiClient } from '@lib/api';
+import { useAuth } from '@lib/auth/AuthProvider';
+import { apiClient } from '@lib/api/client';
 
 interface UserProfileData {
   displayName: string;

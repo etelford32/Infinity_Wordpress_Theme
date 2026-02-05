@@ -23,9 +23,9 @@ export class CannonPhysicsEngine extends PhysicsEngine {
       gravity: new CANNON.Vec3(this.gravity.x, this.gravity.y, this.gravity.z),
     });
 
-    // Solver settings for better performance
-    this.world.solver.iterations = 10;
-    this.world.solver.tolerance = 0.01;
+    // Solver settings for better performance (GSSolver properties)
+    (this.world.solver as CANNON.GSSolver).iterations = 10;
+    (this.world.solver as CANNON.GSSolver).tolerance = 0.01;
 
     // Broad-phase collision detection (faster for many bodies)
     this.world.broadphase = new CANNON.SAPBroadphase(this.world);

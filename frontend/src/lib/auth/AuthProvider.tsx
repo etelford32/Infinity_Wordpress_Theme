@@ -2,6 +2,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@lib/api/client';
 
+interface UserSubscription {
+  tierId: string;
+  tierName: string;
+  status: string;
+}
+
 interface User {
   id: number;
   username: string;
@@ -9,6 +15,13 @@ interface User {
   isPremium: boolean;
   subscriptionStatus: string;
   remainingSimulations: number;
+  displayName?: string;
+  bio?: string;
+  avatarUrl?: string;
+  location?: string;
+  website?: string;
+  occupation?: string;
+  subscription?: UserSubscription;
 }
 
 interface UserStats {
@@ -27,6 +40,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   canRunSimulation: boolean;
   refetchUserStats: () => void;
+  updateUser: (data: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -88,15 +102,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     ? (userStats?.remainingToday ?? 2) > 0
     : user?.isPremium || (user?.remainingSimulations ?? 0) > 0;
 
+  // Update user data
+  const updateUser = (data: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...data } : null));
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        userStats,
+        userStats: userStats ?? null,
         isLoading,
         isAuthenticated,
         canRunSimulation,
         refetchUserStats,
+        updateUser,
       }}
     >
       {children}
