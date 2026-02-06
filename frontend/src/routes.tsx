@@ -13,6 +13,7 @@ const ChallengesPage = lazy(() => import('@components/Pages/ChallengesPage'));
 const ChallengePage = lazy(() => import('@components/Pages/ChallengePage'));
 const DashboardPage = lazy(() => import('@components/Pages/DashboardPage'));
 const PricingPage = lazy(() => import('@components/Pages/PricingPage'));
+const AccountPage = lazy(() => import('@components/Pages/AccountPage'));
 const NotFoundPage = lazy(() => import('@components/Pages/NotFoundPage'));
 const AdminDashboard = lazy(() => import('@components/Admin/AdminDashboard'));
 
@@ -97,6 +98,32 @@ export function AppRoutes() {
           element={
             <Suspense fallback={<LoadingScreen />}>
               <PricingPage />
+            </Suspense>
+          }
+        />
+
+        {/* Account routes - profile, subscription, settings */}
+        <Route
+          path="account"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AccountPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="account/subscription"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AccountPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="account/settings"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AccountPage />
             </Suspense>
           }
         />
