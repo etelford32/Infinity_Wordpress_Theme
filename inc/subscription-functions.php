@@ -12,8 +12,15 @@ if (!defined('ABSPATH')) {
 
 /**
  * Get Stripe publishable key
+ *
+ * Prefers wp-config.php constants for security. Falls back to options.
+ * To use constants, add to wp-config.php:
+ *   define('INFINITY_STRIPE_PUBLISHABLE_KEY', 'pk_...');
  */
 function infinity_get_stripe_key() {
+    if (defined('INFINITY_STRIPE_PUBLISHABLE_KEY') && INFINITY_STRIPE_PUBLISHABLE_KEY) {
+        return INFINITY_STRIPE_PUBLISHABLE_KEY;
+    }
     return get_option('infinity_stripe_publishable_key', '');
 }
 

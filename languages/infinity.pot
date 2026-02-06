@@ -1,0 +1,1073 @@
+# Copyright (C) 2026 Ethan Telford
+# This file is distributed under the same license as the Infinity theme.
+# Ethan Telford, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Infinity 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/etelford32/Infinity_Wordpress_Theme/issues\n"
+"POT-Creation-Date: 2026-02-06T00:00:00+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Infinity Theme POT Generator\n"
+"X-Domain: infinity\n"
+
+#. Theme Name of the theme
+msgid "Infinity"
+msgstr ""
+
+#. Theme URI of the theme
+msgid "https://github.com/etelford32/Infinity_Wordpress_Theme"
+msgstr ""
+
+#. Description of the theme
+msgid "A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators."
+msgstr ""
+
+#. Author of the theme
+msgid "Ethan Telford"
+msgstr ""
+
+#. Author URI of the theme
+msgid "https://github.com/etelford32"
+msgstr ""
+
+#: functions.php:63
+msgid "Primary Menu"
+msgstr ""
+
+#: functions.php:64
+msgid "Footer Menu"
+msgstr ""
+
+#: functions.php:149
+msgid "Simulations"
+msgstr ""
+
+#: functions.php:150
+msgid "Simulation"
+msgstr ""
+
+#: functions.php:152 functions.php:180 functions.php:208
+msgid "Add New"
+msgstr ""
+
+#: functions.php:153
+msgid "Add New Simulation"
+msgstr ""
+
+#: functions.php:154
+msgid "Edit Simulation"
+msgstr ""
+
+#: functions.php:155
+msgid "New Simulation"
+msgstr ""
+
+#: functions.php:156
+msgid "View Simulation"
+msgstr ""
+
+#: functions.php:157
+msgid "Search Simulations"
+msgstr ""
+
+#: functions.php:158
+msgid "No simulations found"
+msgstr ""
+
+#: functions.php:159
+msgid "No simulations found in trash"
+msgstr ""
+
+#: functions.php:160
+msgid "All Simulations"
+msgstr ""
+
+#: functions.php:177
+msgid "Blueprints"
+msgstr ""
+
+#: functions.php:178
+msgid "Blueprint"
+msgstr ""
+
+#: functions.php:181
+msgid "Add New Blueprint"
+msgstr ""
+
+#: functions.php:182
+msgid "Edit Blueprint"
+msgstr ""
+
+#: functions.php:183
+msgid "New Blueprint"
+msgstr ""
+
+#: functions.php:184
+msgid "View Blueprint"
+msgstr ""
+
+#: functions.php:185
+msgid "Search Blueprints"
+msgstr ""
+
+#: functions.php:186
+msgid "No blueprints found"
+msgstr ""
+
+#: functions.php:187
+msgid "No blueprints found in trash"
+msgstr ""
+
+#: functions.php:188
+msgid "All Blueprints"
+msgstr ""
+
+#: functions.php:205
+msgid "Challenges"
+msgstr ""
+
+#: functions.php:206
+msgid "Challenge"
+msgstr ""
+
+#: functions.php:209
+msgid "Add New Challenge"
+msgstr ""
+
+#: functions.php:210
+msgid "Edit Challenge"
+msgstr ""
+
+#: functions.php:211
+msgid "New Challenge"
+msgstr ""
+
+#: functions.php:212
+msgid "View Challenge"
+msgstr ""
+
+#: functions.php:213
+msgid "Search Challenges"
+msgstr ""
+
+#: functions.php:214
+msgid "No challenges found"
+msgstr ""
+
+#: functions.php:215
+msgid "No challenges found in trash"
+msgstr ""
+
+#: functions.php:216
+msgid "All Challenges"
+msgstr ""
+
+#: functions.php:239
+msgid "Simulation Categories"
+msgstr ""
+
+#: functions.php:240
+msgid "Simulation Category"
+msgstr ""
+
+#: functions.php:241
+msgid "Search Categories"
+msgstr ""
+
+#: functions.php:242
+msgid "All Categories"
+msgstr ""
+
+#: functions.php:243
+msgid "Edit Category"
+msgstr ""
+
+#: functions.php:244
+msgid "Update Category"
+msgstr ""
+
+#: functions.php:245
+msgid "Add New Category"
+msgstr ""
+
+#: functions.php:246
+msgid "New Category Name"
+msgstr ""
+
+#: functions.php:247
+msgid "Categories"
+msgstr ""
+
+#: functions.php:262
+msgid "Difficulty Levels"
+msgstr ""
+
+#: functions.php:263
+msgid "Difficulty Level"
+msgstr ""
+
+#: functions.php:264
+msgid "Search Levels"
+msgstr ""
+
+#: functions.php:265 archive.php:39
+msgid "All Levels"
+msgstr ""
+
+#: functions.php:266
+msgid "Edit Level"
+msgstr ""
+
+#: functions.php:267
+msgid "Update Level"
+msgstr ""
+
+#: functions.php:268
+msgid "Add New Level"
+msgstr ""
+
+#: functions.php:269
+msgid "New Level Name"
+msgstr ""
+
+#: functions.php:270
+msgid "Difficulty"
+msgstr ""
+
+#: functions.php:285
+msgid "Physics Engines"
+msgstr ""
+
+#: functions.php:286
+msgid "Physics Engine"
+msgstr ""
+
+#: functions.php:287
+msgid "Search Engines"
+msgstr ""
+
+#: functions.php:288 archive.php:61
+msgid "All Engines"
+msgstr ""
+
+#: functions.php:289
+msgid "Edit Engine"
+msgstr ""
+
+#: functions.php:290
+msgid "Update Engine"
+msgstr ""
+
+#: functions.php:291
+msgid "Add New Engine"
+msgstr ""
+
+#: functions.php:292
+msgid "New Engine Name"
+msgstr ""
+
+#: functions.php:322
+msgid "Sidebar"
+msgstr ""
+
+#: functions.php:324
+msgid "Add widgets here to appear in your sidebar."
+msgstr ""
+
+#: functions.php:332
+msgid "Footer"
+msgstr ""
+
+#: functions.php:334
+msgid "Add widgets here to appear in your footer."
+msgstr ""
+
+#: functions.php:349
+msgid "Theme Appearance"
+msgstr ""
+
+#: functions.php:360
+msgid "Visual Theme"
+msgstr ""
+
+#: functions.php:364
+msgid "Dark Cosmic"
+msgstr ""
+
+#: functions.php:365
+msgid "Light Playful"
+msgstr ""
+
+#: functions.php:366
+msgid "Science Mode (Light)"
+msgstr ""
+
+#: functions.php:367
+msgid "Science Mode (Dark)"
+msgstr ""
+
+#: functions.php:373
+msgid "Subscription Settings"
+msgstr ""
+
+#: functions.php:383
+msgid "Stripe Publishable Key"
+msgstr ""
+
+#: functions.php:384
+msgid "Enter your Stripe publishable key for subscriptions"
+msgstr ""
+
+#: functions.php:396
+msgid "Stripe Secret Key"
+msgstr ""
+
+#: functions.php:397
+msgid "Enter your Stripe secret key (starts with sk_)"
+msgstr ""
+
+#: functions.php:409
+msgid "Stripe Webhook Secret"
+msgstr ""
+
+#: functions.php:410
+msgid "Enter your Stripe webhook signing secret (starts with whsec_)"
+msgstr ""
+
+#: functions.php:422
+msgid "Premium Monthly Price (USD)"
+msgstr ""
+
+#: functions.php:439
+msgid "Stripe Monthly Price ID"
+msgstr ""
+
+#: functions.php:440
+msgid "Price ID from Stripe dashboard (starts with price_)"
+msgstr ""
+
+#: functions.php:451
+msgid "Stripe Yearly Price ID"
+msgstr ""
+
+#: functions.php:452
+msgid "Yearly price ID from Stripe dashboard"
+msgstr ""
+
+#: functions.php:525
+msgid "Home"
+msgstr ""
+
+#: functions.php:527
+msgid "Breadcrumb"
+msgstr ""
+
+#. translators: %s: search query
+#: functions.php:636
+msgid "Search: %s"
+msgstr ""
+
+#: functions.php:643
+msgid "Page Not Found"
+msgstr ""
+
+#: functions.php:671 footer.php:42
+msgid "Back to top"
+msgstr ""
+
+#: functions.php:683
+msgid "Navigation & UX"
+msgstr ""
+
+#: functions.php:695
+msgid "Enable Sticky Header"
+msgstr ""
+
+#: functions.php:696
+msgid "Header will remain fixed at the top while scrolling."
+msgstr ""
+
+#: functions.php:709
+msgid "Show Breadcrumbs"
+msgstr ""
+
+#: functions.php:710
+msgid "Display breadcrumb navigation on inner pages."
+msgstr ""
+
+#: functions.php:723
+msgid "Show Back to Top Button"
+msgstr ""
+
+#: functions.php:724
+msgid "Display a button to scroll back to the top."
+msgstr ""
+
+#: header.php:14 index.php:13
+msgid "Skip to content"
+msgstr ""
+
+#: header.php:41
+msgid "Toggle navigation menu"
+msgstr ""
+
+#: footer.php:27
+msgid "Powered by"
+msgstr ""
+
+#: footer.php:28
+msgid "https://wordpress.org/"
+msgstr ""
+
+#: footer.php:29
+msgid "and"
+msgstr ""
+
+#: index.php:20
+msgid "JavaScript Required"
+msgstr ""
+
+#: index.php:21
+msgid "This application requires JavaScript to run interactive simulations. Please enable JavaScript in your browser settings."
+msgstr ""
+
+#: 404.php:15
+msgid "Lost in Space"
+msgstr ""
+
+#: 404.php:31
+msgid "The page you're looking for has drifted beyond our observable universe. It might have been moved, deleted, or perhaps it never existed in this dimension."
+msgstr ""
+
+#: 404.php:36
+msgid "Return to Mission Control"
+msgstr ""
+
+#: 404.php:41
+msgid "Or try searching for what you need:"
+msgstr ""
+
+#: 404.php:56
+msgid "Explore These Simulations"
+msgstr ""
+
+#: archive.php:37
+msgid "Difficulty:"
+msgstr ""
+
+#: archive.php:59
+msgid "Engine:"
+msgstr ""
+
+#: archive.php:92 search.php:96
+msgid "Premium"
+msgstr ""
+
+#. translators: %s: number of plays
+#: archive.php:124
+msgid "%s plays"
+msgstr ""
+
+#. translators: %s: number of votes
+#: archive.php:135
+msgid "%s votes"
+msgstr ""
+
+#. translators: %s: number of completions
+#: archive.php:146 single-challenge.php:266
+msgid "%s completions"
+msgstr ""
+
+#: archive.php:171 search.php:109
+msgid "&larr; Previous"
+msgstr ""
+
+#: archive.php:172 search.php:110
+msgid "Next &rarr;"
+msgstr ""
+
+#: archive.php:179
+msgid "No items found. Check back later for new content!"
+msgstr ""
+
+#: archive.php:181
+msgid "Return Home"
+msgstr ""
+
+#: page.php:33 single.php:64 single-blueprint.php:139 single-simulation.php:73
+msgid "Pages:"
+msgstr ""
+
+#. translators: %s: post title
+#: page.php:46 single.php:99
+msgid "Edit <span class=\"sr-only\">%s</span>"
+msgstr ""
+
+#. translators: %s: search query
+#: search.php:20
+msgid "Search Results for: %s"
+msgstr ""
+
+#. translators: %d: number of results
+#: search.php:30
+msgid "%d result found"
+msgid_plural "%d results found"
+msgstr[0] ""
+msgstr[1] ""
+
+#: search.php:36
+msgid "No Results Found"
+msgstr ""
+
+#: search.php:87 single-simulation.php:32
+msgid "Cannon.js"
+msgstr ""
+
+#: search.php:88 single-simulation.php:33
+msgid "Ammo.js"
+msgstr ""
+
+#: search.php:89 single-simulation.php:34
+msgid "GPU Compute"
+msgstr ""
+
+#: search.php:117
+msgid "Sorry, no results matched your search. Try different keywords or browse our simulations."
+msgstr ""
+
+#: search.php:120
+msgid "Popular Simulations"
+msgstr ""
+
+#: searchform.php:14
+msgid "Search for:"
+msgstr ""
+
+#: searchform.php:21
+msgid "Search simulations, blueprints..."
+msgstr ""
+
+#: searchform.php:26
+msgid "Search"
+msgstr ""
+
+#: single.php:76
+msgid "Tags:"
+msgstr ""
+
+#: single.php:88
+msgid "Previous:"
+msgstr ""
+
+#: single.php:89
+msgid "Next:"
+msgstr ""
+
+#: single-blueprint.php:22
+msgid "Public"
+msgstr ""
+
+#: single-blueprint.php:23
+msgid "Private"
+msgstr ""
+
+#: single-blueprint.php:24
+msgid "Unlisted"
+msgstr ""
+
+#: single-blueprint.php:37
+msgid "Based on:"
+msgstr ""
+
+#. translators: %s: author name
+#: single-blueprint.php:57
+msgid "Created by %s"
+msgstr ""
+
+#: single-blueprint.php:78
+msgid "votes"
+msgstr ""
+
+#: single-blueprint.php:88
+msgid "forks"
+msgstr ""
+
+#: single-blueprint.php:106
+msgid "Launch Simulation"
+msgstr ""
+
+#: single-blueprint.php:113
+msgid "Vote"
+msgstr ""
+
+#: single-blueprint.php:123
+msgid "Fork"
+msgstr ""
+
+#: single-blueprint.php:129
+msgid "Log in to interact with this blueprint"
+msgstr ""
+
+#: single-blueprint.php:151
+msgid "Configuration"
+msgstr ""
+
+#: single-blueprint.php:174
+msgid "Related Blueprints"
+msgstr ""
+
+#: single-challenge.php:34
+msgid "Active Now"
+msgstr ""
+
+#: single-challenge.php:35
+msgid "Coming Soon"
+msgstr ""
+
+#: single-challenge.php:36
+msgid "Challenge Ended"
+msgstr ""
+
+#: single-challenge.php:61
+msgid "Starts:"
+msgstr ""
+
+#: single-challenge.php:67
+msgid "Ends:"
+msgstr ""
+
+#: single-challenge.php:77
+msgid "Completions"
+msgstr ""
+
+#: single-challenge.php:81
+msgid "Attempts"
+msgstr ""
+
+#: single-challenge.php:86
+msgid "Success Rate"
+msgstr ""
+
+#: single-challenge.php:102
+msgid "Challenge Description"
+msgstr ""
+
+#: single-challenge.php:110
+msgid "Success Criteria"
+msgstr ""
+
+#: single-challenge.php:139
+msgid "Challenge Simulation"
+msgstr ""
+
+#: single-challenge.php:146
+msgid "Open Simulation"
+msgstr ""
+
+#: single-challenge.php:158
+msgid "Take the Challenge"
+msgstr ""
+
+#: single-challenge.php:163
+msgid "Start Challenge"
+msgstr ""
+
+#: single-challenge.php:176
+msgid "You've completed this challenge!"
+msgstr ""
+
+#: single-challenge.php:182
+msgid "Log in to Participate"
+msgstr ""
+
+#: single-challenge.php:187
+msgid "This challenge hasn't started yet. Check back soon!"
+msgstr ""
+
+#: single-challenge.php:189
+msgid "This challenge has ended. Stay tuned for new challenges!"
+msgstr ""
+
+#: single-challenge.php:199
+msgid "Leaderboard"
+msgstr ""
+
+#: single-challenge.php:250
+msgid "More Challenges"
+msgstr ""
+
+#: single-simulation.php:41
+msgid "Loading simulation..."
+msgstr ""
+
+#. translators: %s: number of plays
+#: single-simulation.php:48
+msgid "%s play"
+msgid_plural "%s plays"
+msgstr[0] ""
+msgstr[1] ""
+
+#: single-simulation.php:85
+msgid "Categories:"
+msgstr ""
+
+#: comments.php:24
+msgid "Comments"
+msgstr ""
+
+#. translators: 1: comment count, 2: post title
+#: comments.php:33
+msgctxt "comments title"
+msgid "%1$s Comment on &ldquo;%2$s&rdquo;"
+msgid_plural "%1$s Comments on &ldquo;%2$s&rdquo;"
+msgstr[0] ""
+msgstr[1] ""
+
+#: comments.php:58
+msgid "Older comments"
+msgstr ""
+
+#: comments.php:59
+msgid "Newer comments"
+msgstr ""
+
+#: comments.php:66
+msgid "Comments are closed."
+msgstr ""
+
+#: comments.php:71
+msgid "Leave a Comment"
+msgstr ""
+
+#: comments.php:76
+msgid "Comment"
+msgstr ""
+
+#. translators: 1: date, 2: time
+#: comments.php:317
+msgid "%1$s at %2$s"
+msgstr ""
+
+#: comments.php:324
+msgid "Edit"
+msgstr ""
+
+#: comments.php:329
+msgid "Your comment is awaiting moderation."
+msgstr ""
+
+#: inc/user-roles.php:20
+msgid "Premium Subscriber"
+msgstr ""
+
+#: inc/subscription-functions.php:104 inc/stripe-api.php:632
+msgid "No active subscription found."
+msgstr ""
+
+#: inc/simulation-meta.php:264
+msgid "Simulation Configuration"
+msgstr ""
+
+#: inc/simulation-meta.php:271
+msgid "Simulation Statistics"
+msgstr ""
+
+#: inc/simulation-meta.php:295
+msgid "Physics Engine:"
+msgstr ""
+
+#: inc/simulation-meta.php:306
+msgid "Premium Content (requires subscription)"
+msgstr ""
+
+#: inc/simulation-meta.php:313
+msgid "Allow users to modify parameters"
+msgstr ""
+
+#: inc/simulation-meta.php:318
+msgid "Configuration JSON:"
+msgstr ""
+
+#: inc/simulation-meta.php:320
+msgid "Enter simulation configuration as JSON"
+msgstr ""
+
+#: inc/simulation-meta.php:336
+msgid "Play Count:"
+msgstr ""
+
+#: inc/simulation-meta.php:340
+msgid "Avg. Session:"
+msgstr ""
+
+#: inc/simulation-meta.php:341
+msgid "%d min %d sec"
+msgstr ""
+
+#: inc/stripe-api.php:88 inc/stripe-api.php:549 inc/stripe-api.php:621 inc/stripe-api.php:669 inc/stripe-api.php:721
+msgid "Stripe is not configured."
+msgstr ""
+
+#: inc/stripe-api.php:118
+msgid "Stripe API error"
+msgstr ""
+
+#: inc/stripe-api.php:142
+msgid "User not found."
+msgstr ""
+
+#: inc/stripe-api.php:564
+msgid "Invalid price ID."
+msgstr ""
+
+#: inc/stripe-api.php:571
+msgid "You already have an active subscription."
+msgstr ""
+
+#: inc/stripe-api.php:657
+msgid "Subscription will be canceled at the end of the billing period."
+msgstr ""
+
+#: inc/stripe-api.php:679
+msgid "No subscription found."
+msgstr ""
+
+#: inc/stripe-api.php:687
+msgid "Subscription is not set to cancel."
+msgstr ""
+
+#: inc/stripe-api.php:712
+msgid "Subscription has been reactivated."
+msgstr ""
+
+#: inc/stripe-api.php:732
+msgid "No customer record found."
+msgstr ""
+
+#. translators: %s: simulation title
+#: inc/analytics-dashboard.php:230
+msgid "Started simulation: %s"
+msgstr ""
+
+#. translators: %s: simulation title
+#: inc/analytics-dashboard.php:231
+msgid "Completed simulation: %s"
+msgstr ""
+
+#. translators: %s: blueprint title
+#: inc/analytics-dashboard.php:232
+msgid "Created blueprint: %s"
+msgstr ""
+
+#. translators: %s: blueprint title
+#: inc/analytics-dashboard.php:233
+msgid "Forked blueprint: %s"
+msgstr ""
+
+#. translators: %s: blueprint title
+#: inc/analytics-dashboard.php:234
+msgid "Voted on blueprint: %s"
+msgstr ""
+
+#. translators: %s: challenge title
+#: inc/analytics-dashboard.php:235
+msgid "Started challenge: %s"
+msgstr ""
+
+#. translators: %s: challenge title
+#: inc/analytics-dashboard.php:236
+msgid "Completed challenge: %s"
+msgstr ""
+
+#: inc/analytics-dashboard.php:237
+msgid "Started premium subscription"
+msgstr ""
+
+#: inc/analytics-dashboard.php:238
+msgid "Canceled subscription"
+msgstr ""
+
+#: inc/analytics-dashboard.php:239
+msgid "Logged in"
+msgstr ""
+
+#. translators: %s: activity object title
+#: inc/analytics-dashboard.php:242
+msgid "Activity: %s"
+msgstr ""
+
+#. translators: %d: number of seconds
+#: inc/analytics-dashboard.php:537
+msgid "%d seconds"
+msgstr ""
+
+#. translators: %d: hours, %d: minutes
+#: inc/analytics-dashboard.php:544
+msgid "%dh %dm"
+msgstr ""
+
+#. translators: %d: number of minutes
+#: inc/analytics-dashboard.php:547
+msgid "%d minutes"
+msgstr ""
+
+#: inc/analytics-dashboard.php:374
+msgid "Unknown"
+msgstr ""
+
+#: inc/analytics-dashboard.php:678
+msgid "Failed to start session"
+msgstr ""
+
+#: inc/analytics-dashboard.php:724
+msgid "Failed to end session"
+msgstr ""
+
+#: inc/analytics-dashboard.php:827
+msgid "Infinity Analytics"
+msgstr ""
+
+#: inc/analytics-dashboard.php:828
+msgid "Analytics"
+msgstr ""
+
+#: inc/analytics-dashboard.php:845
+msgid "Infinity Analytics Dashboard"
+msgstr ""
+
+#: inc/analytics-dashboard.php:848
+msgid "Date Range:"
+msgstr ""
+
+#: inc/analytics-dashboard.php:850
+msgid "Last 7 days"
+msgstr ""
+
+#: inc/analytics-dashboard.php:851
+msgid "Last 30 days"
+msgstr ""
+
+#: inc/analytics-dashboard.php:852
+msgid "Last 90 days"
+msgstr ""
+
+#: inc/analytics-dashboard.php:853
+msgid "Last year"
+msgstr ""
+
+#: inc/analytics-dashboard.php:860
+msgid "Total Sessions"
+msgstr ""
+
+#: inc/analytics-dashboard.php:862
+msgid "Simulation plays"
+msgstr ""
+
+#: inc/analytics-dashboard.php:866
+msgid "Unique Users"
+msgstr ""
+
+#: inc/analytics-dashboard.php:868
+msgid "Active players"
+msgstr ""
+
+#: inc/analytics-dashboard.php:872
+msgid "Avg. Duration"
+msgstr ""
+
+#: inc/analytics-dashboard.php:874
+msgid "Per session"
+msgstr ""
+
+#: inc/analytics-dashboard.php:878 inc/analytics-dashboard.php:939
+msgid "Premium Users"
+msgstr ""
+
+#: inc/analytics-dashboard.php:880
+msgid "Active subscribers"
+msgstr ""
+
+#: inc/analytics-dashboard.php:884 inc/analytics-dashboard.php:970
+msgid "Monthly Revenue"
+msgstr ""
+
+#: inc/analytics-dashboard.php:886
+msgid "MRR"
+msgstr ""
+
+#: inc/analytics-dashboard.php:890
+msgid "New Users"
+msgstr ""
+
+#: inc/analytics-dashboard.php:892
+msgid "In date range"
+msgstr ""
+
+#: inc/analytics-dashboard.php:898
+msgid "Daily Sessions"
+msgstr ""
+
+#: inc/analytics-dashboard.php:906
+msgid "Top Simulations"
+msgstr ""
+
+#: inc/analytics-dashboard.php:912
+msgid "Sessions"
+msgstr ""
+
+#: inc/analytics-dashboard.php:932
+msgid "User Breakdown"
+msgstr ""
+
+#: inc/analytics-dashboard.php:935
+msgid "Total Users"
+msgstr ""
+
+#: inc/analytics-dashboard.php:943
+msgid "Free Users"
+msgstr ""
+
+#: inc/analytics-dashboard.php:947
+msgid "Conversion Rate"
+msgstr ""
+
+#: inc/analytics-dashboard.php:959
+msgid "Subscription Health"
+msgstr ""
+
+#: inc/analytics-dashboard.php:962
+msgid "Active Subscriptions"
+msgstr ""
+
+#: inc/analytics-dashboard.php:966
+msgid "Total All-Time"
+msgstr ""
+
+#: inc/analytics-dashboard.php:974
+msgid "Churn Rate"
+msgstr ""
+
+#: inc/woocommerce-integration.php:48
+msgid "Premium Membership"
+msgstr ""
+
+#: inc/woocommerce-integration.php:49
+msgid "Get unlimited access to all simulations, blueprint creator, code tutorials, and more!"
+msgstr ""
+
+#: inc/graphql-extensions.php:196
+msgid "You must be logged in to vote"
+msgstr ""
+
+#: inc/graphql-extensions.php:201
+msgid "Blueprint not found"
+msgstr ""
