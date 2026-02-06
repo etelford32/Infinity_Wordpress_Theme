@@ -739,4 +739,4 @@ function infinity_navigation_body_classes($classes) {
     }
     return $classes;
 }
-add_filter('body_class', 'infinity_navigation_body_classes')
+add_filter('body_class', 'infinity_navigation_body_classes');

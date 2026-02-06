@@ -14,15 +14,29 @@ if (!defined('ABSPATH')) {
 
 /**
  * Get Stripe secret key
+ *
+ * Prefers wp-config.php constants for security. Falls back to options.
+ * To use constants, add to wp-config.php:
+ *   define('INFINITY_STRIPE_SECRET_KEY', 'sk_...');
  */
 function infinity_get_stripe_secret_key() {
+    if (defined('INFINITY_STRIPE_SECRET_KEY') && INFINITY_STRIPE_SECRET_KEY) {
+        return INFINITY_STRIPE_SECRET_KEY;
+    }
     return get_option('infinity_stripe_secret_key', '');
 }
 
 /**
  * Get Stripe webhook secret
+ *
+ * Prefers wp-config.php constants for security. Falls back to options.
+ * To use constants, add to wp-config.php:
+ *   define('INFINITY_STRIPE_WEBHOOK_SECRET', 'whsec_...');
  */
 function infinity_get_stripe_webhook_secret() {
+    if (defined('INFINITY_STRIPE_WEBHOOK_SECRET') && INFINITY_STRIPE_WEBHOOK_SECRET) {
+        return INFINITY_STRIPE_WEBHOOK_SECRET;
+    }
     return get_option('infinity_stripe_webhook_secret', '');
 }
 
