@@ -1,7 +1,7 @@
 # 🌌 Infinity WordPress Theme
 
 **Version:** 1.0.0
-**Author:** Ethan Telford
+**Author:** Elliot Telford
 **License:** GPL v2 or later
 
 A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
