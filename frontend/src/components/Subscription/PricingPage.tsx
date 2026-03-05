@@ -4,21 +4,16 @@ import { useAuth } from '@lib/auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@lib/api/client';
 
-interface PricingPageProps {
-  tiers?: PricingTier[];
-  showIntervalToggle?: boolean;
-  title?: string;
-  subtitle?: string;
-  onSubscribe?: (tierId: string) => Promise<void>;
-}
-
+/* ============================================================
+   DEFAULT TIERS
+   ============================================================ */
 const defaultTiers: PricingTier[] = [
   {
     id: 'free',
     name: 'Explorer',
     price: 0,
     interval: 'month',
-    description: 'Perfect for getting started with simulations',
+    description: 'Begin your journey — no commitment needed.',
     features: [
       { name: '2 simulations per day', included: true },
       { name: 'Access to basic simulations', included: true },
@@ -36,7 +31,7 @@ const defaultTiers: PricingTier[] = [
     name: 'Cosmic Explorer',
     price: 20,
     interval: 'month',
-    description: 'Unlimited access to the cosmos',
+    description: 'Unlimited access to the full simulation suite.',
     features: [
       { name: 'Unlimited simulations', included: true },
       { name: 'All simulation types', included: true },
@@ -48,7 +43,7 @@ const defaultTiers: PricingTier[] = [
       { name: 'VR/AR support', included: true },
     ],
     highlighted: true,
-    buttonText: 'Go Premium',
+    buttonText: 'Go Cosmic',
     stripePriceId: 'price_premium_monthly',
   },
   {
@@ -56,7 +51,7 @@ const defaultTiers: PricingTier[] = [
     name: 'Cosmic Explorer',
     price: 200,
     interval: 'year',
-    description: 'Save 17% with annual billing',
+    description: 'Save 17% — all Cosmic features, billed annually.',
     features: [
       { name: 'Unlimited simulations', included: true },
       { name: 'All simulation types', included: true },
@@ -68,10 +63,54 @@ const defaultTiers: PricingTier[] = [
       { name: 'VR/AR support', included: true },
       { name: 'Save $40 per year', included: true, value: '$40 savings' },
     ],
-    buttonText: 'Go Premium',
+    highlighted: true,
+    buttonText: 'Go Cosmic',
     stripePriceId: 'price_premium_yearly',
   },
 ];
+
+/* ============================================================
+   FAQ DATA
+   ============================================================ */
+const FAQS = [
+  {
+    q: 'Can I switch plans later?',
+    a: 'Yes. You can upgrade or downgrade at any time. Changes take effect at the start of your next billing cycle.',
+  },
+  {
+    q: 'What payment methods do you accept?',
+    a: 'All major credit and debit cards through Stripe. No subscription data is stored on our servers.',
+  },
+  {
+    q: 'Can I cancel my subscription?',
+    a: "Anytime — from your account settings. You keep access until the end of the current billing period.",
+  },
+  {
+    q: 'What happens to my blueprints if I downgrade?',
+    a: "Your blueprints are always yours. On the free tier you can view and run existing ones, but creating new blueprints requires an active Cosmic plan.",
+  },
+];
+
+/* ============================================================
+   SOCIAL PROOF STATS
+   ============================================================ */
+const STATS = [
+  { value: '12 k+', label: 'Active researchers' },
+  { value: '80 k+', label: 'Simulations run' },
+  { value: '3 200+', label: 'Community blueprints' },
+  { value: '4.9 ★', label: 'Average rating' },
+];
+
+/* ============================================================
+   COMPONENT
+   ============================================================ */
+interface PricingPageProps {
+  tiers?: PricingTier[];
+  showIntervalToggle?: boolean;
+  title?: string;
+  subtitle?: string;
+  onSubscribe?: (tierId: string) => Promise<void>;
+}
 
 export function PricingPage({
   tiers = defaultTiers,
@@ -85,48 +124,36 @@ export function PricingPage({
   const [interval, setInterval] = useState<'month' | 'year'>('month');
   const [loading, setLoading] = useState<string | null>(null);
 
-  // Filter tiers by selected interval
   const filteredTiers = showIntervalToggle
-    ? tiers.filter((tier) => tier.price === 0 || tier.interval === interval)
+    ? tiers.filter((t) => t.price === 0 || t.interval === interval)
     : tiers;
 
   const handleSelectTier = async (tierId: string) => {
-    // If not authenticated, redirect to login
     if (!isAuthenticated) {
       navigate(`/login?redirect=/pricing&tier=${tierId}`);
       return;
     }
-
-    // If free tier, just redirect to dashboard
     if (tierId === 'free') {
       navigate('/dashboard');
       return;
     }
 
     setLoading(tierId);
-
     try {
       if (onSubscribe) {
-        // Custom subscription handler
         await onSubscribe(tierId);
       } else {
-        // Default Stripe checkout
         const tier = tiers.find((t) => t.id === tierId);
-        if (!tier?.stripePriceId) {
-          throw new Error('Stripe price ID not configured for this tier');
-        }
-
+        if (!tier?.stripePriceId) throw new Error('Stripe price ID not configured');
         const response = await apiClient.post('/subscriptions/checkout', {
           priceId: tier.stripePriceId,
         });
-
-        // Redirect to Stripe Checkout
         if (response.data.checkoutUrl) {
           window.location.href = response.data.checkoutUrl;
         }
       }
-    } catch (error) {
-      console.error('Subscription error:', error);
+    } catch (err) {
+      console.error('Subscription error:', err);
       alert('Failed to process subscription. Please try again.');
     } finally {
       setLoading(null);
@@ -134,51 +161,116 @@ export function PricingPage({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] py-16 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-[var(--text-primary)] mb-4">
+    <div
+      className="min-h-screen py-16 px-4"
+      style={{ background: 'var(--bg-primary)' }}
+    >
+      <div className="max-w-6xl mx-auto">
+
+        {/* ── Hero Header ── */}
+        <div className="text-center mb-14 max-w-3xl mx-auto">
+          {/* Eyebrow label */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div
+              className="h-px w-8 flex-shrink-0"
+              style={{ background: 'var(--accent-primary)', opacity: 0.5 }}
+            />
+            <span
+              className="text-xs font-semibold tracking-[0.2em] uppercase"
+              style={{ color: 'var(--accent-primary)' }}
+            >
+              Pricing
+            </span>
+            <div
+              className="h-px w-8 flex-shrink-0"
+              style={{ background: 'var(--accent-primary)', opacity: 0.5 }}
+            />
+          </div>
+
+          <h1
+            className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-balance leading-[1.15]"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {title}
           </h1>
-          <p className="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto">
+          <p
+            className="text-lg leading-relaxed text-balance"
+            style={{ color: 'var(--text-secondary)' }}
+          >
             {subtitle}
           </p>
         </div>
 
-        {/* Interval Toggle */}
+        {/* ── Stats strip ── */}
+        <div
+          className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-14 rounded-2xl p-6"
+          style={{
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid var(--glass-border)',
+          }}
+        >
+          {STATS.map((s) => (
+            <div key={s.label} className="text-center">
+              <div
+                className="text-2xl font-extrabold tracking-tight"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {s.value}
+              </div>
+              <div
+                className="text-xs mt-0.5"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Interval Toggle ── */}
         {showIntervalToggle && (
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex items-center bg-[var(--bg-secondary)] rounded-lg p-1 border border-[var(--bg-tertiary)]">
-              <button
-                onClick={() => setInterval('month')}
-                className={`px-6 py-3 rounded-md font-semibold transition-all duration-200 ${
-                  interval === 'month'
-                    ? 'bg-[var(--accent-primary)] text-white shadow-lg'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setInterval('year')}
-                className={`px-6 py-3 rounded-md font-semibold transition-all duration-200 relative ${
-                  interval === 'year'
-                    ? 'bg-[var(--accent-primary)] text-white shadow-lg'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Yearly
-                <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
-                  Save 17%
-                </span>
-              </button>
+          <div className="flex justify-center mb-10">
+            <div
+              className="inline-flex items-center gap-1 p-1 rounded-xl"
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--glass-border)',
+              }}
+            >
+              {(['month', 'year'] as const).map((iv) => (
+                <button
+                  key={iv}
+                  onClick={() => setInterval(iv)}
+                  className="relative px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200"
+                  style={
+                    interval === iv
+                      ? {
+                          background: 'var(--accent-primary)',
+                          color: '#fff',
+                          boxShadow: 'var(--shadow-glow)',
+                        }
+                      : { color: 'var(--text-secondary)' }
+                  }
+                >
+                  {iv === 'month' ? 'Monthly' : 'Yearly'}
+                  {iv === 'year' && (
+                    <span
+                      className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                      style={{ background: '#10b981', color: '#fff' }}
+                    >
+                      −17%
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        {/* ── Pricing Cards ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch mb-20">
           {filteredTiers.map((tier) => (
             <PricingCard
               key={tier.id}
@@ -190,76 +282,118 @@ export function PricingPage({
           ))}
         </div>
 
-        {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-8 text-center">
-            Frequently Asked Questions
-          </h2>
-
-          <div className="space-y-6">
-            <div className="bg-[var(--bg-secondary)] rounded-lg p-6 border border-[var(--bg-tertiary)]">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-                Can I switch plans later?
-              </h3>
-              <p className="text-[var(--text-secondary)]">
-                Yes! You can upgrade or downgrade your plan at any time. Changes
-                take effect at the start of your next billing cycle.
-              </p>
-            </div>
-
-            <div className="bg-[var(--bg-secondary)] rounded-lg p-6 border border-[var(--bg-tertiary)]">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-                What payment methods do you accept?
-              </h3>
-              <p className="text-[var(--text-secondary)]">
-                We accept all major credit cards and debit cards through our secure
-                Stripe payment processor.
-              </p>
-            </div>
-
-            <div className="bg-[var(--bg-secondary)] rounded-lg p-6 border border-[var(--bg-tertiary)]">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-                Can I cancel my subscription?
-              </h3>
-              <p className="text-[var(--text-secondary)]">
-                Absolutely. You can cancel your subscription at any time from your
-                account settings. You'll continue to have access until the end of
-                your current billing period.
-              </p>
-            </div>
-
-            <div className="bg-[var(--bg-secondary)] rounded-lg p-6 border border-[var(--bg-tertiary)]">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-                What happens to my blueprints if I downgrade?
-              </h3>
-              <p className="text-[var(--text-secondary)]">
-                Your created blueprints are always yours. If you downgrade to the
-                free tier, you can still view and run your blueprints, but you won't
-                be able to create new ones until you upgrade again.
-              </p>
-            </div>
+        {/* ── FAQ ── */}
+        <div className="max-w-2xl mx-auto mb-20">
+          <div className="text-center mb-8">
+            <h2
+              className="text-2xl font-bold tracking-tight"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Frequently asked questions
+            </h2>
+          </div>
+          <div className="space-y-4">
+            {FAQS.map((faq) => (
+              <FAQItem key={faq.q} question={faq.q} answer={faq.a} />
+            ))}
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] rounded-2xl p-12">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Ready to Explore the Cosmos?
+        {/* ── CTA Banner ── */}
+        <div className="relative overflow-hidden rounded-2xl">
+          {/* Background gradient */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 60%, var(--accent-tertiary) 100%)',
+              opacity: 0.95,
+            }}
+          />
+          {/* Subtle grid overlay */}
+          <div
+            className="absolute inset-0 instrument-grid opacity-20"
+            aria-hidden
+          />
+          <div className="relative z-10 text-center px-8 py-14">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">
+              Ready to explore the cosmos?
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join thousands of students, educators, and space enthusiasts creating
-              amazing simulations.
+            <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
+              Join thousands of students, educators, and researchers creating
+              astrophysical simulations.
             </p>
             <button
               onClick={() => navigate('/signup')}
-              className="px-8 py-4 bg-white text-[var(--accent-primary)] rounded-lg font-bold text-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-sm transition-all duration-150 hover:scale-105 active:scale-[0.98] shadow-lg"
+              style={{ background: '#fff', color: 'var(--accent-primary)' }}
             >
-              Start Your Free Journey
+              Start free — no card required
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 8h10M9 4l4 4-4 4" />
+              </svg>
             </button>
           </div>
         </div>
+
       </div>
+    </div>
+  );
+}
+
+/* ── FAQ accordion item ── */
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className="rounded-xl overflow-hidden transition-colors duration-150"
+      style={{
+        background: 'var(--bg-secondary)',
+        border: '1px solid var(--glass-border)',
+      }}
+    >
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
+      >
+        <span
+          className="font-semibold text-sm leading-snug"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          {question}
+        </span>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--text-tertiary)' }}
+        >
+          <path d="M3 6l5 5 5-5" />
+        </svg>
+      </button>
+      {open && (
+        <div className="px-5 pb-4">
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            {answer}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

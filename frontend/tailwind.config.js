@@ -22,11 +22,28 @@ export default {
           tertiary: '#06b6d4',
         },
 
+        // Science Editorial Theme (Nature journal / research paper)
+        'editorial-bg': {
+          primary: '#F8F7F4',
+          secondary: '#EEECEA',
+          tertiary: '#E0DDD7',
+        },
+        'editorial-text': {
+          primary: '#1A1F36',
+          secondary: '#3D4468',
+          tertiary: '#6B7194',
+        },
+        'editorial-accent': {
+          primary: '#0D7C6E',
+          secondary: '#0A9B89',
+          tertiary: '#C7821A',
+        },
+
         // Light Playful Theme
         'playful-bg': {
           primary: '#fef3f2',
           secondary: '#fff7ed',
-          tertiary: '#ffffff',
+          tertiary: '#ffe8d6',
         },
         'playful-text': {
           primary: '#1e1b4b',
@@ -105,12 +122,19 @@ export default {
           '"Courier New"',
           'monospace',
         ],
+        serif: [
+          '"Georgia"',
+          '"Times New Roman"',
+          'serif',
+        ],
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',
         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite',
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-down': 'slideDown 0.25s ease-out',
       },
       keyframes: {
         float: {
@@ -121,11 +145,36 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.5' },
         },
+        fadeIn: {
+          from: { opacity: '0', transform: 'translateY(4px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideDown: {
+          from: { opacity: '0', transform: 'translateY(-8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       boxShadow: {
-        'glow-sm': '0 0 10px rgba(99, 102, 241, 0.3)',
-        'glow-md': '0 0 20px rgba(99, 102, 241, 0.5)',
-        'glow-lg': '0 0 30px rgba(99, 102, 241, 0.7)',
+        // Dynamic glow — references CSS variable colors
+        'glow-sm': 'var(--shadow-glow)',
+        'glow-md': 'var(--shadow-glow)',
+        'glow-lg': 'var(--shadow-glow-lg)',
+        // Static glow fallbacks
+        'glow-indigo-sm': '0 0 10px rgba(99, 102, 241, 0.3)',
+        'glow-indigo-md': '0 0 20px rgba(99, 102, 241, 0.5)',
+        'glow-indigo-lg': '0 0 30px rgba(99, 102, 241, 0.7)',
+        // Card elevation
+        'card': '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
+        'card-hover': '0 4px 12px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06)',
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+      backgroundImage: {
+        'gradient-editorial': 'linear-gradient(135deg, #0D7C6E, #0A9B89)',
+        'gradient-cosmic': 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+        'grid-subtle':
+          'linear-gradient(rgba(var(--accent-primary-rgb), 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-primary-rgb), 0.05) 1px, transparent 1px)',
       },
     },
   },
