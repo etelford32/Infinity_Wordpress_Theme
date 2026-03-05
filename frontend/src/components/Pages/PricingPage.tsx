@@ -1,3 +1,1 @@
-export default function PricingPage() {
-  return <div>Pricing - Coming Soon</div>;
-}
+export { PricingPage as default } from '@components/Subscription/PricingPage';

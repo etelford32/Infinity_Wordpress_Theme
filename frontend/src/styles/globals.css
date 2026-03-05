@@ -20,7 +20,8 @@
 
   /* Focus visible styles for accessibility */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-cosmic-accent-primary;
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
   }
 
   /* Smooth scrolling */
@@ -55,21 +56,59 @@
 
   /* Loading states */
   .skeleton {
-    @apply animate-pulse bg-cosmic-bg-tertiary rounded;
+    @apply animate-pulse rounded;
+    background: var(--bg-tertiary);
   }
 
-  /* Glass morphism effect */
+  /* Glass morphism — adapts to theme */
   .glass {
-    @apply backdrop-blur-md bg-opacity-10;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid var(--glass-border);
   }
 
   /* Glow effect for stars/particles */
   .glow {
     filter: drop-shadow(0 0 10px currentColor);
   }
+
+  /* Gradient border utility using pseudo-element */
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Instrument panel grid overlay */
+  .instrument-grid {
+    background-image:
+      linear-gradient(rgba(var(--accent-primary-rgb), 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--accent-primary-rgb), 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
 }
 
-/* Theme-specific overrides */
+/* ============================================================
+   THEMES
+   ============================================================ */
+
+/* Dark Cosmic — deep space, indigo/violet */
 [data-theme='dark-cosmic'] {
   --bg-primary: #0a0e1a;
   --bg-secondary: #141824;
@@ -80,20 +119,57 @@
   --accent-primary: #6366f1;
   --accent-secondary: #8b5cf6;
   --accent-tertiary: #06b6d4;
+  --accent-primary-rgb: 99, 102, 241;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.35);
+  --shadow-glow-lg: 0 0 40px rgba(99, 102, 241, 0.55);
+  --glass-bg: rgba(20, 24, 36, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --nav-bg: rgba(10, 14, 26, 0.92);
 }
 
+/* Science Editorial — Nature journal / research paper aesthetic
+   Off-white paper, deep navy text, intentional teal accents */
+[data-theme='science-editorial'] {
+  --bg-primary: #F8F7F4;
+  --bg-secondary: #EEECEA;
+  --bg-tertiary: #E0DDD7;
+  --text-primary: #1A1F36;
+  --text-secondary: #3D4468;
+  --text-tertiary: #6B7194;
+  --accent-primary: #0D7C6E;
+  --accent-secondary: #0A9B89;
+  --accent-tertiary: #C7821A;
+  --accent-primary-rgb: 13, 124, 110;
+  --border-subtle: rgba(26, 31, 54, 0.08);
+  --shadow-glow: 0 4px 20px rgba(13, 124, 110, 0.14);
+  --shadow-glow-lg: 0 8px 40px rgba(13, 124, 110, 0.22);
+  --glass-bg: rgba(248, 247, 244, 0.8);
+  --glass-border: rgba(26, 31, 54, 0.1);
+  --nav-bg: rgba(248, 247, 244, 0.96);
+}
+
+/* Light Playful — warm & creative */
 [data-theme='light-playful'] {
   --bg-primary: #fef3f2;
   --bg-secondary: #fff7ed;
-  --bg-tertiary: #ffffff;
+  --bg-tertiary: #ffe8d6;
   --text-primary: #1e1b4b;
   --text-secondary: #4c1d95;
   --text-tertiary: #6b21a8;
   --accent-primary: #f472b6;
   --accent-secondary: #fb923c;
   --accent-tertiary: #fbbf24;
+  --accent-primary-rgb: 244, 114, 182;
+  --border-subtle: rgba(30, 27, 75, 0.08);
+  --shadow-glow: 0 0 20px rgba(244, 114, 182, 0.28);
+  --shadow-glow-lg: 0 0 40px rgba(244, 114, 182, 0.45);
+  --glass-bg: rgba(254, 243, 242, 0.75);
+  --glass-border: rgba(244, 114, 182, 0.14);
+  --nav-bg: rgba(254, 243, 242, 0.95);
 }
 
+/* Science Light — standard light mode */
 [data-theme='science-light'] {
   --bg-primary: #f8fafc;
   --bg-secondary: #f1f5f9;
@@ -104,8 +180,16 @@
   --accent-primary: #3b82f6;
   --accent-secondary: #06b6d4;
   --accent-tertiary: #8b5cf6;
+  --accent-primary-rgb: 59, 130, 246;
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.28);
+  --shadow-glow-lg: 0 0 40px rgba(59, 130, 246, 0.45);
+  --glass-bg: rgba(248, 250, 252, 0.75);
+  --glass-border: rgba(59, 130, 246, 0.1);
+  --nav-bg: rgba(248, 250, 252, 0.95);
 }
 
+/* Science Dark — midnight blue */
 [data-theme='science-dark'] {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
@@ -116,40 +200,229 @@
   --accent-primary: #60a5fa;
   --accent-secondary: #22d3ee;
   --accent-tertiary: #a78bfa;
+  --accent-primary-rgb: 96, 165, 250;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --shadow-glow: 0 0 20px rgba(96, 165, 250, 0.3);
+  --shadow-glow-lg: 0 0 40px rgba(96, 165, 250, 0.5);
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --nav-bg: rgba(15, 23, 42, 0.92);
 }
 
-/* Three.js canvas specific styles */
+/* ============================================================
+   THREE.JS CANVAS STYLES
+   ============================================================ */
 canvas {
   display: block;
   touch-action: none;
   outline: none;
 }
 
-/* Loading spinner */
+/* ============================================================
+   COMPONENT STYLES
+   ============================================================ */
+
+/* Loading spinner — uses CSS vars instead of Tailwind tokens */
 .spinner {
-  @apply animate-spin rounded-full border-4 border-cosmic-bg-tertiary border-t-cosmic-accent-primary;
+  border-radius: 9999px;
+  border: 3px solid var(--bg-tertiary);
+  border-top-color: var(--accent-primary);
+  animation: _spin 0.7s linear infinite;
+}
+
+@keyframes _spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--bg-tertiary);
-  border-radius: 5px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
 }
 
-/* Print styles */
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+.nav-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--nav-bg);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.nav-group {
+  position: relative;
+}
+
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  min-width: 240px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.nav-group:hover .nav-dropdown,
+.nav-group:focus-within .nav-dropdown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.12s ease, color 0.12s ease;
+  white-space: nowrap;
+}
+
+.nav-dropdown-item:hover {
+  background: rgba(var(--accent-primary-rgb), 0.08);
+  color: var(--accent-primary);
+}
+
+.nav-dropdown-label {
+  padding: 6px 12px 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.nav-dropdown-divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 4px 6px;
+}
+
+/* ============================================================
+   PRICING ANIMATIONS
+   ============================================================ */
+@keyframes pricing-glow-pulse {
+  0%, 100% { box-shadow: var(--shadow-glow); }
+  50%       { box-shadow: var(--shadow-glow-lg); }
+}
+
+.pricing-highlight-glow {
+  animation: pricing-glow-pulse 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   SIMULATION INSTRUMENT PANEL
+   ============================================================ */
+.instrument-panel {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+
+.instrument-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--glass-border);
+  font-family: 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.instrument-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--glass-border);
+  font-family: 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.06em;
+}
+
+.instrument-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: instrument-blink 2.4s ease-in-out infinite;
+}
+
+@keyframes instrument-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+
+/* Corner brackets decoration */
+.instrument-corner-tl,
+.instrument-corner-br {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--accent-primary);
+  border-style: solid;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.instrument-corner-tl {
+  top: 48px; /* below header */
+  left: 8px;
+  border-width: 2px 0 0 2px;
+  border-radius: 2px 0 0 0;
+}
+.instrument-corner-br {
+  bottom: 36px; /* above footer */
+  right: 8px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 2px 0;
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
 @media print {
   canvas,
   .simulation-canvas-container {
