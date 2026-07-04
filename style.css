@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 1.2.0
+Version: 1.3.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -1625,4 +1625,160 @@ code {
 
 .footer-sites a:hover {
   color: var(--color-accent-primary);
+}
+
+/* ==========================================================================
+   14.0 Black Hole Hero & Logo
+   ========================================================================== */
+
+/* Hero with the shader accretion disk behind the title */
+.fp-hero-blackhole {
+  position: relative;
+  overflow: hidden;
+  padding: calc(var(--spacing-3xl) * 1.6) 0 calc(var(--spacing-3xl) * 1.4);
+}
+
+#fp-blackhole {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* CSS fallback when WebGL is unavailable */
+#fp-blackhole.fp-blackhole-fallback {
+  background:
+    radial-gradient(ellipse 62% 20% at 50% 50%, transparent 22%, color-mix(in srgb, var(--color-accent-primary) 55%, transparent) 34%, color-mix(in srgb, var(--color-accent-secondary) 35%, transparent) 48%, transparent 68%),
+    radial-gradient(circle at 50% 50%, #000 0%, #000 9%, transparent 11%);
+}
+
+.fp-hero-blackhole .fp-hero-inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.fp-hero-blackhole .fp-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fp-hero-blackhole .fp-hero-title {
+  font-size: clamp(2.6rem, 7vw, 5.2rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--spacing-md);
+  background: linear-gradient(100deg, #fff 0%, #c7c9ff 28%, var(--color-accent-primary) 55%, var(--color-accent-secondary) 82%, #fff 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter:
+    drop-shadow(0 2px 24px rgba(10, 14, 26, 0.9))
+    drop-shadow(0 0 46px color-mix(in srgb, var(--color-accent-primary) 45%, transparent));
+  animation: bh-title-shimmer 9s ease-in-out infinite;
+}
+
+@keyframes bh-title-shimmer {
+  0%, 100% { background-position: 0% 0; }
+  50%      { background-position: 100% 0; }
+}
+
+.fp-hero-blackhole .fp-hero-tagline {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-secondary);
+  text-shadow: 0 2px 16px rgba(10, 14, 26, 0.95);
+  margin-bottom: var(--spacing-lg);
+}
+
+.fp-hero-blackhole .fp-pillar-nav {
+  justify-content: center;
+}
+
+.fp-hero-blackhole .fp-pillar-nav a {
+  background: color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+/* Header logo wrapped in black-hole physics */
+.bh-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.bh-logo-img {
+  position: relative;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+/* Accretion ring: spinning conic gradient, blurred into plasma */
+.bh-logo-accretion {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--color-accent-primary) 85%, transparent) 40deg,
+    rgba(255, 255, 255, 0.9) 70deg,
+    color-mix(in srgb, var(--color-accent-secondary) 80%, transparent) 110deg,
+    transparent 170deg,
+    transparent 210deg,
+    color-mix(in srgb, var(--color-accent-primary) 45%, transparent) 265deg,
+    transparent 330deg
+  );
+  filter: blur(5px) saturate(130%);
+  animation: bh-accretion-spin 5.5s linear infinite;
+  opacity: 0.85;
+}
+
+/* Photon ring: thin bright rim hugging the logo */
+.bh-logo-photon {
+  position: absolute;
+  inset: 1px;
+  z-index: 1;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 0 10px 1px color-mix(in srgb, var(--color-accent-primary) 70%, transparent),
+    inset 0 0 8px color-mix(in srgb, var(--color-accent-primary) 45%, transparent);
+  animation: bh-photon-flicker 4s ease-in-out infinite;
+}
+
+.site-logo-link:hover .bh-logo-accretion {
+  animation-duration: 1.6s;
+  opacity: 1;
+}
+
+.site-logo-link:hover .bh-logo-img {
+  transform: scale(1.06);
+  transition: transform var(--transition-base);
+}
+
+@keyframes bh-accretion-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bh-photon-flicker {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .fp-hero-blackhole {
+    padding: var(--spacing-3xl) 0;
+  }
 }

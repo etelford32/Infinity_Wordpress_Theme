@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '1.2.0');
+define('INFINITY_VERSION', '1.3.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -757,6 +757,17 @@ function infinity_enqueue_navigation_scripts() {
         'stickyHeader'   => get_theme_mod('infinity_sticky_header', false),
         'backToTopText'  => __('Back to top', 'infinity'),
     ));
+
+    // Black hole accretion disk shader, front page hero only
+    if (is_front_page()) {
+        wp_enqueue_script(
+            'infinity-blackhole',
+            INFINITY_URI . '/assets/js/blackhole.js',
+            array(),
+            INFINITY_VERSION,
+            true
+        );
+    }
 }
 add_action('wp_enqueue_scripts', 'infinity_enqueue_navigation_scripts');
 

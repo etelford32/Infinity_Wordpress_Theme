@@ -18,28 +18,44 @@
     <header id="masthead" class="site-header<?php echo get_theme_mod('infinity_sticky_header', false) ? ' sticky-header' : ''; ?>" role="banner">
         <div class="container">
             <div class="site-branding">
-                <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
-                    <span class="cosmic-logo" aria-hidden="true">
-                        <span class="cosmic-logo-monogram">ET</span>
-                        <span class="cosmic-orbit cosmic-orbit-a">
-                            <span class="cosmic-orbit-ring"></span>
-                            <span class="cosmic-orbiter"></span>
+                <?php if (has_custom_logo()) : ?>
+                    <?php
+                    // The user's own logo, wrapped in black-hole physics:
+                    // spinning accretion ring behind it, photon-ring rim.
+                    $infinity_logo_id  = get_theme_mod('custom_logo');
+                    $infinity_logo_src = wp_get_attachment_image_url($infinity_logo_id, 'medium');
+                    ?>
+                    <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
+                        <span class="bh-logo" aria-hidden="true">
+                            <span class="bh-logo-accretion"></span>
+                            <span class="bh-logo-photon"></span>
+                            <img class="bh-logo-img" src="<?php echo esc_url($infinity_logo_src); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>">
                         </span>
-                        <span class="cosmic-orbit cosmic-orbit-b">
-                            <span class="cosmic-orbit-ring"></span>
-                            <span class="cosmic-orbiter"></span>
-                        </span>
-                        <span class="cosmic-logo-sparkle"></span>
-                    </span>
-                    <?php if (has_custom_logo()) : ?>
-                        <?php the_custom_logo(); ?>
-                    <?php else : ?>
                         <span class="site-title-group">
                             <span class="site-title"><?php bloginfo('name'); ?></span>
-                            <span class="site-tagline"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
+                            <span class="site-tagline"><?php bloginfo('description'); ?></span>
                         </span>
-                    <?php endif; ?>
-                </a>
+                    </a>
+                <?php else : ?>
+                    <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
+                        <span class="cosmic-logo" aria-hidden="true">
+                            <span class="cosmic-logo-monogram">ET</span>
+                            <span class="cosmic-orbit cosmic-orbit-a">
+                                <span class="cosmic-orbit-ring"></span>
+                                <span class="cosmic-orbiter"></span>
+                            </span>
+                            <span class="cosmic-orbit cosmic-orbit-b">
+                                <span class="cosmic-orbit-ring"></span>
+                                <span class="cosmic-orbiter"></span>
+                            </span>
+                            <span class="cosmic-logo-sparkle"></span>
+                        </span>
+                        <span class="site-title-group">
+                            <span class="site-title"><?php bloginfo('name'); ?></span>
+                            <span class="site-tagline"><?php bloginfo('description'); ?></span>
+                        </span>
+                    </a>
+                <?php endif; ?>
             </div>
 
             <button

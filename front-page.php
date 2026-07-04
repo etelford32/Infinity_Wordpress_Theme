@@ -26,8 +26,9 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
 
 <div class="front-page">
 
-    <!-- ================= Hero ================= -->
-    <section class="fp-hero">
+    <!-- ================= Hero: black hole ================= -->
+    <section class="fp-hero fp-hero-blackhole">
+        <canvas id="fp-blackhole" aria-hidden="true"></canvas>
         <div class="container">
             <div class="fp-hero-inner">
                 <div class="fp-hero-copy">
