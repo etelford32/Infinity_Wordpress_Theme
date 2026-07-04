@@ -18,26 +18,51 @@
     <header id="masthead" class="site-header<?php echo get_theme_mod('infinity_sticky_header', false) ? ' sticky-header' : ''; ?>" role="banner">
         <div class="container">
             <div class="site-branding">
-                <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
-                    <span class="cosmic-logo" aria-hidden="true">
-                        <span class="cosmic-logo-star"></span>
-                        <span class="cosmic-logo-orbit cosmic-logo-orbit-a">
-                            <span class="cosmic-logo-planet cosmic-logo-planet-a"></span>
+                <?php if (has_custom_logo()) : ?>
+                    <?php
+                    // The user's own logo, orbited by a 12-particle 3D
+                    // swarm (WebGL): back canvas behind the logo, front
+                    // canvas above, so particles genuinely circle it.
+                    $infinity_logo_id  = get_theme_mod('custom_logo');
+                    $infinity_logo_src = wp_get_attachment_image_url($infinity_logo_id, 'medium');
+                    ?>
+                    <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
+                        <span class="bh-logo" aria-hidden="true">
+                            <canvas class="bh-orbits bh-orbits-back"></canvas>
+                            <span class="bh-logo-photon"></span>
+                            <img class="bh-logo-img" src="<?php echo esc_url($infinity_logo_src); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>">
+                            <canvas class="bh-orbits bh-orbits-front"></canvas>
                         </span>
-                        <span class="cosmic-logo-orbit cosmic-logo-orbit-b">
-                            <span class="cosmic-logo-planet cosmic-logo-planet-b"></span>
-                        </span>
-                        <span class="cosmic-logo-sparkle"></span>
-                    </span>
-                    <?php if (has_custom_logo()) : ?>
-                        <?php the_custom_logo(); ?>
-                    <?php else : ?>
                         <span class="site-title-group">
                             <span class="site-title"><?php bloginfo('name'); ?></span>
-                            <span class="site-tagline"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
+                            <span class="site-tagline"><?php bloginfo('description'); ?></span>
                         </span>
-                    <?php endif; ?>
-                </a>
+                    </a>
+                <?php else : ?>
+                    <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
+                        <span class="cosmic-logo" aria-hidden="true">
+                            <span class="cosmic-logo-monogram">ET</span>
+                            <span class="cosmic-orbit cosmic-orbit-a">
+                                <span class="cosmic-orbit-ring"></span>
+                                <span class="cosmic-orbiter"></span>
+                            </span>
+                            <span class="cosmic-orbit cosmic-orbit-b">
+                                <span class="cosmic-orbit-ring"></span>
+                                <span class="cosmic-orbiter"></span>
+                            </span>
+                            <span class="cosmic-logo-sparkle"></span>
+                        </span>
+                        <span class="site-title-group">
+                            <span class="site-title"><?php bloginfo('name'); ?></span>
+                            <span class="site-tagline"><?php bloginfo('description'); ?></span>
+                        </span>
+                    </a>
+                <?php endif; ?>
+                <button type="button" class="theme-toggle" data-theme-toggle aria-label="<?php esc_attr_e('Toggle light and dark mode', 'infinity'); ?>">
+                    <span class="theme-toggle-icon theme-toggle-moon"><?php infinity_icon('moon', 11); ?></span>
+                    <span class="theme-toggle-icon theme-toggle-sun"><?php infinity_icon('sun', 11); ?></span>
+                    <span class="theme-toggle-knob"></span>
+                </button>
             </div>
 
             <button

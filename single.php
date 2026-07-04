@@ -56,15 +56,18 @@ get_header();
             </div>
         <?php endif; ?>
 
-        <div class="entry-content container">
-            <?php
-            the_content();
+        <div class="entry-layout container">
+            <div class="entry-content">
+                <?php
+                the_content();
 
-            wp_link_pages(array(
-                'before' => '<div class="page-links">' . esc_html__('Pages:', 'infinity'),
-                'after'  => '</div>',
-            ));
-            ?>
+                wp_link_pages(array(
+                    'before' => '<div class="page-links">' . esc_html__('Pages:', 'infinity'),
+                    'after'  => '</div>',
+                ));
+                ?>
+            </div>
+            <?php get_sidebar(); ?>
         </div>
 
         <footer class="entry-footer container">
@@ -182,6 +185,32 @@ get_header();
     height: auto;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+}
+
+.entry-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 800px) 340px;
+    gap: var(--spacing-2xl);
+    align-items: start;
+}
+
+.entry-layout .post-sidebar {
+    position: sticky;
+    top: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+@media (max-width: 1024px) {
+    .entry-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .entry-layout .post-sidebar {
+        position: static;
+        max-width: 480px;
+    }
 }
 
 .single-post .entry-content {
@@ -309,6 +338,42 @@ get_header();
 </style>
 
 <?php
+// Related articles: same category, strong internal linking for SEO
+$infinity_rel_cats = wp_get_post_categories(get_the_ID());
+if ($infinity_rel_cats) {
+    $infinity_rel = new WP_Query(array(
+        'category__in'        => $infinity_rel_cats,
+        'post__not_in'        => array(get_the_ID()),
+        'posts_per_page'      => 3,
+        'ignore_sticky_posts' => true,
+    ));
+    if ($infinity_rel->have_posts()) :
+?>
+<section class="related-posts container" aria-labelledby="related-heading">
+    <h2 id="related-heading" class="related-posts-title"><?php esc_html_e('Keep reading', 'infinity'); ?></h2>
+    <div class="fp-grid">
+        <?php while ($infinity_rel->have_posts()) : $infinity_rel->the_post(); ?>
+            <article class="fp-card">
+                <?php if (has_post_thumbnail()) : ?>
+                    <a class="fp-card-media" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
+                        <?php the_post_thumbnail('medium_large', array('loading' => 'lazy', 'decoding' => 'async')); ?>
+                    </a>
+                <?php endif; ?>
+                <div class="fp-card-body">
+                    <?php $infinity_rel_cat = get_the_category(); if ($infinity_rel_cat) : ?>
+                        <span class="fp-card-cat"><?php echo esc_html($infinity_rel_cat[0]->name); ?></span>
+                    <?php endif; ?>
+                    <h3 class="fp-card-title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
+                    <time class="fp-card-date" datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date()); ?></time>
+                </div>
+            </article>
+        <?php endwhile; wp_reset_postdata(); ?>
+    </div>
+</section>
+<?php
+    endif;
+}
+
 if (comments_open() || get_comments_number()) {
     comments_template();
 }

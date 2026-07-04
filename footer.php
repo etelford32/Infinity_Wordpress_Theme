@@ -1,5 +1,7 @@
     </main>
 
+    <?php if (function_exists('infinity_subscribe_band')) infinity_subscribe_band(); ?>
+
     <footer id="colophon" class="site-footer" role="contentinfo">
         <div class="container">
             <?php if (is_active_sidebar('footer-1')) : ?>
@@ -19,6 +21,15 @@
                     'fallback_cb'    => false,
                 ));
                 ?>
+            </nav>
+
+            <?php $footer_urls = infinity_property_urls(); ?>
+            <nav class="footer-sites" aria-label="<?php esc_attr_e('More from Elliot Telford', 'infinity'); ?>">
+                <span class="footer-sites-label"><?php esc_html_e('The Telford universe:', 'infinity'); ?></span>
+                <a href="<?php echo esc_url($footer_urls['parkers']); ?>" target="_blank" rel="noopener"><?php esc_html_e("Parker's Physics", 'infinity'); ?></a>
+                <a href="<?php echo esc_url($footer_urls['etu']); ?>" target="_blank" rel="noopener"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></a>
+                <a href="<?php echo esc_url($footer_urls['steam']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('The game on Steam', 'infinity'); ?></a>
+                <a href="<?php echo esc_url($footer_urls['landscaping']); ?>" target="_blank" rel="noopener"><?php esc_html_e('Telford Landscaping', 'infinity'); ?></a>
             </nav>
 
             <div class="site-info">
