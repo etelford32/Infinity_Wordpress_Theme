@@ -47,6 +47,7 @@ if ($infinity_etu_over) {
     $infinity_etu_chain = array();
 }
 $infinity_etu_onerror = "var q=(this.dataset.alt||'').split('|').filter(Boolean);if(q.length){this.dataset.alt=q.slice(1).join('|');this.src=q[0];}else{this.remove();}";
+$infinity_etu_video   = infinity_etu_video_url();
 ?>
 
 <div class="front-page">
@@ -199,7 +200,11 @@ $infinity_etu_onerror = "var q=(this.dataset.alt||'').split('|').filter(Boolean)
                     <span class="property-live-screen">
                         <span class="property-live-placeholder">
                             <span class="property-live-mono"><?php echo esc_html($infinity_prop['mono']); ?></span>
-                            <?php if ($infinity_prop['art']) : ?>
+                            <?php if ('etu' === $infinity_prop['key'] && $infinity_etu_video) : ?>
+                                <video class="property-live-art property-live-video" muted loop playsinline preload="none" poster="<?php echo esc_url($infinity_etu_art); ?>">
+                                    <source src="<?php echo esc_url($infinity_etu_video); ?>" type="video/mp4">
+                                </video>
+                            <?php elseif ($infinity_prop['art']) : ?>
                                 <img class="property-live-art" src="<?php echo esc_url($infinity_prop['art']); ?>" data-alt="<?php echo esc_attr(implode('|', $infinity_etu_chain)); ?>" alt="" loading="lazy" decoding="async" onerror="<?php echo esc_attr($infinity_etu_onerror); ?>">
                             <?php endif; ?>
                             <?php if ($infinity_logo) : ?>
@@ -353,15 +358,30 @@ $infinity_etu_onerror = "var q=(this.dataset.alt||'').split('|').filter(Boolean)
     <section class="fp-section fp-band fp-band-steam" id="explore-the-universe" aria-labelledby="fp-steam-heading">
         <div class="container">
             <div class="fp-band-inner">
-                <div class="fp-band-media">
-                    <img
-                        src="<?php echo esc_url($infinity_etu_art); ?>"
-                        data-alt="<?php echo esc_attr(implode('|', $infinity_etu_chain)); ?>"
-                        alt="<?php echo esc_attr(sprintf(__('%s key art', 'infinity'), $steam_label)); ?>"
-                        loading="lazy"
-                        decoding="async"
-                        onerror="<?php echo esc_attr($infinity_etu_onerror); ?>"
-                    >
+                <div class="fp-band-media<?php echo $infinity_etu_video ? ' fp-band-media-video' : ''; ?>">
+                    <?php if ($infinity_etu_video) : ?>
+                        <video
+                            class="fp-etu-video"
+                            muted
+                            loop
+                            playsinline
+                            preload="metadata"
+                            poster="<?php echo esc_url($infinity_etu_art); ?>"
+                            aria-label="<?php echo esc_attr(sprintf(__('%s teaser video', 'infinity'), $steam_label)); ?>"
+                        >
+                            <source src="<?php echo esc_url($infinity_etu_video); ?>" type="video/mp4">
+                        </video>
+                        <span class="fp-video-badge" aria-hidden="true">&#9654; <?php esc_html_e('Teaser', 'infinity'); ?></span>
+                    <?php else : ?>
+                        <img
+                            src="<?php echo esc_url($infinity_etu_art); ?>"
+                            data-alt="<?php echo esc_attr(implode('|', $infinity_etu_chain)); ?>"
+                            alt="<?php echo esc_attr(sprintf(__('%s key art', 'infinity'), $steam_label)); ?>"
+                            loading="lazy"
+                            decoding="async"
+                            onerror="<?php echo esc_attr($infinity_etu_onerror); ?>"
+                        >
+                    <?php endif; ?>
                 </div>
                 <div class="fp-band-copy">
                     <p class="fp-kicker"><?php esc_html_e('Now on Steam', 'infinity'); ?></p>

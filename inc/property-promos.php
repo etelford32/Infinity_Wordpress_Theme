@@ -52,6 +52,44 @@ function infinity_property_logo_url($key, $site_url) {
 }
 
 /**
+ * ETU teaser video: Customizer URL wins; otherwise auto-detect the
+ * newest video in the media library whose name starts with ETU_Vid
+ * (e.g. ETU_Vid1.mp4 uploaded to the media folder).
+ */
+function infinity_etu_video_url() {
+    $custom = get_option('infinity_etu_video', '');
+    if ($custom) {
+        return $custom;
+    }
+
+    $cached = get_transient('infinity_etu_video_url');
+    if (false !== $cached) {
+        return $cached;
+    }
+
+    $found = get_posts(array(
+        'post_type'      => 'attachment',
+        'post_status'    => 'inherit',
+        'post_mime_type' => 'video',
+        's'              => 'ETU_Vid',
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'posts_per_page' => 1,
+        'fields'         => 'ids',
+    ));
+
+    $url = $found ? (string) wp_get_attachment_url($found[0]) : '';
+    set_transient('infinity_etu_video_url', $url, 6 * HOUR_IN_SECONDS);
+    return $url;
+}
+
+// New uploads should be picked up promptly
+function infinity_clear_etu_video_cache() {
+    delete_transient('infinity_etu_video_url');
+}
+add_action('add_attachment', 'infinity_clear_etu_video_cache');
+
+/**
  * Steam app id parsed from the configured store URL (for the widget).
  */
 function infinity_steam_app_id() {

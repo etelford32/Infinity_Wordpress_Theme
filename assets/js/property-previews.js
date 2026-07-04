@@ -64,3 +64,33 @@
     io.observe(card);
   });
 })();
+
+/**
+ * Teaser videos (game band + ETU card): play only while on screen,
+ * stay on their poster frame for reduced-motion users.
+ */
+(function () {
+  'use strict';
+
+  var vids = document.querySelectorAll('.fp-etu-video, .property-live-video');
+  if (!vids.length) return;
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced || !('IntersectionObserver' in window)) return;
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      var v = entry.target;
+      if (entry.isIntersecting) {
+        var p = v.play();
+        if (p && p.catch) p.catch(function () {});
+      } else {
+        v.pause();
+      }
+    });
+  }, { rootMargin: '100px 0px' });
+
+  Array.prototype.forEach.call(vids, function (v) {
+    io.observe(v);
+  });
+})();

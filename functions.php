@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.4.0');
+define('INFINITY_VERSION', '2.5.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -619,6 +619,19 @@ function infinity_customize_register($wp_customize) {
         'description' => esc_html__('Shown in the game band and preview card. Leave empty to pull from Steam (with a bundled fallback).', 'infinity'),
         'section'     => 'infinity_steam_settings',
     )));
+
+    $wp_customize->add_setting('infinity_etu_video', array(
+        'type'              => 'option',
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+
+    $wp_customize->add_control('infinity_etu_video', array(
+        'label'       => esc_html__('ETU teaser video URL', 'infinity'),
+        'description' => esc_html__('Leave empty to auto-detect the newest ETU_Vid* video in your media library.', 'infinity'),
+        'section'     => 'infinity_steam_settings',
+        'type'        => 'url',
+    ));
 
     $wp_customize->add_control('infinity_etu_embed', array(
         'label'       => esc_html__('Live-embed ExploreTheUniverse2175.com on the homepage', 'infinity'),
