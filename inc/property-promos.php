@@ -143,7 +143,7 @@ function infinity_property_features($key) {
 
     $defaults = array(
         'parkers' => array(
-            array('earth', 'Real-Time Earth Weather', 'A live planetary weather simulation with predictive analytics', $urls['parkers'], 'LIVE'),
+            array('earth', 'Real-Time Earth Weather', 'Clouds, precipitation, wind, barometrics, storm fronts & the aurora — forecast two weeks out', $urls['parkers'], 'LIVE'),
             array('aurora', 'The Auroracle', 'Aurora forecasts before the sky knows', trailingslashit($urls['parkers']) . 'auroracle.html', 'NEW'),
             array('satellite', 'LEO Drag Forecasts', 'Space-weather forecasts that hold up during the storm', $urls['parkers'], 'LIVE'),
             array('orbit', 'Solar System Live', 'Every planet exactly where it really is, right now', $urls['parkers'], 'SOON'),

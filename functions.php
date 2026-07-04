@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.8.0');
+define('INFINITY_VERSION', '2.9.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -1077,35 +1077,35 @@ function infinity_front_page_customize_register($wp_customize) {
         'infinity_pillar_health_slugs' => array(
             'label'       => esc_html__('Health & Anatomy categories', 'infinity'),
             'description' => esc_html__('Comma-separated category slugs', 'infinity'),
-            'default'     => 'anatomy,osteology,health,nutrition',
+            'default'     => 'anatomy,osteology,health,nutrition,fitness,medicine,wellness,body',
             'sanitize'    => 'sanitize_text_field',
             'type'        => 'text',
         ),
         'infinity_pillar_science_slugs' => array(
             'label'       => esc_html__('Science categories', 'infinity'),
             'description' => esc_html__('Comma-separated category slugs', 'infinity'),
-            'default'     => 'science',
+            'default'     => 'science,biology,nature,technology,research,mushrooms,fungi,discovery',
             'sanitize'    => 'sanitize_text_field',
             'type'        => 'text',
         ),
         'infinity_pillar_travel_slugs' => array(
             'label'       => esc_html__('Travel categories', 'infinity'),
             'description' => esc_html__('Comma-separated category slugs', 'infinity'),
-            'default'     => 'travel,experiences',
+            'default'     => 'travel,experiences,adventures,journeys,field-notes,life,blog',
             'sanitize'    => 'sanitize_text_field',
             'type'        => 'text',
         ),
         'infinity_pillar_space_slugs' => array(
             'label'       => esc_html__('Space & Simulations categories', 'infinity'),
             'description' => esc_html__('Comma-separated category slugs', 'infinity'),
-            'default'     => 'space,astronomy,astrophysics,simulations,physics',
+            'default'     => 'space,astronomy,astrophysics,simulations,physics,cosmos,universe,satellites,black-holes',
             'sanitize'    => 'sanitize_text_field',
             'type'        => 'text',
         ),
         'infinity_pillar_mind_slugs' => array(
             'label'       => esc_html__('Mind & Philosophy categories', 'infinity'),
             'description' => esc_html__('Comma-separated category slugs', 'infinity'),
-            'default'     => 'philosophy,religion,buddhism,hinduism,yoga,mind',
+            'default'     => 'philosophy,religion,buddhism,hinduism,yoga,mind,meditation,spirituality,psychology',
             'sanitize'    => 'sanitize_text_field',
             'type'        => 'text',
         ),

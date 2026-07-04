@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
  */
 function infinity_icon_paths() {
     return array(
-        'earth' => '<circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><path d="M12 3a14.2 14.2 0 0 1 0 18M12 3a14.2 14.2 0 0 0 0 18"/>',
+        'earth' => '<circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><g class="inf-earth-rotor"><path d="M12 3a14.2 14.2 0 0 1 0 18M12 3a14.2 14.2 0 0 0 0 18"/><path d="M12 3v18"/></g>',
         'aurora' => '<path d="M4 15.5c1.6-1.2 2.4-4.5 2.4-8.5M9.6 17c1.2-1.6 2-5.5 2-11M15.2 17.5c1-1.8 1.6-5 1.6-9.5M20 15c.6-1.4 1-3.5 1-6"/><path d="M3 19.5h18"/><circle cx="18.6" cy="4.4" r="0.9" fill="currentColor" stroke="none"/>',
         'orbit' => '<circle cx="12" cy="12" r="2.1"/><ellipse cx="12" cy="12" rx="9.5" ry="4.1"/><ellipse cx="12" cy="12" rx="9.5" ry="4.1" transform="rotate(62 12 12)"/><circle cx="20.6" cy="9.8" r="1.15" fill="currentColor" stroke="none"/><circle cx="6.4" cy="17.6" r="0.95" fill="currentColor" stroke="none"/>',
         'rocket' => '<path d="M12 2.6c2.9 1.9 4.4 5 4.4 8.9 0 1.5-.2 2.9-.6 4.2H8.2a15 15 0 0 1-.6-4.2c0-3.9 1.5-7 4.4-8.9z"/><circle cx="12" cy="9.4" r="1.9"/><path d="M8.2 15.7 5.6 19c-.3.5 0 1.1.6 1.1h3M15.8 15.7l2.6 3.3c.3.5 0 1.1-.6 1.1h-3"/><path d="M12 17v4.4"/>',

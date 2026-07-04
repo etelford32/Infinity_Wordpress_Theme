@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 2.8.0
+Version: 2.9.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2856,4 +2856,56 @@ code {
 .pp-stage .pp-holo-pad {
   position: relative;
   z-index: 1;
+}
+
+/* Parker's stage restacked: logo is the backdrop, disk animates over it */
+.pp-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  filter: brightness(0.82) saturate(1.05);
+  animation: pp-backdrop-breathe 12s ease-in-out infinite;
+}
+
+@keyframes pp-backdrop-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.045); }
+}
+
+.pp-stage {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  min-height: 320px;
+}
+
+.pp-stage #pp-blackhole {
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+.pp-stage .pp-holo-mono {
+  position: relative;
+  z-index: 2;
+}
+
+/* The Earth icon actually turns: meridians sweep like a globe */
+.inf-earth-rotor {
+  animation: inf-earth-turn 5.5s linear infinite;
+  transform-origin: 12px 12px;
+  transform-box: view-box;
+}
+
+@keyframes inf-earth-turn {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-backdrop,
+  .inf-earth-rotor {
+    animation: none !important;
+  }
 }

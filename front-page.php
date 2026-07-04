@@ -278,7 +278,7 @@ $infinity_etu_video   = infinity_etu_video_url();
             'rotate' => false,
             'title'  => __('Health & Anatomy', 'infinity'),
             'intro'  => __('Osteology, nutrition, and how the human body is put together.', 'infinity'),
-            'slugs'  => get_option('infinity_pillar_health_slugs', 'anatomy,osteology,health,nutrition'),
+            'slugs'  => get_option('infinity_pillar_health_slugs', 'anatomy,osteology,health,nutrition,fitness,medicine,wellness,body'),
             'count'  => 4,
         ),
         array(
@@ -286,7 +286,7 @@ $infinity_etu_video   = infinity_etu_video_url();
             'rotate' => false,
             'title'  => __('Space & Simulations', 'infinity'),
             'intro'  => __('Black holes, orbital mechanics, and simulations you can run yourself.', 'infinity'),
-            'slugs'  => get_option('infinity_pillar_space_slugs', 'space,astronomy,astrophysics,simulations,physics'),
+            'slugs'  => get_option('infinity_pillar_space_slugs', 'space,astronomy,astrophysics,simulations,physics,cosmos,universe,satellites,black-holes'),
             'count'  => 3,
         ),
         array(
@@ -294,7 +294,7 @@ $infinity_etu_video   = infinity_etu_video_url();
             'rotate' => true,
             'title'  => __('Mind & Philosophy', 'infinity'),
             'intro'  => __('Eastern philosophy, contemplative practice, and the big questions.', 'infinity'),
-            'slugs'  => get_option('infinity_pillar_mind_slugs', 'philosophy,religion,buddhism,hinduism,yoga,mind'),
+            'slugs'  => get_option('infinity_pillar_mind_slugs', 'philosophy,religion,buddhism,hinduism,yoga,mind,meditation,spirituality,psychology'),
             'count'  => 3,
         ),
         array(
@@ -302,7 +302,7 @@ $infinity_etu_video   = infinity_etu_video_url();
             'rotate' => true,
             'title'  => __('Science & Discovery', 'infinity'),
             'intro'  => __('Recent research, big ideas, and the occasional world-eating fungus.', 'infinity'),
-            'slugs'  => get_option('infinity_pillar_science_slugs', 'science'),
+            'slugs'  => get_option('infinity_pillar_science_slugs', 'science,biology,nature,technology,research,mushrooms,fungi,discovery'),
             'count'  => 3,
         ),
         array(
@@ -310,7 +310,7 @@ $infinity_etu_video   = infinity_etu_video_url();
             'rotate' => true,
             'title'  => __('Travel & Experiences', 'infinity'),
             'intro'  => __('Field notes, journeys, and stories from the road.', 'infinity'),
-            'slugs'  => get_option('infinity_pillar_travel_slugs', 'travel,experiences'),
+            'slugs'  => get_option('infinity_pillar_travel_slugs', 'travel,experiences,adventures,journeys,field-notes,life,blog'),
             'count'  => 3,
         ),
     );
@@ -427,14 +427,11 @@ $infinity_etu_video   = infinity_etu_video_url();
                     <p class="fp-kicker"><?php esc_html_e('The sandbox', 'infinity'); ?></p>
                     <h2 class="fp-section-title" id="fp-sandbox-heading"><?php esc_html_e("Parker's Physics", 'infinity'); ?></h2>
                     <p class="fp-section-intro">
-                        <?php esc_html_e('Watch Earth\'s weather live: a real-time planetary simulation with predictive analytics riding real physics — the same engine that forecasts satellite drag through geomagnetic storms. And it\'s just the start: a live solar system, mission planner, and satellite & ship designers are on the pad.', 'infinity'); ?>
-                    </p>
-                    <p class="fp-band-flex">
-                        <?php esc_html_e('This is the engine room behind Explore the Universe 2175 — and it\'s free to fly.', 'infinity'); ?>
+                        <?php esc_html_e('A real-time Earth weather simulation: live cloud layers, precipitation rates, temperature and wind analysis, barometrics, storm fronts, and the aurora itself — with predictive analytics reaching two weeks out. All riding real physics, right in your browser.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
                         <a class="fp-btn-primary fp-btn-big" href="<?php echo esc_url($parkers_url); ?>" target="_blank" rel="noopener">
-                            <span>🌍</span> <?php esc_html_e('Fly the Earth simulation', 'infinity'); ?> &rarr;
+                            <?php esc_html_e('Explore Earth Weather in Real-Time', 'infinity'); ?> &rarr;
                         </a>
                         <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url(home_url('/simulations/')); ?>">
                             <?php esc_html_e('Browse simulations here', 'infinity'); ?>
@@ -444,15 +441,11 @@ $infinity_etu_video   = infinity_etu_video_url();
                 </div>
                 <?php $infinity_pp_logo = infinity_parkers_logo_big(); ?>
                 <div class="fp-band-media pp-stage<?php echo $infinity_pp_logo ? '' : ' pp-no-logo'; ?>" aria-hidden="true">
+                    <?php if ($infinity_pp_logo) : ?>
+                        <img class="pp-backdrop" src="<?php echo esc_url($infinity_pp_logo); ?>" alt="" loading="lazy" decoding="async" onerror="this.closest('.pp-stage').classList.add('pp-no-logo'); this.remove();">
+                    <?php endif; ?>
                     <canvas id="pp-blackhole"></canvas>
-                    <span class="pp-holo">
-                        <?php if ($infinity_pp_logo) : ?>
-                            <img class="pp-holo-logo" src="<?php echo esc_url($infinity_pp_logo); ?>" alt="" loading="lazy" decoding="async" onerror="this.closest('.pp-stage').classList.add('pp-no-logo'); this.remove();">
-                        <?php endif; ?>
-                        <span class="pp-holo-mono">PP</span>
-                        <span class="pp-holo-shimmer"></span>
-                    </span>
-                    <span class="pp-holo-pad"></span>
+                    <span class="pp-holo-mono">PP</span>
                 </div>
             </div>
         </div>
