@@ -140,6 +140,24 @@ function infinity_enqueue_scripts() {
 add_action('wp_enqueue_scripts', 'infinity_enqueue_scripts');
 
 /**
+ * Load the Vite-built app bundle as an ES module
+ *
+ * The build emits ES module output (export statements, dynamic imports),
+ * which fails with a SyntaxError when loaded via a classic script tag.
+ */
+function infinity_module_script_loader_tag($tag, $handle, $src) {
+    if ('infinity-app' === $handle) {
+        $tag = sprintf(
+            '<script type="module" src="%s" id="%s-js"></script>' . "\n",
+            esc_url($src),
+            esc_attr($handle)
+        );
+    }
+    return $tag;
+}
+add_filter('script_loader_tag', 'infinity_module_script_loader_tag', 10, 3);
+
+/**
  * Register Custom Post Types
  */
 function infinity_register_post_types() {

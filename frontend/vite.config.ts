@@ -37,12 +37,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Bundle all CSS into a single file so WordPress can enqueue it as
+    // frontend/dist/style.css (see infinity_enqueue_scripts in functions.php)
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
         entryFileNames: 'main.js',
         chunkFileNames: 'chunks/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'style.css') return 'style.css';
+          if (assetInfo.name?.endsWith('.css')) return 'style.css';
           return 'assets/[name]-[hash][extname]';
         },
       },
