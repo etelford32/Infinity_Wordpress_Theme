@@ -13,11 +13,8 @@
  * ~30fps cap, DPR cap, pauses off-screen, static frame under
  * prefers-reduced-motion, CSS fallback when WebGL is missing.
  */
-(function () {
+function infinityBlackhole(canvas, cfg) {
   'use strict';
-
-  var canvas = document.getElementById('fp-blackhole');
-  if (!canvas) return;
 
   var gl = canvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: false });
   if (!gl) {
@@ -37,6 +34,8 @@
     'uniform vec2 u_res;',
     'uniform float u_time;',
     'uniform vec2 u_center;',
+    'uniform float u_zoom;',
+    'uniform float u_variant;',
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -63,7 +62,7 @@
     '',
     'void main() {',
     '  vec2 uv = (gl_FragCoord.xy - u_center * u_res) / u_res.y;',
-    '  uv *= 1.55;',
+    '  uv *= u_zoom;',
     '  float tilt = -0.10 + 0.03 * sin(u_time * 0.09);',
     '  uv = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * uv;',
     '',
@@ -94,6 +93,7 @@
     '  /* 3D shading: lit from above, near (lower) side in shadow */',
     '  float vshade = 0.78 + 0.5 * smoothstep(-0.3, 0.35, uv.y);',
     '  bright *= vshade;',
+    '  bright *= 1.0 + 0.35 * u_variant;',
     '',
     '  /* Photon ring + lensed far-side arc (soft lower boundary) */',
     '  float photon = exp(-pow((rc - 0.148) * 95.0, 2.0));',
@@ -120,6 +120,12 @@
     '  float dop = clamp(-uv.x / max(r, 0.001), -1.0, 1.0);',
     '  col = mix(col, col * vec3(0.85, 0.92, 1.35) + vec3(0.12), clamp(dop, 0.0, 1.0) * 0.4);',
     '  col = mix(col, col * vec3(1.25, 0.62, 0.42), clamp(-dop, 0.0, 1.0) * 0.45);',
+    '',
+    '  /* Variant 1 (Parker\'s): binary-logo palette — hard blue/orange split */',
+    '  if (u_variant > 0.5) {',
+    '    col = mix(col, col * vec3(0.5, 0.75, 1.9) + vec3(0.04, 0.1, 0.3), clamp(dop, 0.0, 1.0) * 0.5);',
+    '    col = mix(col, col * vec3(1.6, 0.7, 0.3), clamp(-dop, 0.0, 1.0) * 0.45);',
+    '  }',
     '',
     '  /* Hot inner rim facing the viewer on the near side */',
     '  float rim = smoothstep(0.30, 0.17, rr) * smoothstep(0.14, 0.20, rr) * nearMask * disk;',
@@ -169,6 +175,7 @@
     'uniform vec2 u_res;',
     'uniform float u_time;',
     'uniform vec2 u_center;',
+    'uniform float u_zoom;',
     'varying float v_heat;',
     'varying float v_fade;',
     '',
@@ -199,7 +206,7 @@
     '',
     '  float tilt = 0.10;',
     '  p = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * p;',
-    '  p /= 1.55; /* match disk zoom */',
+    '  p /= u_zoom; /* match disk zoom */',
     '',
     '  vec2 clip = p * vec2(u_res.y / u_res.x, 1.0) * 2.0 + (u_center * 2.0 - 1.0);',
     '  gl_Position = vec4(clip, 0.0, 1.0);',
@@ -270,10 +277,12 @@
   var dRes = gl.getUniformLocation(diskProg, 'u_res');
   var dTime = gl.getUniformLocation(diskProg, 'u_time');
   var dCenter = gl.getUniformLocation(diskProg, 'u_center');
+  var dZoom = gl.getUniformLocation(diskProg, 'u_zoom');
+  var dVariant = gl.getUniformLocation(diskProg, 'u_variant');
 
   /* Particles: each has a head + tail segments along its orbit */
-  var PART_N = 90;
-  var TAIL = 8;
+  var PART_N = cfg.particles.n;
+  var TAIL = cfg.particles.tail;
   var PART_COUNT = PART_N * TAIL;
   var pts = new Float32Array(PART_COUNT * 2);
   for (var i = 0; i < PART_N; i++) {
@@ -290,6 +299,7 @@
   var pRes = partProg ? gl.getUniformLocation(partProg, 'u_res') : null;
   var pTime = partProg ? gl.getUniformLocation(partProg, 'u_time') : null;
   var pCenter = partProg ? gl.getUniformLocation(partProg, 'u_center') : null;
+  var pZoom = partProg ? gl.getUniformLocation(partProg, 'u_zoom') : null;
 
   gl.enable(gl.BLEND);
 
@@ -321,8 +331,9 @@
     resize();
 
     var t = (performance.now() - start) / 1000;
-    var cx = canvas.clientWidth > 900 ? 0.195 : 0.5;
-    var cy = 0.42; /* measured from top in fragment coords */
+    var c = cfg.center(canvas.clientWidth);
+    var cx = c[0];
+    var cy = c[1];
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -336,6 +347,8 @@
     gl.uniform2f(dRes, canvas.width, canvas.height);
     gl.uniform1f(dTime, t);
     gl.uniform2f(dCenter, cx, cy);
+    gl.uniform1f(dZoom, cfg.zoom);
+    gl.uniform1f(dVariant, cfg.variant);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     /* Particle pass: additive sparks */
@@ -348,6 +361,7 @@
       gl.uniform2f(pRes, canvas.width, canvas.height);
       gl.uniform1f(pTime, t);
       gl.uniform2f(pCenter, cx, cy);
+      gl.uniform1f(pZoom, cfg.zoom);
       gl.drawArrays(gl.POINTS, 0, PART_COUNT);
     }
 
@@ -370,4 +384,28 @@
   });
 
   raf = requestAnimationFrame(frame);
+}
+
+/* Hero: incandescent disk anchored at the wordmark */
+(function () {
+  var hero = document.getElementById('fp-blackhole');
+  if (hero) {
+    infinityBlackhole(hero, {
+      zoom: 1.55,
+      variant: 0,
+      particles: { n: 90, tail: 8 },
+      center: function (w) { return [w > 900 ? 0.195 : 0.5, 0.42]; }
+    });
+  }
+
+  /* Parker's band: centered binary-palette disk behind the logo */
+  var pp = document.getElementById('pp-blackhole');
+  if (pp) {
+    infinityBlackhole(pp, {
+      zoom: 1.3,
+      variant: 1,
+      particles: { n: 56, tail: 7 },
+      center: function () { return [0.5, 0.5]; }
+    });
+  }
 })();

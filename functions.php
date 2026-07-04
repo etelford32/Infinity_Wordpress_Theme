@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.7.0');
+define('INFINITY_VERSION', '2.8.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -974,7 +974,7 @@ add_filter('body_class', 'infinity_navigation_body_classes');
  * back to recent posts so homepage sections never render empty on a
  * site whose category names differ.
  */
-function infinity_fp_query($slugs_csv, $count = 3) {
+function infinity_fp_query($slugs_csv, $count = 3, $exclude = array(), $rotate = false) {
     $slugs = array_filter(array_map('trim', explode(',', (string) $slugs_csv)));
     $existing = array();
 
@@ -994,7 +994,50 @@ function infinity_fp_query($slugs_csv, $count = 3) {
         $args['category_name'] = implode(',', $existing);
     }
 
-    return new WP_Query($args);
+    if ($exclude) {
+        $args['post__not_in'] = array_map('intval', $exclude);
+    }
+
+    /*
+     * Rotation: walk the category's full archive over time so every
+     * article gets homepage exposure. The offset advances by one
+     * card-row per hour and wraps; hourly steps play nicely with
+     * full-page caches (each cache period shows a different set).
+     */
+    if ($rotate && $existing) {
+        $ckey  = 'inf_fp_total_' . md5(implode(',', $existing));
+        $total = get_transient($ckey);
+        if (false === $total) {
+            $count_q = new WP_Query(array(
+                'post_type'      => 'post',
+                'category_name'  => implode(',', $existing),
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+            ));
+            $total = (int) $count_q->found_posts;
+            set_transient($ckey, $total, HOUR_IN_SECONDS);
+        }
+        if ($total > $count) {
+            $step           = (int) floor(time() / HOUR_IN_SECONDS);
+            $args['offset'] = ($step * (int) $count) % $total;
+        }
+    }
+
+    $query = new WP_Query($args);
+
+    // Wrap around the end of the archive so rows are always full
+    if ($rotate && !empty($args['offset']) && $query->post_count < (int) $count) {
+        $have  = wp_list_pluck($query->posts, 'ID');
+        $again = $args;
+        unset($again['offset']);
+        $again['posts_per_page'] = (int) $count - $query->post_count;
+        $again['post__not_in']   = array_map('intval', array_merge($exclude, $have));
+        $wrap = new WP_Query($again);
+        $query->posts      = array_merge($query->posts, $wrap->posts);
+        $query->post_count = count($query->posts);
+    }
+
+    return $query;
 }
 
 /**

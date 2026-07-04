@@ -233,8 +233,10 @@ $infinity_etu_video   = infinity_etu_video_url();
         'post__in'            => $featured_id ? array($featured_id) : array(),
         'orderby'             => $featured_id ? 'post__in' : 'date',
     ));
+    $infinity_shown_ids = array();
     if ($featured_query->have_posts()) :
         while ($featured_query->have_posts()) : $featured_query->the_post();
+            $infinity_shown_ids[] = get_the_ID();
     ?>
     <section class="fp-section fp-featured" aria-labelledby="fp-featured-heading">
         <div class="container">
@@ -273,6 +275,7 @@ $infinity_etu_video   = infinity_etu_video_url();
     $pillars = array(
         array(
             'id'     => 'health-anatomy',
+            'rotate' => false,
             'title'  => __('Health & Anatomy', 'infinity'),
             'intro'  => __('Osteology, nutrition, and how the human body is put together.', 'infinity'),
             'slugs'  => get_option('infinity_pillar_health_slugs', 'anatomy,osteology,health,nutrition'),
@@ -280,6 +283,7 @@ $infinity_etu_video   = infinity_etu_video_url();
         ),
         array(
             'id'     => 'space-simulations',
+            'rotate' => false,
             'title'  => __('Space & Simulations', 'infinity'),
             'intro'  => __('Black holes, orbital mechanics, and simulations you can run yourself.', 'infinity'),
             'slugs'  => get_option('infinity_pillar_space_slugs', 'space,astronomy,astrophysics,simulations,physics'),
@@ -287,6 +291,7 @@ $infinity_etu_video   = infinity_etu_video_url();
         ),
         array(
             'id'     => 'mind-philosophy',
+            'rotate' => true,
             'title'  => __('Mind & Philosophy', 'infinity'),
             'intro'  => __('Eastern philosophy, contemplative practice, and the big questions.', 'infinity'),
             'slugs'  => get_option('infinity_pillar_mind_slugs', 'philosophy,religion,buddhism,hinduism,yoga,mind'),
@@ -294,6 +299,7 @@ $infinity_etu_video   = infinity_etu_video_url();
         ),
         array(
             'id'     => 'science',
+            'rotate' => true,
             'title'  => __('Science & Discovery', 'infinity'),
             'intro'  => __('Recent research, big ideas, and the occasional world-eating fungus.', 'infinity'),
             'slugs'  => get_option('infinity_pillar_science_slugs', 'science'),
@@ -301,6 +307,7 @@ $infinity_etu_video   = infinity_etu_video_url();
         ),
         array(
             'id'     => 'travel',
+            'rotate' => true,
             'title'  => __('Travel & Experiences', 'infinity'),
             'intro'  => __('Field notes, journeys, and stories from the road.', 'infinity'),
             'slugs'  => get_option('infinity_pillar_travel_slugs', 'travel,experiences'),
@@ -309,7 +316,7 @@ $infinity_etu_video   = infinity_etu_video_url();
     );
 
     foreach ($pillars as $pillar) :
-        $pillar_query = infinity_fp_query($pillar['slugs'], $pillar['count']);
+        $pillar_query = infinity_fp_query($pillar['slugs'], $pillar['count'], $infinity_shown_ids, !empty($pillar['rotate']));
         if (!$pillar_query->have_posts()) {
             continue;
         }
@@ -329,7 +336,7 @@ $infinity_etu_video   = infinity_etu_video_url();
                 <?php endif; ?>
             </header>
             <div class="fp-grid fp-grid-<?php echo (int) $pillar['count']; ?>">
-                <?php while ($pillar_query->have_posts()) : $pillar_query->the_post(); ?>
+                <?php while ($pillar_query->have_posts()) : $pillar_query->the_post(); $infinity_shown_ids[] = get_the_ID(); ?>
                     <article class="fp-card">
                         <?php if (has_post_thumbnail()) : ?>
                             <a class="fp-card-media" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
@@ -437,6 +444,7 @@ $infinity_etu_video   = infinity_etu_video_url();
                 </div>
                 <?php $infinity_pp_logo = infinity_parkers_logo_big(); ?>
                 <div class="fp-band-media pp-stage<?php echo $infinity_pp_logo ? '' : ' pp-no-logo'; ?>" aria-hidden="true">
+                    <canvas id="pp-blackhole"></canvas>
                     <span class="pp-holo">
                         <?php if ($infinity_pp_logo) : ?>
                             <img class="pp-holo-logo" src="<?php echo esc_url($infinity_pp_logo); ?>" alt="" loading="lazy" decoding="async" onerror="this.closest('.pp-stage').classList.add('pp-no-logo'); this.remove();">

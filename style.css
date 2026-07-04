@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 2.7.0
+Version: 2.8.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2840,4 +2840,20 @@ code {
   .band-feature-badge-new {
     animation: none !important;
   }
+}
+
+/* Parker's band gets its own accretion disk behind the hologram */
+#pp-blackhole {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.pp-stage .pp-holo,
+.pp-stage .pp-holo-pad {
+  position: relative;
+  z-index: 1;
 }
