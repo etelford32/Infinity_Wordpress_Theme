@@ -554,7 +554,7 @@ function infinity_register_analytics_routes() {
     // User stats endpoint
     register_rest_route('infinity/v1', '/users/stats', array(
         'methods'             => 'GET',
-        'callback'            => 'infinity_api_get_user_stats',
+        'callback'            => 'infinity_api_get_user_dashboard_stats',
         'permission_callback' => 'is_user_logged_in',
     ));
 
@@ -633,8 +633,12 @@ add_action('rest_api_init', 'infinity_register_analytics_routes');
 
 /**
  * API: Get user stats
+ *
+ * Named distinctly from infinity_api_get_user_stats() in
+ * api-endpoints.php — both files load on every request, so a shared
+ * name is a fatal redeclaration.
  */
-function infinity_api_get_user_stats(WP_REST_Request $request) {
+function infinity_api_get_user_dashboard_stats(WP_REST_Request $request) {
     $user_id = get_current_user_id();
     $stats = infinity_get_user_dashboard_stats($user_id);
 
