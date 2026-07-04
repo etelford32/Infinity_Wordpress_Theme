@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.2.0');
+define('INFINITY_VERSION', '2.3.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -659,6 +659,7 @@ require_once INFINITY_DIR . '/inc/api-endpoints.php';
 require_once INFINITY_DIR . '/inc/stripe-api.php';
 require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 require_once INFINITY_DIR . '/inc/property-promos.php';
+require_once INFINITY_DIR . '/inc/subscribe.php';
 
 // Load WooCommerce compatibility if plugin is active
 if (class_exists('WooCommerce')) {
@@ -821,6 +822,14 @@ function infinity_enqueue_navigation_scripts() {
     wp_enqueue_script(
         'infinity-navigation',
         INFINITY_URI . '/assets/js/navigation.js',
+        array(),
+        INFINITY_VERSION,
+        true
+    );
+
+    wp_enqueue_script(
+        'infinity-subscribe',
+        INFINITY_URI . '/assets/js/subscribe.js',
         array(),
         INFINITY_VERSION,
         true

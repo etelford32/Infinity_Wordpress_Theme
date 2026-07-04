@@ -1,5 +1,7 @@
     </main>
 
+    <?php if (function_exists('infinity_subscribe_band')) infinity_subscribe_band(); ?>
+
     <footer id="colophon" class="site-footer" role="contentinfo">
         <div class="container">
             <?php if (is_active_sidebar('footer-1')) : ?>
