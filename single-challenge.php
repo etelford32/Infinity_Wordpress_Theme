@@ -394,7 +394,7 @@ get_header();
 
 .challenge-content {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr 360px;
     gap: var(--spacing-2xl);
     margin-top: var(--spacing-2xl);
 }

@@ -421,6 +421,211 @@ canvas {
 }
 
 /* ============================================================
+   ANIMATED LOGO
+   A glowing star core with two orbiting planets and a sparkle.
+   Scaled via --logo-size so the same mark works at any size.
+   ============================================================ */
+.cosmic-logo {
+  --logo-size: 44px;
+  position: relative;
+  display: inline-block;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  flex-shrink: 0;
+}
+
+.cosmic-logo-star {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--logo-size) * 0.32);
+  height: calc(var(--logo-size) * 0.32);
+  margin: calc(var(--logo-size) * -0.16) 0 0 calc(var(--logo-size) * -0.16);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0%, var(--accent-primary) 55%, var(--accent-secondary) 100%);
+  box-shadow:
+    0 0 calc(var(--logo-size) * 0.18) rgba(var(--accent-primary-rgb), 0.9),
+    0 0 calc(var(--logo-size) * 0.45) rgba(var(--accent-primary-rgb), 0.45);
+  animation: cosmic-star-pulse 3s ease-in-out infinite;
+}
+
+.cosmic-logo-orbit {
+  position: absolute;
+  border: 1px solid rgba(var(--accent-primary-rgb), 0.35);
+  border-radius: 50%;
+  animation: cosmic-orbit-spin linear infinite;
+}
+
+.cosmic-logo-orbit-a {
+  inset: 0;
+  animation-duration: 7s;
+}
+
+.cosmic-logo-orbit-b {
+  inset: calc(var(--logo-size) * 0.17);
+  border-color: rgba(var(--accent-primary-rgb), 0.22);
+  animation-duration: 4s;
+  animation-direction: reverse;
+}
+
+.cosmic-logo-planet {
+  position: absolute;
+  top: calc(var(--logo-size) * -0.06);
+  left: 50%;
+  border-radius: 50%;
+}
+
+.cosmic-logo-planet-a {
+  width: calc(var(--logo-size) * 0.14);
+  height: calc(var(--logo-size) * 0.14);
+  margin-left: calc(var(--logo-size) * -0.07);
+  background: var(--accent-secondary);
+  box-shadow: 0 0 calc(var(--logo-size) * 0.14) rgba(var(--accent-primary-rgb), 0.8);
+}
+
+.cosmic-logo-planet-b {
+  width: calc(var(--logo-size) * 0.1);
+  height: calc(var(--logo-size) * 0.1);
+  margin-left: calc(var(--logo-size) * -0.05);
+  background: var(--accent-primary);
+  box-shadow: 0 0 calc(var(--logo-size) * 0.1) rgba(var(--accent-primary-rgb), 0.7);
+}
+
+.cosmic-logo-sparkle {
+  position: absolute;
+  top: calc(var(--logo-size) * 0.12);
+  right: calc(var(--logo-size) * 0.06);
+  width: calc(var(--logo-size) * 0.07);
+  height: calc(var(--logo-size) * 0.07);
+  border-radius: 50%;
+  background: #fff;
+  animation: cosmic-sparkle-twinkle 2.2s ease-in-out infinite;
+}
+
+/* Speed up + brighten when the logo link is hovered */
+a:hover > .cosmic-logo .cosmic-logo-orbit-a { animation-duration: 2.5s; }
+a:hover > .cosmic-logo .cosmic-logo-orbit-b { animation-duration: 1.6s; }
+a:hover > .cosmic-logo .cosmic-logo-star {
+  box-shadow:
+    0 0 calc(var(--logo-size) * 0.25) rgba(var(--accent-primary-rgb), 1),
+    0 0 calc(var(--logo-size) * 0.6) rgba(var(--accent-primary-rgb), 0.6);
+}
+
+@keyframes cosmic-orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cosmic-star-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.15); }
+}
+
+@keyframes cosmic-sparkle-twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.7); }
+  50%      { opacity: 1; transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-logo-star,
+  .cosmic-logo-orbit,
+  .cosmic-logo-sparkle {
+    animation: none !important;
+  }
+}
+
+/* Nav-bar instance: scales up with the taller desktop header */
+.nav-cosmic-logo {
+  --logo-size: 44px;
+}
+
+@media (min-width: 1024px) {
+  .nav-cosmic-logo {
+    --logo-size: 52px;
+  }
+}
+
+/* ============================================================
+   STEAM CTA
+   Primary conversion action — used in the nav bar and the
+   home page rail card.
+   ============================================================ */
+.steam-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  background: linear-gradient(135deg, #1b2838 0%, #2a475e 55%, #1b6ec2 100%);
+  border: 1px solid rgba(102, 192, 244, 0.45);
+  box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  white-space: nowrap;
+}
+
+.steam-cta:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 20px rgba(27, 110, 194, 0.55);
+  filter: brightness(1.12);
+}
+
+.steam-cta-large {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1rem;
+  border-radius: 12px;
+}
+
+/* Nav-bar instance: hidden on small screens (the mobile menu has its
+   own full-width Steam button). Kept as a dedicated class because
+   these rules load after Tailwind's utilities, which would otherwise
+   lose to .steam-cta's display value. */
+.steam-cta-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .steam-cta-nav {
+    display: inline-flex;
+  }
+}
+
+/* ============================================================
+   HOME RAIL (right sidebar on the home page)
+   ============================================================ */
+.home-rail-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(var(--accent-primary-rgb), 0.18) 0%, transparent 55%),
+    var(--bg-secondary, rgba(20, 24, 36, 0.85));
+  border: 1px solid rgba(var(--accent-primary-rgb), 0.28);
+  overflow: hidden;
+}
+
+.home-rail-card-glow {
+  animation: pricing-glow-pulse 4s ease-in-out infinite;
+}
+
+.home-rail-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #66c0f4;
+  background: rgba(27, 110, 194, 0.16);
+  border: 1px solid rgba(102, 192, 244, 0.35);
+}
+
+/* ============================================================
    PRINT STYLES
    ============================================================ */
 @media print {

@@ -360,11 +360,32 @@ code {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--spacing-md);
+  max-width: 1440px;
   height: 72px;
+}
+
+@media (min-width: 1024px) {
+  .site-header .container {
+    height: 88px;
+  }
 }
 
 .site-branding {
   flex-shrink: 0;
+}
+
+.site-logo-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+}
+
+.site-title-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
 }
 
 .site-title {
@@ -372,16 +393,20 @@ code {
   font-weight: 700;
   margin: 0;
   line-height: 1;
-}
-
-.site-title a {
   color: var(--color-text-primary);
-  text-decoration: none;
   transition: color var(--transition-fast);
 }
 
-.site-title a:hover {
+.site-logo-link:hover .site-title {
   color: var(--color-accent-primary);
+}
+
+.site-tagline {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
 }
 
 .custom-logo-link {
@@ -392,6 +417,141 @@ code {
 .custom-logo {
   max-height: 48px;
   width: auto;
+}
+
+/* Animated cosmic logo — star core, two orbiting planets, sparkle */
+.cosmic-logo {
+  --logo-size: 44px;
+  position: relative;
+  display: inline-block;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .cosmic-logo {
+    --logo-size: 54px;
+  }
+}
+
+.cosmic-logo-star {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--logo-size) * 0.32);
+  height: calc(var(--logo-size) * 0.32);
+  margin: calc(var(--logo-size) * -0.16) 0 0 calc(var(--logo-size) * -0.16);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0%, var(--color-accent-primary) 55%, var(--color-accent-secondary) 100%);
+  box-shadow:
+    0 0 calc(var(--logo-size) * 0.18) color-mix(in srgb, var(--color-accent-primary) 90%, transparent),
+    0 0 calc(var(--logo-size) * 0.45) color-mix(in srgb, var(--color-accent-primary) 45%, transparent);
+  animation: cosmic-star-pulse 3s ease-in-out infinite;
+}
+
+.cosmic-logo-orbit {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, transparent);
+  border-radius: 50%;
+  animation: cosmic-orbit-spin linear infinite;
+}
+
+.cosmic-logo-orbit-a {
+  inset: 0;
+  animation-duration: 7s;
+}
+
+.cosmic-logo-orbit-b {
+  inset: calc(var(--logo-size) * 0.17);
+  border-color: color-mix(in srgb, var(--color-accent-primary) 22%, transparent);
+  animation-duration: 4s;
+  animation-direction: reverse;
+}
+
+.cosmic-logo-planet {
+  position: absolute;
+  top: calc(var(--logo-size) * -0.06);
+  left: 50%;
+  border-radius: 50%;
+}
+
+.cosmic-logo-planet-a {
+  width: calc(var(--logo-size) * 0.14);
+  height: calc(var(--logo-size) * 0.14);
+  margin-left: calc(var(--logo-size) * -0.07);
+  background: var(--color-accent-secondary);
+  box-shadow: 0 0 calc(var(--logo-size) * 0.14) color-mix(in srgb, var(--color-accent-primary) 80%, transparent);
+}
+
+.cosmic-logo-planet-b {
+  width: calc(var(--logo-size) * 0.1);
+  height: calc(var(--logo-size) * 0.1);
+  margin-left: calc(var(--logo-size) * -0.05);
+  background: var(--color-accent-primary);
+  box-shadow: 0 0 calc(var(--logo-size) * 0.1) color-mix(in srgb, var(--color-accent-primary) 70%, transparent);
+}
+
+.cosmic-logo-sparkle {
+  position: absolute;
+  top: calc(var(--logo-size) * 0.12);
+  right: calc(var(--logo-size) * 0.06);
+  width: calc(var(--logo-size) * 0.07);
+  height: calc(var(--logo-size) * 0.07);
+  border-radius: 50%;
+  background: #fff;
+  animation: cosmic-sparkle-twinkle 2.2s ease-in-out infinite;
+}
+
+.site-logo-link:hover .cosmic-logo-orbit-a { animation-duration: 2.5s; }
+.site-logo-link:hover .cosmic-logo-orbit-b { animation-duration: 1.6s; }
+
+@keyframes cosmic-orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cosmic-star-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.15); }
+}
+
+@keyframes cosmic-sparkle-twinkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.7); }
+  50%      { opacity: 1; transform: scale(1.15); }
+}
+
+/* Steam CTA in the classic (PHP) header */
+.header-steam-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: var(--font-size-sm, 0.875rem);
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #1b2838 0%, #2a475e 55%, #1b6ec2 100%);
+  border: 1px solid rgba(102, 192, 244, 0.45);
+  box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.header-steam-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(27, 110, 194, 0.55);
+  filter: brightness(1.12);
+}
+
+@media (max-width: 640px) {
+  .header-steam-cta-label {
+    display: none;
+  }
+
+  .header-steam-cta {
+    padding: 8px 10px;
+  }
 }
 
 /* Main Navigation */

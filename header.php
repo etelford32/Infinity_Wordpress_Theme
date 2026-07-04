@@ -18,19 +18,26 @@
     <header id="masthead" class="site-header<?php echo get_theme_mod('infinity_sticky_header', false) ? ' sticky-header' : ''; ?>" role="banner">
         <div class="container">
             <div class="site-branding">
-                <?php
-                if (has_custom_logo()) {
-                    the_custom_logo();
-                } else {
-                    ?>
-                    <h1 class="site-title">
-                        <a href="<?php echo esc_url(home_url('/')); ?>" rel="home">
-                            <?php bloginfo('name'); ?>
-                        </a>
-                    </h1>
-                    <?php
-                }
-                ?>
+                <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
+                    <span class="cosmic-logo" aria-hidden="true">
+                        <span class="cosmic-logo-star"></span>
+                        <span class="cosmic-logo-orbit cosmic-logo-orbit-a">
+                            <span class="cosmic-logo-planet cosmic-logo-planet-a"></span>
+                        </span>
+                        <span class="cosmic-logo-orbit cosmic-logo-orbit-b">
+                            <span class="cosmic-logo-planet cosmic-logo-planet-b"></span>
+                        </span>
+                        <span class="cosmic-logo-sparkle"></span>
+                    </span>
+                    <?php if (has_custom_logo()) : ?>
+                        <?php the_custom_logo(); ?>
+                    <?php else : ?>
+                        <span class="site-title-group">
+                            <span class="site-title"><?php bloginfo('name'); ?></span>
+                            <span class="site-tagline"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
+                        </span>
+                    <?php endif; ?>
+                </a>
             </div>
 
             <button
@@ -58,6 +65,19 @@
                 ));
                 ?>
             </nav>
+
+            <?php $infinity_steam_url = get_option('infinity_steam_url', ''); ?>
+            <?php if ($infinity_steam_url) : ?>
+                <a class="header-steam-cta" href="<?php echo esc_url($infinity_steam_url); ?>" target="_blank" rel="noopener noreferrer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/>
+                        <circle cx="15.5" cy="8.5" r="3.1" fill="currentColor"/>
+                        <circle cx="7.5" cy="16.5" r="2.1" fill="currentColor"/>
+                        <path d="M9.2 15.1l4.1-4.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                    </svg>
+                    <span class="header-steam-cta-label"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
+                </a>
+            <?php endif; ?>
         </div>
     </header>
 

@@ -9,9 +9,9 @@ export function Layout() {
     >
       <Navigation />
 
-      {/* Offset for fixed nav bar (h-14 = 56px) */}
-      <main className="pt-14 min-h-screen">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6">
+      {/* Offset for fixed nav bar (h-16 mobile, h-20 desktop) */}
+      <main className="pt-16 lg:pt-20 min-h-screen">
+        <div className="max-w-[1400px] mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <Outlet />
         </div>
       </main>

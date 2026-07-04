@@ -100,7 +100,10 @@ function infinity_enqueue_scripts() {
         'nonce'          => wp_create_nonce('wp_rest'),
         'graphqlUrl'     => esc_url_raw(home_url('/graphql')),
         'siteUrl'        => esc_url_raw(home_url('/')),
+        'siteName'       => get_bloginfo('name'),
         'themePath'      => INFINITY_URI,
+        'steamUrl'       => esc_url_raw(get_option('infinity_steam_url', '')),
+        'steamLabel'     => get_option('infinity_steam_label', 'Explore the Universe'),
         'currentUserId'  => get_current_user_id(),
         'isUserLoggedIn' => is_user_logged_in(),
         'theme'          => get_option('infinity_theme_mode', 'dark-cosmic'),
@@ -369,6 +372,7 @@ function infinity_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_setting('infinity_theme_mode', array(
+        'type'              => 'option',
         'default'           => 'dark-cosmic',
         'sanitize_callback' => 'infinity_sanitize_theme_mode',
         'transport'         => 'refresh',
@@ -393,6 +397,7 @@ function infinity_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_setting('infinity_stripe_publishable_key', array(
+        'type'              => 'option',
         'default'           => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
@@ -406,6 +411,7 @@ function infinity_customize_register($wp_customize) {
 
     // Stripe Secret Key (stored securely)
     $wp_customize->add_setting('infinity_stripe_secret_key', array(
+        'type'              => 'option',
         'default'           => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
@@ -419,6 +425,7 @@ function infinity_customize_register($wp_customize) {
 
     // Stripe Webhook Secret
     $wp_customize->add_setting('infinity_stripe_webhook_secret', array(
+        'type'              => 'option',
         'default'           => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
@@ -432,6 +439,7 @@ function infinity_customize_register($wp_customize) {
 
     // Premium Pricing
     $wp_customize->add_setting('infinity_premium_price', array(
+        'type'              => 'option',
         'default'           => '20',
         'sanitize_callback' => 'absint',
     ));
@@ -449,6 +457,7 @@ function infinity_customize_register($wp_customize) {
 
     // Stripe Price IDs
     $wp_customize->add_setting('infinity_stripe_price_monthly', array(
+        'type'              => 'option',
         'default'           => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
@@ -461,6 +470,7 @@ function infinity_customize_register($wp_customize) {
     ));
 
     $wp_customize->add_setting('infinity_stripe_price_yearly', array(
+        'type'              => 'option',
         'default'           => '',
         'sanitize_callback' => 'sanitize_text_field',
     ));
@@ -469,6 +479,39 @@ function infinity_customize_register($wp_customize) {
         'label'       => esc_html__('Stripe Yearly Price ID', 'infinity'),
         'description' => esc_html__('Yearly price ID from Stripe dashboard', 'infinity'),
         'section'     => 'infinity_stripe_settings',
+        'type'        => 'text',
+    ));
+
+    // Steam Promotion Section
+    $wp_customize->add_section('infinity_steam_settings', array(
+        'title'       => esc_html__('Steam Promotion', 'infinity'),
+        'description' => esc_html__('Settings for the Explore the Universe Steam call-to-action shown in the header and home page.', 'infinity'),
+        'priority'    => 35,
+    ));
+
+    $wp_customize->add_setting('infinity_steam_url', array(
+        'type'              => 'option',
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+
+    $wp_customize->add_control('infinity_steam_url', array(
+        'label'       => esc_html__('Steam Store URL', 'infinity'),
+        'description' => esc_html__('Full URL to your Steam store page (e.g. https://store.steampowered.com/app/...)', 'infinity'),
+        'section'     => 'infinity_steam_settings',
+        'type'        => 'url',
+    ));
+
+    $wp_customize->add_setting('infinity_steam_label', array(
+        'type'              => 'option',
+        'default'           => 'Explore the Universe',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('infinity_steam_label', array(
+        'label'       => esc_html__('Game Title', 'infinity'),
+        'description' => esc_html__('Shown on the Steam buttons and the featured card', 'infinity'),
+        'section'     => 'infinity_steam_settings',
         'type'        => 'text',
     ));
 }
