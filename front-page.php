@@ -420,7 +420,7 @@ $infinity_etu_video   = infinity_etu_video_url();
                     <p class="fp-kicker"><?php esc_html_e('The sandbox', 'infinity'); ?></p>
                     <h2 class="fp-section-title" id="fp-sandbox-heading"><?php esc_html_e("Parker's Physics", 'infinity'); ?></h2>
                     <p class="fp-section-intro">
-                        <?php esc_html_e('Home of the Earth simulation: a living planet running real thermospheric physics — the same engine that forecasts satellite drag through geomagnetic storms. Spin the whole planet, kick a storm at it, and watch real orbits respond in your browser. No install, no login.', 'infinity'); ?>
+                        <?php esc_html_e('Watch Earth\'s weather live: a real-time planetary simulation with predictive analytics riding real physics — the same engine that forecasts satellite drag through geomagnetic storms. And it\'s just the start: a live solar system, mission planner, and satellite & ship designers are on the pad.', 'infinity'); ?>
                     </p>
                     <p class="fp-band-flex">
                         <?php esc_html_e('This is the engine room behind Explore the Universe 2175 — and it\'s free to fly.', 'infinity'); ?>
@@ -435,18 +435,16 @@ $infinity_etu_video   = infinity_etu_video_url();
                     </div>
                     <?php infinity_render_feature_grid('parkers', __("Parker's Physics features", 'infinity')); ?>
                 </div>
-                <div class="fp-band-media fp-media-sandbox" aria-hidden="true">
-                    <span class="cosmic-logo" style="--logo-size: 140px;">
-                        <?php if (has_custom_logo()) : ?>
-                            <?php $infinity_fp_logo = wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'medium'); ?>
-                            <img class="cosmic-logo-center-img" src="<?php echo esc_url($infinity_fp_logo); ?>" alt="" loading="lazy" decoding="async">
-                        <?php else : ?>
-                            <span class="cosmic-logo-monogram">ET</span>
+                <?php $infinity_pp_logo = infinity_parkers_logo_big(); ?>
+                <div class="fp-band-media pp-stage<?php echo $infinity_pp_logo ? '' : ' pp-no-logo'; ?>" aria-hidden="true">
+                    <span class="pp-holo">
+                        <?php if ($infinity_pp_logo) : ?>
+                            <img class="pp-holo-logo" src="<?php echo esc_url($infinity_pp_logo); ?>" alt="" loading="lazy" decoding="async" onerror="this.closest('.pp-stage').classList.add('pp-no-logo'); this.remove();">
                         <?php endif; ?>
-                        <span class="cosmic-orbit cosmic-orbit-a"><span class="cosmic-orbit-ring"></span><span class="cosmic-orbiter"></span></span>
-                        <span class="cosmic-orbit cosmic-orbit-b"><span class="cosmic-orbit-ring"></span><span class="cosmic-orbiter"></span></span>
-                        <span class="cosmic-logo-sparkle"></span>
+                        <span class="pp-holo-mono">PP</span>
+                        <span class="pp-holo-shimmer"></span>
                     </span>
+                    <span class="pp-holo-pad"></span>
                 </div>
             </div>
         </div>

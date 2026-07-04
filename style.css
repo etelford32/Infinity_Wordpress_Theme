@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 2.6.0
+Version: 2.7.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2696,4 +2696,148 @@ code {
 
 .fp-band-landscaping .band-feature:hover .band-feature-label {
   color: #4ade80;
+}
+
+/* ==========================================================================
+   20.0 Custom Icons, Badges & Parker's Hologram
+   ========================================================================== */
+
+.inf-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 5px rgba(103, 232, 249, 0.45));
+}
+
+.band-feature-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  vertical-align: 2px;
+}
+
+.band-feature-badge-live {
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.band-feature-badge-new {
+  color: #67e8f9;
+  border: 1px solid rgba(103, 232, 249, 0.5);
+  background: rgba(34, 211, 238, 0.1);
+  animation: badge-new-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes badge-new-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.4); }
+  55%      { box-shadow: 0 0 0 6px rgba(103, 232, 249, 0); }
+}
+
+.band-feature-badge-soon {
+  color: #ffb84d;
+  border: 1px solid rgba(255, 184, 77, 0.45);
+  background: rgba(255, 184, 77, 0.08);
+}
+
+/* Parker's Physics hologram stage — a floating projection, no rings */
+.pp-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background-image:
+    radial-gradient(1px 1px at 18% 22%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 14%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 84% 58%, rgba(180, 210, 255, 0.7) 50%, transparent 51%),
+    radial-gradient(1px 1px at 34% 74%, rgba(255, 255, 255, 0.4) 50%, transparent 51%),
+    radial-gradient(1px 1px at 56% 38%, rgba(255, 220, 180, 0.55) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 8% 62%, rgba(255, 255, 255, 0.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 84%, rgba(180, 210, 255, 0.5) 50%, transparent 51%);
+}
+
+.pp-holo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: pp-float 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes pp-float {
+  0%, 100% { transform: translateY(0) rotate(-1.4deg); }
+  50%      { transform: translateY(-16px) rotate(1.4deg); }
+}
+
+.pp-holo-logo {
+  width: min(320px, 82%);
+  border-radius: 28px;
+  display: block;
+  animation: pp-glow 9s ease-in-out infinite;
+  will-change: filter;
+}
+
+/* The logo's own blue/orange duality breathes: cool side, hot side */
+@keyframes pp-glow {
+  0%, 100% { filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.55)) drop-shadow(0 22px 44px rgba(249, 115, 22, 0.18)); }
+  50%      { filter: drop-shadow(0 0 30px rgba(249, 115, 22, 0.5)) drop-shadow(0 22px 44px rgba(59, 130, 246, 0.22)); }
+}
+
+/* Monogram fallback until a logo is found in the media library */
+.pp-holo-mono {
+  display: none;
+  font-family: var(--font-family-display);
+  font-size: 5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #60a5fa 0%, #f0f4ff 50%, #fb923c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 26px rgba(59, 130, 246, 0.5));
+}
+
+.pp-no-logo .pp-holo-mono {
+  display: block;
+}
+
+/* Light sweep across the hologram */
+.pp-holo-shimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: linear-gradient(115deg, transparent 34%, rgba(220, 236, 255, 0.28) 50%, transparent 66%);
+  background-size: 280% 100%;
+  background-position: 130% 0;
+  animation: cta-sheen 5.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Projector pad beneath */
+.pp-holo-pad {
+  width: 62%;
+  height: 26px;
+  margin-top: 26px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(96, 165, 250, 0.4) 0%, rgba(249, 115, 22, 0.12) 55%, transparent 75%);
+  animation: pp-pad 7s ease-in-out infinite;
+}
+
+@keyframes pp-pad {
+  0%, 100% { transform: scaleX(1); opacity: 0.8; }
+  50%      { transform: scaleX(0.82); opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-holo,
+  .pp-holo-logo,
+  .pp-holo-shimmer,
+  .pp-holo-pad,
+  .band-feature-badge-new {
+    animation: none !important;
+  }
 }

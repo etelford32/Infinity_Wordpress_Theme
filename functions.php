@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.6.0');
+define('INFINITY_VERSION', '2.7.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -685,6 +685,7 @@ require_once INFINITY_DIR . '/inc/stripe-api.php';
 require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 require_once INFINITY_DIR . '/inc/property-promos.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
+require_once INFINITY_DIR . '/inc/icons.php';
 
 // Load WooCommerce compatibility if plugin is active
 if (class_exists('WooCommerce')) {

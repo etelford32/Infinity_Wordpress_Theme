@@ -86,8 +86,52 @@ function infinity_etu_video_url() {
 // New uploads should be picked up promptly
 function infinity_clear_etu_video_cache() {
     delete_transient('infinity_etu_video_url');
+    delete_transient('infinity_media_img_parkersphysics');
+    delete_transient('infinity_media_img_parkers');
 }
 add_action('add_attachment', 'infinity_clear_etu_video_cache');
+
+/**
+ * Find an image in the media library by name fragment (cached).
+ */
+function infinity_media_search_image($needle) {
+    $key    = 'infinity_media_img_' . sanitize_key($needle);
+    $cached = get_transient($key);
+    if (false !== $cached) {
+        return $cached;
+    }
+
+    $found = get_posts(array(
+        'post_type'      => 'attachment',
+        'post_status'    => 'inherit',
+        'post_mime_type' => 'image',
+        's'              => $needle,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'posts_per_page' => 1,
+        'fields'         => 'ids',
+    ));
+
+    $url = $found ? (string) wp_get_attachment_image_url($found[0], 'large') : '';
+    set_transient($key, $url, 6 * HOUR_IN_SECONDS);
+    return $url;
+}
+
+/**
+ * The Parker's Physics logo, best available source: Customizer
+ * upload, else auto-detected from the media library, else empty.
+ */
+function infinity_parkers_logo_big() {
+    $custom = get_option('infinity_parkers_logo', '');
+    if ($custom) {
+        return $custom;
+    }
+    $url = infinity_media_search_image('parkersphysics');
+    if (!$url) {
+        $url = infinity_media_search_image('parkers');
+    }
+    return $url;
+}
 
 /**
  * Feature highlight lists for the property bands. Stored as editable
@@ -99,17 +143,19 @@ function infinity_property_features($key) {
 
     $defaults = array(
         'parkers' => array(
-            array('🌍', 'Earth Simulation', 'A living planet with real thermospheric physics', $urls['parkers']),
-            array('🛰️', 'LEO Drag Forecasts', 'Space-weather forecasts that hold up during the storm', $urls['parkers']),
-            array('📡', 'Orbit Telemetry', 'Live orbit determination you can watch', $urls['parkers']),
-            array('🧪', 'The Sandbox', 'Spin up systems, break them, share them', $urls['parkers']),
+            array('earth', 'Real-Time Earth Weather', 'A live planetary weather simulation with predictive analytics', $urls['parkers'], 'LIVE'),
+            array('aurora', 'The Auroracle', 'Aurora forecasts before the sky knows', trailingslashit($urls['parkers']) . 'auroracle.html', 'NEW'),
+            array('satellite', 'LEO Drag Forecasts', 'Space-weather forecasts that hold up during the storm', $urls['parkers'], 'LIVE'),
+            array('orbit', 'Solar System Live', 'Every planet exactly where it really is, right now', $urls['parkers'], 'SOON'),
+            array('planner', 'Mission Planner', 'Plot real transfers across the real solar system', $urls['parkers'], 'SOON'),
+            array('ship', 'Satellite & Ship Designer', 'Build it, fly it, watch physics judge it', $urls['parkers'], 'SOON'),
         ),
         'landscaping' => array(
-            array('🎨', 'Design Studio', 'Live 3D preview of your yard', $urls['landscaping']),
-            array('🌳', '30-Year Growth Sim', 'See your yard in 2055 — watch plants mature', $urls['landscaping']),
-            array('🌿', 'Plant Library', '60+ California species, curated', $urls['landscaping']),
-            array('🧱', 'Hardscape Tools', 'Patios, walls, and structures that outlast us', $urls['landscaping']),
-            array('📋', 'Request a Consultation', 'Estate-scale design-build, Sacramento foothills', $urls['landscaping']),
+            array('palette', 'Design Studio', 'Live 3D preview of your yard', $urls['landscaping'], ''),
+            array('tree', '30-Year Growth Sim', 'See your yard in 2055 — watch plants mature', $urls['landscaping'], ''),
+            array('leaf', 'Plant Library', '60+ California species, curated', $urls['landscaping'], ''),
+            array('wall', 'Hardscape Tools', 'Patios, walls, and structures that outlast us', $urls['landscaping'], ''),
+            array('clipboard', 'Request a Consultation', 'Estate-scale design-build, Sacramento foothills', $urls['landscaping'], ''),
         ),
     );
 
@@ -122,9 +168,9 @@ function infinity_property_features($key) {
     foreach (explode("\n", $stored) as $line) {
         $parts = array_map('trim', explode('|', $line));
         if (count($parts) >= 4) {
-            $features[] = array($parts[0], $parts[1], $parts[2], $parts[3]);
+            $features[] = array($parts[0], $parts[1], $parts[2], $parts[3], isset($parts[4]) ? $parts[4] : '');
         } elseif (count($parts) === 3) {
-            $features[] = array('✦', $parts[0], $parts[1], $parts[2]);
+            $features[] = array('spark', $parts[0], $parts[1], $parts[2], '');
         }
     }
     return $features;
@@ -140,11 +186,17 @@ function infinity_render_feature_grid($key, $aria_label) {
     }
     ?>
     <nav class="band-features" aria-label="<?php echo esc_attr($aria_label); ?>">
-        <?php foreach ($features as $f) : ?>
+        <?php foreach ($features as $f) : $badge = isset($f[4]) ? strtoupper($f[4]) : ''; ?>
             <a class="band-feature" href="<?php echo esc_url($f[3]); ?>" target="_blank" rel="noopener">
-                <span class="band-feature-icon" aria-hidden="true"><?php echo esc_html($f[0]); ?></span>
+                <span class="band-feature-icon" aria-hidden="true"><?php
+                if (function_exists('infinity_is_icon_token') && infinity_is_icon_token($f[0])) {
+                    infinity_icon($f[0]);
+                } else {
+                    echo esc_html($f[0]);
+                }
+                ?></span>
                 <span class="band-feature-text">
-                    <span class="band-feature-label"><?php echo esc_html($f[1]); ?></span>
+                    <span class="band-feature-label"><?php echo esc_html($f[1]); ?><?php if ($badge) : ?><span class="band-feature-badge band-feature-badge-<?php echo esc_attr(strtolower($badge)); ?>"><?php echo esc_html($badge); ?></span><?php endif; ?></span>
                     <span class="band-feature-desc"><?php echo esc_html($f[2]); ?></span>
                 </span>
             </a>
