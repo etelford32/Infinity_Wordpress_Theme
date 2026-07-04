@@ -33,13 +33,43 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
             <div class="fp-hero-inner">
                 <div class="fp-hero-copy">
                     <?php
-                    // Display wordmark: capitalize the inner T; letters are
-                    // split into spans so each can be swept into the disk.
+                    // Display wordmark: capitalize the inner T. Rendered as
+                    // layered SVG text: giant soft shadow, dark extrusion,
+                    // beveled metal face, then three neon tracer layers whose
+                    // dashed strokes roll along the glyph outlines - light
+                    // balls with trails that mix where the colors cross.
                     $infinity_wordmark = str_ireplace('elliottelford', 'ElliotTelford', get_bloginfo('name'));
-                    $infinity_chars    = preg_split('//u', $infinity_wordmark, -1, PREG_SPLIT_NO_EMPTY);
+                    $infinity_wm_len   = 964;
                     ?>
-                    <h1 class="fp-hero-title" aria-label="<?php echo esc_attr($infinity_wordmark); ?>">
-                        <?php foreach ($infinity_chars as $infinity_i => $infinity_ch) : ?><span class="bh-char" style="--ci:<?php echo (int) $infinity_i; ?>" data-ch="<?php echo esc_attr($infinity_ch); ?>" aria-hidden="true"><?php echo esc_html($infinity_ch); ?></span><?php endforeach; ?>
+                    <h1 class="fp-hero-title fp-hero-title-svg">
+                        <svg class="fp-wordmark" viewBox="0 0 1000 150" preserveAspectRatio="xMinYMid meet" role="img" aria-label="<?php echo esc_attr($infinity_wordmark); ?>">
+                            <defs>
+                                <linearGradient id="wm-face-grad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#ffffff"/>
+                                    <stop offset="0.26" stop-color="#f0f2ff"/>
+                                    <stop offset="0.5" stop-color="#ccd2f4"/>
+                                    <stop offset="0.72" stop-color="#9aa2d6"/>
+                                    <stop offset="1" stop-color="#4a5288"/>
+                                </linearGradient>
+                                <filter id="wm-blur-huge" x="-20%" y="-40%" width="140%" height="200%">
+                                    <feGaussianBlur stdDeviation="11"/>
+                                </filter>
+                                <filter id="wm-blur-soft" x="-20%" y="-40%" width="140%" height="200%">
+                                    <feGaussianBlur stdDeviation="2.4"/>
+                                </filter>
+                            </defs>
+                            <text class="wm-shadow" x="14" y="122" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-huge)"><?php echo esc_html($infinity_wordmark); ?></text>
+                            <text class="wm-depth" x="13" y="115" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
+                            <text class="wm-face" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
+                            <g class="wm-traces" aria-hidden="true">
+                                <text class="wm-trail wm-trail-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-soft)"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-ball wm-ball-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-trail wm-trail-m" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-soft)"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-ball wm-ball-m" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-trail wm-trail-a" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-soft)"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-ball wm-ball-a" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
+                            </g>
+                        </svg>
                     </h1>
                     <p class="fp-hero-tagline">
                         <?php
@@ -257,6 +287,17 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                             <?php esc_html_e('Sign up at ExploreTheUniverse2175.com', 'infinity'); ?>
                         </a>
                     </div>
+                    <p class="fp-steam-hype">
+                        <?php esc_html_e('Every wishlist moves the launch algorithm — if the simulations on this site light you up, this is the button that funds more of them.', 'infinity'); ?>
+                    </p>
+                    <?php $infinity_app_id = infinity_steam_app_id(); if ($infinity_app_id) : ?>
+                        <iframe
+                            class="fp-steam-widget"
+                            src="<?php echo esc_url('https://store.steampowered.com/widget/' . $infinity_app_id . '/?utm_source=elliottelford.com&utm_medium=widget&utm_campaign=homepage'); ?>"
+                            loading="lazy"
+                            title="<?php esc_attr_e('Explore the Universe 2175 on Steam', 'infinity'); ?>"
+                        ></iframe>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

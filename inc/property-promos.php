@@ -19,12 +19,32 @@ if (!defined('ABSPATH')) {
  * URLs for the property family, filterable in one place.
  */
 function infinity_property_urls() {
+    $steam = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
+
+    // UTM tags so clicks appear in Steamworks traffic analytics
+    $steam = add_query_arg(array(
+        'utm_source'   => 'elliottelford.com',
+        'utm_medium'   => 'website',
+        'utm_campaign' => 'site_cta',
+    ), $steam);
+
     return apply_filters('infinity_property_urls', array(
-        'steam'       => get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/'),
+        'steam'       => $steam,
         'etu'         => get_option('infinity_etu_site_url', 'https://exploretheuniverse2175.com'),
         'parkers'     => get_option('infinity_parkers_url', 'https://parkersphysics.com'),
         'landscaping' => get_option('infinity_landscaping_url', 'https://telfordlandscaping.com'),
     ));
+}
+
+/**
+ * Steam app id parsed from the configured store URL (for the widget).
+ */
+function infinity_steam_app_id() {
+    $url = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
+    if (preg_match('#/app/(\d+)#', $url, $m)) {
+        return $m[1];
+    }
+    return '';
 }
 
 /**
