@@ -57,10 +57,18 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                                 <filter id="wm-blur-soft" x="-20%" y="-40%" width="140%" height="200%">
                                     <feGaussianBlur stdDeviation="2.4"/>
                                 </filter>
+                                <filter id="wm-bevel" x="-20%" y="-40%" width="140%" height="200%">
+                                    <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/>
+                                    <feSpecularLighting in="blur" surfaceScale="4" specularConstant="0.68" specularExponent="16" lighting-color="#ffffff" result="spec">
+                                        <feDistantLight azimuth="235" elevation="45"/>
+                                    </feSpecularLighting>
+                                    <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+                                    <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="1.15" k4="0"/>
+                                </filter>
                             </defs>
                             <text class="wm-shadow" x="14" y="122" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-huge)"><?php echo esc_html($infinity_wordmark); ?></text>
                             <text class="wm-depth" x="13" y="115" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
-                            <text class="wm-face" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
+                            <text class="wm-face" filter="url(#wm-bevel)" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
                             <g class="wm-traces" aria-hidden="true">
                                 <text class="wm-trail wm-trail-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-soft)"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-ball wm-ball-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
@@ -86,16 +94,33 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                         <a href="#landscaping"><?php esc_html_e('Landscaping', 'infinity'); ?></a>
                     </nav>
                     <?php
-                    // The hero IS a black hole simulation - link the article
-                    // about simulating one (a top search performer) right here.
-                    $infinity_bh_post = get_page_by_path('simulating-a-black-hole', OBJECT, 'post');
-                    if ($infinity_bh_post && 'publish' === $infinity_bh_post->post_status) :
+                    // Push readers straight into the freshest writing
+                    $infinity_hero_latest = new WP_Query(array(
+                        'posts_per_page'      => 3,
+                        'ignore_sticky_posts' => true,
+                    ));
+                    if ($infinity_hero_latest->have_posts()) :
                     ?>
-                        <a class="fp-hero-link" href="<?php echo esc_url(get_permalink($infinity_bh_post)); ?>">
-                            <?php esc_html_e('☄️ How I simulated the black hole behind this title', 'infinity'); ?> &rarr;
-                        </a>
+                        <div class="fp-hero-latest">
+                            <span class="fp-hero-latest-label"><?php esc_html_e('Fresh articles', 'infinity'); ?></span>
+                            <?php while ($infinity_hero_latest->have_posts()) : $infinity_hero_latest->the_post(); ?>
+                                <a class="fp-hero-latest-pill" href="<?php the_permalink(); ?>"><?php echo esc_html(wp_trim_words(get_the_title(), 7, '…')); ?></a>
+                            <?php endwhile; wp_reset_postdata(); ?>
+                        </div>
                     <?php endif; ?>
                 </div>
+
+                <?php $infinity_hero_app = infinity_steam_app_id(); if ($infinity_hero_app) : ?>
+                <aside class="hero-steam-card" aria-label="<?php esc_attr_e('Explore the Universe 2175 on Steam', 'infinity'); ?>">
+                    <p class="hero-steam-card-kicker"><?php esc_html_e('Now on Steam — Wishlist', 'infinity'); ?></p>
+                    <iframe
+                        class="hero-steam-frame"
+                        src="<?php echo esc_url('https://store.steampowered.com/widget/' . $infinity_hero_app . '/?utm_source=elliottelford.com&utm_medium=hero_widget&utm_campaign=homepage'); ?>"
+                        title="<?php esc_attr_e('Explore the Universe 2175 on Steam', 'infinity'); ?>"
+                    ></iframe>
+                    <p class="hero-steam-card-note"><?php esc_html_e('Every wishlist boosts launch visibility', 'infinity'); ?></p>
+                </aside>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -103,22 +128,51 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
     <!-- ================= Property strip ================= -->
     <section class="fp-section fp-properties" aria-label="<?php esc_attr_e('The Telford universe', 'infinity'); ?>">
         <div class="container">
-            <div class="property-strip">
-                <a class="property-card property-card-parkers" href="<?php echo esc_url($parkers_url); ?>" target="_blank" rel="noopener">
-                    <span class="property-card-kicker"><?php esc_html_e('Play with physics', 'infinity'); ?></span>
-                    <span class="property-card-name"><?php esc_html_e("Parker's Physics", 'infinity'); ?></span>
-                    <span class="property-card-cta"><?php esc_html_e('Launch the sandbox', 'infinity'); ?> &rarr;</span>
+            <div class="property-strip property-strip-live">
+                <?php
+                $infinity_properties = array(
+                    array(
+                        'class'  => 'parkers',
+                        'url'    => $parkers_url,
+                        'kicker' => __('Play with physics', 'infinity'),
+                        'name'   => __("Parker's Physics", 'infinity'),
+                        'cta'    => __('Launch the sandbox', 'infinity'),
+                        'mono'   => 'PP',
+                    ),
+                    array(
+                        'class'  => 'etu',
+                        'url'    => $etu_site_url,
+                        'kicker' => __('The space game', 'infinity'),
+                        'name'   => __('Explore the Universe 2175', 'infinity'),
+                        'cta'    => __('Sign up free', 'infinity'),
+                        'mono'   => '2175',
+                    ),
+                    array(
+                        'class'  => 'landscaping',
+                        'url'    => $landscaping_url,
+                        'kicker' => __('The analog craft', 'infinity'),
+                        'name'   => __('Telford Landscaping', 'infinity'),
+                        'cta'    => __('See the work', 'infinity'),
+                        'mono'   => 'TL',
+                    ),
+                );
+                foreach ($infinity_properties as $infinity_prop) :
+                ?>
+                <a class="property-card property-card-<?php echo esc_attr($infinity_prop['class']); ?> property-live"
+                   href="<?php echo esc_url($infinity_prop['url']); ?>" target="_blank" rel="noopener"
+                   data-preview="<?php echo esc_url($infinity_prop['url']); ?>">
+                    <span class="property-live-screen">
+                        <span class="property-live-placeholder">
+                            <span class="property-live-mono"><?php echo esc_html($infinity_prop['mono']); ?></span>
+                        </span>
+                    </span>
+                    <span class="property-card-body">
+                        <span class="property-card-kicker"><?php echo esc_html($infinity_prop['kicker']); ?></span>
+                        <span class="property-card-name"><?php echo esc_html($infinity_prop['name']); ?></span>
+                        <span class="property-card-cta"><?php echo esc_html($infinity_prop['cta']); ?> &rarr;</span>
+                    </span>
                 </a>
-                <a class="property-card property-card-etu" href="<?php echo esc_url($etu_site_url); ?>" target="_blank" rel="noopener">
-                    <span class="property-card-kicker"><?php esc_html_e('The space game', 'infinity'); ?></span>
-                    <span class="property-card-name"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></span>
-                    <span class="property-card-cta"><?php esc_html_e('Sign up free', 'infinity'); ?> &rarr;</span>
-                </a>
-                <a class="property-card property-card-landscaping" href="<?php echo esc_url($landscaping_url); ?>" target="_blank" rel="noopener">
-                    <span class="property-card-kicker"><?php esc_html_e('The analog craft', 'infinity'); ?></span>
-                    <span class="property-card-name"><?php esc_html_e('Telford Landscaping', 'infinity'); ?></span>
-                    <span class="property-card-cta"><?php esc_html_e('See the work', 'infinity'); ?> &rarr;</span>
-                </a>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
@@ -290,14 +344,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                     <p class="fp-steam-hype">
                         <?php esc_html_e('Every wishlist moves the launch algorithm — if the simulations on this site light you up, this is the button that funds more of them.', 'infinity'); ?>
                     </p>
-                    <?php $infinity_app_id = infinity_steam_app_id(); if ($infinity_app_id) : ?>
-                        <iframe
-                            class="fp-steam-widget"
-                            src="<?php echo esc_url('https://store.steampowered.com/widget/' . $infinity_app_id . '/?utm_source=elliottelford.com&utm_medium=widget&utm_campaign=homepage'); ?>"
-                            loading="lazy"
-                            title="<?php esc_attr_e('Explore the Universe 2175 on Steam', 'infinity'); ?>"
-                        ></iframe>
-                    <?php endif; ?>
+
                 </div>
             </div>
         </div>

@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 1.9.0
+Version: 2.0.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -1764,10 +1764,27 @@ code {
 }
 
 .fp-hero-blackhole .fp-hero-tagline {
-  font-size: var(--font-size-xl);
-  color: var(--color-text-secondary);
-  text-shadow: 0 2px 16px rgba(10, 14, 26, 0.95);
+  font-size: clamp(1rem, 1.9vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: linear-gradient(95deg, #ffd9a0 0%, #ffb84d 25%, #f0f2ff 52%, #22d3ee 78%, #ffd9a0 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 14px rgba(5, 8, 18, 0.95)) drop-shadow(0 0 22px rgba(255, 184, 77, 0.28));
+  animation: tagline-shimmer 11s ease-in-out infinite;
   margin-bottom: var(--spacing-lg);
+}
+
+@keyframes tagline-shimmer {
+  0%, 100% { background-position: 0% 0; }
+  50%      { background-position: 100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-hero-blackhole .fp-hero-tagline { animation: none; }
 }
 
 .fp-hero-blackhole .fp-pillar-nav {
@@ -1946,11 +1963,14 @@ code {
 
 .fp-hero-title-svg {
   margin-bottom: var(--spacing-md);
+  align-self: stretch;
+  width: 100%;
 }
 
 .fp-wordmark {
   display: block;
-  width: min(92vw, 900px);
+  width: 100%;
+  max-width: 900px;
   height: auto;
   overflow: visible;
 }
@@ -2083,4 +2103,202 @@ code {
   border: 0;
   border-radius: var(--radius-md);
   margin-top: var(--spacing-md);
+}
+
+/* ==========================================================================
+   17.0 Hero Steam card, latest pills, live property previews
+   ========================================================================== */
+
+/* Hero goes two-column on wide screens: copy left, Steam card right */
+@media (min-width: 1100px) {
+  .fp-hero-blackhole .fp-hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: var(--spacing-2xl);
+    align-items: center;
+  }
+}
+
+/* Lifted, glowing Steam widget card */
+.hero-steam-card {
+  position: relative;
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(165deg, rgba(27, 40, 56, 0.9), rgba(16, 24, 38, 0.92));
+  border: 1px solid rgba(102, 192, 244, 0.5);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 34px rgba(27, 110, 194, 0.35);
+  backdrop-filter: blur(8px);
+  animation: hero-card-float 7s ease-in-out infinite;
+}
+
+@media (min-width: 1100px) {
+  .hero-steam-card { margin-top: 0; }
+}
+
+@keyframes hero-card-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.hero-steam-card-kicker {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #66c0f4;
+  margin: 0 0 var(--spacing-sm);
+}
+
+.hero-steam-frame {
+  display: block;
+  width: 100%;
+  height: 190px;
+  border: 0;
+  border-radius: var(--radius-md);
+}
+
+.hero-steam-card-note {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin: var(--spacing-sm) 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-steam-card { animation: none; }
+}
+
+/* Fresh-article pills under the hero nav */
+.fp-hero-latest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+}
+
+.fp-hero-latest-label {
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffb84d;
+  text-shadow: 0 2px 10px rgba(5, 8, 18, 0.9);
+}
+
+.fp-hero-latest-pill {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--color-bg-secondary) 82%, transparent);
+  border: 1px solid color-mix(in srgb, #ffb84d 45%, transparent);
+  backdrop-filter: blur(6px);
+  transition: border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.fp-hero-latest-pill:hover {
+  color: #ffb84d;
+  border-color: #ffb84d;
+  transform: translateY(-1px);
+}
+
+/* Live property previews: placeholder monogram, then a scaled
+   iframe of the actual site fades in once lazily loaded */
+.property-strip-live .property-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.property-live-screen {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--color-bg-tertiary);
+}
+
+.property-live-screen iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 800px;
+  border: 0;
+  transform-origin: top left;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.property-live.is-live .property-live-screen iframe {
+  opacity: 1;
+}
+
+.property-live-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s ease;
+  background:
+    radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--color-accent-primary) 22%, transparent), transparent 65%),
+    var(--color-bg-secondary);
+}
+
+.property-card-etu .property-live-placeholder {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(27, 110, 194, 0.35), transparent 65%),
+    var(--color-bg-secondary);
+}
+
+.property-card-landscaping .property-live-placeholder {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(22, 163, 74, 0.3), transparent 65%),
+    var(--color-bg-secondary);
+}
+
+.property-live.is-live .property-live-placeholder {
+  opacity: 0;
+}
+
+.property-live-mono {
+  font-size: 2.4rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--color-accent-primary) 55%, transparent));
+}
+
+.property-card-etu .property-live-mono {
+  background: linear-gradient(135deg, #66c0f4, #1b6ec2);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.property-card-landscaping .property-live-mono {
+  background: linear-gradient(135deg, #4ade80, #16a34a);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.property-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-md) var(--spacing-lg);
 }

@@ -165,7 +165,7 @@
 
   var PART_VERT = [
     'precision highp float;',
-    'attribute float a_seed;',
+    'attribute vec2 a_pt; /* x: particle seed, y: tail segment */',
     'uniform vec2 u_res;',
     'uniform float u_time;',
     'uniform vec2 u_center;',
@@ -173,27 +173,46 @@
     'varying float v_fade;',
     '',
     'void main() {',
-    '  float seed = a_seed * 123.717;',
-    '  float r0 = mix(0.95, 0.4, fract(seed * 0.731));',
-    '  float speed = mix(0.035, 0.09, fract(seed * 0.417));',
-    '  float t = fract(u_time * speed + fract(seed * 3.137));',
-    '  float r = mix(r0, 0.115, pow(t, 1.5));',
+    '  float seed = a_pt.x * 123.717;',
+    '  float seg = a_pt.y; /* 0 = head, grows toward tail */',
     '',
-    '  /* Faster orbits closer in */',
-    '  float ang = seed * 6.2831853 + u_time * (0.5 + 1.6 / (0.2 + r * r));',
-    '  vec2 p = vec2(cos(ang), sin(ang)) * r;',
+    '  /* Keplerian orbit params per particle */',
+    '  float aAxis = mix(0.3, 0.95, fract(seed * 0.731));',
+    '  float ecc   = mix(0.04, 0.42, fract(seed * 0.567));',
+    '  float peri  = seed * 6.2831853;',
+    '  float n     = 0.5 / pow(aAxis, 1.5); /* mean motion: inner = faster */',
+    '',
+    '  /* A fifth of the swarm is on doomed inspiral orbits */',
+    '  float doomed = step(0.8, fract(seed * 0.293));',
+    '  float cycle = fract(u_time * 0.05 / aAxis + fract(seed * 3.137));',
+    '',
+    '  /* Tail: sample the SAME orbit at earlier phase */',
+    '  float theta = peri + u_time * n - seg * 0.085;',
+    '',
+    '  /* Conic section radius; inspiral shrinks the whole orbit */',
+    '  float shrink = mix(1.0, mix(1.0, 0.16 / aAxis, pow(cycle, 1.6)), doomed);',
+    '  float r = aAxis * shrink * (1.0 - ecc * ecc) / (1.0 + ecc * cos(theta - peri));',
+    '  r = max(r, 0.125);',
+    '',
+    '  vec2 p = vec2(cos(theta), sin(theta)) * r;',
     '  p.y /= 3.3; /* disk inclination */',
     '',
-    '  float tilt = 0.10; /* clip y points up: mirror of fragment tilt */',
+    '  float tilt = 0.10;',
     '  p = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * p;',
     '  p /= 1.55; /* match disk zoom */',
     '',
     '  vec2 clip = p * vec2(u_res.y / u_res.x, 1.0) * 2.0 + (u_center * 2.0 - 1.0);',
     '  gl_Position = vec4(clip, 0.0, 1.0);',
     '',
-    '  v_heat = t;',
-    '  v_fade = sin(t * 3.14159);',
-    '  gl_PointSize = max(u_res.y * 0.012 * (1.4 - t), 1.5);',
+    '  /* Heat rises as radius falls; head hotter than tail */',
+    '  v_heat = clamp(0.22 / r - 0.15, 0.0, 1.0) * (1.0 - seg * 0.08);',
+    '',
+    '  /* Tail fades along its length; doomed ones flare then vanish */',
+    '  float tailFade = 1.0 - seg / 8.0;',
+    '  float doomFade = mix(1.0, sin(cycle * 3.14159), doomed);',
+    '  v_fade = tailFade * tailFade * doomFade;',
+    '',
+    '  gl_PointSize = max(u_res.y * (0.011 - seg * 0.0011), 1.0);',
     '}'
   ].join('\n');
 
@@ -206,10 +225,10 @@
     '  float d = length(gl_PointCoord - 0.5);',
     '  float a = smoothstep(0.5, 0.0, d);',
     '  a *= a * v_fade;',
-    '  vec3 cool = vec3(1.0, 0.62, 0.28);',
+    '  vec3 cool = vec3(1.0, 0.58, 0.24);',
     '  vec3 hotc = vec3(1.0, 0.97, 0.9);',
-    '  vec3 col = mix(cool, hotc, v_heat * v_heat);',
-    '  gl_FragColor = vec4(col * a, a);',
+    '  vec3 col = mix(cool, hotc, v_heat);',
+    '  gl_FragColor = vec4(col * a, a * 0.9);',
     '}'
   ].join('\n');
 
@@ -252,14 +271,22 @@
   var dTime = gl.getUniformLocation(diskProg, 'u_time');
   var dCenter = gl.getUniformLocation(diskProg, 'u_center');
 
-  /* Particles */
-  var PART_COUNT = 220;
-  var seeds = new Float32Array(PART_COUNT);
-  for (var i = 0; i < PART_COUNT; i++) seeds[i] = (i + 0.5) / PART_COUNT;
+  /* Particles: each has a head + tail segments along its orbit */
+  var PART_N = 90;
+  var TAIL = 8;
+  var PART_COUNT = PART_N * TAIL;
+  var pts = new Float32Array(PART_COUNT * 2);
+  for (var i = 0; i < PART_N; i++) {
+    for (var s = 0; s < TAIL; s++) {
+      var k = (i * TAIL + s) * 2;
+      pts[k] = (i + 0.5) / PART_N;
+      pts[k + 1] = s;
+    }
+  }
   var partBuf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, partBuf);
-  gl.bufferData(gl.ARRAY_BUFFER, seeds, gl.STATIC_DRAW);
-  var partSeed = partProg ? gl.getAttribLocation(partProg, 'a_seed') : -1;
+  gl.bufferData(gl.ARRAY_BUFFER, pts, gl.STATIC_DRAW);
+  var partSeed = partProg ? gl.getAttribLocation(partProg, 'a_pt') : -1;
   var pRes = partProg ? gl.getUniformLocation(partProg, 'u_res') : null;
   var pTime = partProg ? gl.getUniformLocation(partProg, 'u_time') : null;
   var pCenter = partProg ? gl.getUniformLocation(partProg, 'u_center') : null;
@@ -317,7 +344,7 @@
       gl.useProgram(partProg);
       gl.bindBuffer(gl.ARRAY_BUFFER, partBuf);
       gl.enableVertexAttribArray(partSeed);
-      gl.vertexAttribPointer(partSeed, 1, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(partSeed, 2, gl.FLOAT, false, 0, 0);
       gl.uniform2f(pRes, canvas.width, canvas.height);
       gl.uniform1f(pTime, t);
       gl.uniform2f(pCenter, cx, cy);
