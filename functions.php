@@ -102,7 +102,7 @@ function infinity_enqueue_scripts() {
         'siteUrl'        => esc_url_raw(home_url('/')),
         'siteName'       => get_bloginfo('name'),
         'themePath'      => INFINITY_URI,
-        'steamUrl'       => esc_url_raw(get_option('infinity_steam_url', '')),
+        'steamUrl'       => esc_url_raw(get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/')),
         'steamLabel'     => get_option('infinity_steam_label', 'Explore the Universe'),
         'currentUserId'  => get_current_user_id(),
         'isUserLoggedIn' => is_user_logged_in(),
@@ -491,7 +491,7 @@ function infinity_customize_register($wp_customize) {
 
     $wp_customize->add_setting('infinity_steam_url', array(
         'type'              => 'option',
-        'default'           => '',
+        'default'           => 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/',
         'sanitize_callback' => 'esc_url_raw',
     ));
 

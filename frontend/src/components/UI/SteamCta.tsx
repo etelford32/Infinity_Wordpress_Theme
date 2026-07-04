@@ -7,7 +7,8 @@
  * a real store URL is configured.
  */
 export const STEAM_URL: string =
-  window.infinityData?.steamUrl || 'https://store.steampowered.com/';
+  window.infinityData?.steamUrl ||
+  'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/';
 
 export const STEAM_LABEL: string =
   window.infinityData?.steamLabel || 'Explore the Universe';

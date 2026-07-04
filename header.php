@@ -66,7 +66,7 @@
                 ?>
             </nav>
 
-            <?php $infinity_steam_url = get_option('infinity_steam_url', ''); ?>
+            <?php $infinity_steam_url = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/'); ?>
             <?php if ($infinity_steam_url) : ?>
                 <a class="header-steam-cta" href="<?php echo esc_url($infinity_steam_url); ?>" target="_blank" rel="noopener noreferrer">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
