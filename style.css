@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 1.3.0
+Version: 1.4.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -1704,7 +1704,12 @@ code {
   backdrop-filter: blur(6px);
 }
 
-/* Header logo wrapped in black-hole physics */
+/* Header logo wrapped in black-hole physics.
+   The logo image itself runs a phased 12s cycle:
+   rest (0-38%) -> spin-up flip (38-56%) -> lensing flare (56-66%)
+   -> settle (66-100%). The accretion ring's rotation speed is
+   encoded in the same timeline so it whips around during spin-up.
+   Only transform / opacity / filter animate (compositor-friendly). */
 .bh-logo {
   position: relative;
   display: inline-flex;
@@ -1713,6 +1718,7 @@ code {
   width: 52px;
   height: 52px;
   flex-shrink: 0;
+  perspective: 320px;
 }
 
 .bh-logo-img {
@@ -1722,9 +1728,28 @@ code {
   height: 44px;
   object-fit: contain;
   border-radius: 50%;
+  backface-visibility: visible;
+  will-change: transform, filter;
+  animation: bh-logo-cycle 12s cubic-bezier(0.45, 0, 0.25, 1) infinite;
 }
 
-/* Accretion ring: spinning conic gradient, blurred into plasma */
+@keyframes bh-logo-cycle {
+  /* rest: slow breathing */
+  0%   { transform: rotateY(0deg) scale(1);       filter: brightness(1)    drop-shadow(0 0 5px color-mix(in srgb, var(--color-accent-primary) 50%, transparent)); }
+  19%  { transform: rotateY(0deg) scale(1.035);   filter: brightness(1.06) drop-shadow(0 0 9px color-mix(in srgb, var(--color-accent-primary) 60%, transparent)); }
+  38%  { transform: rotateY(0deg) scale(1);       filter: brightness(1)    drop-shadow(0 0 5px color-mix(in srgb, var(--color-accent-primary) 50%, transparent)); }
+  /* spin-up: the logo itself whips through two full flips */
+  56%  { transform: rotateY(720deg) scale(1.07);  filter: brightness(1.4)  drop-shadow(0 0 16px color-mix(in srgb, var(--color-accent-secondary) 85%, transparent)); }
+  /* lensing flare: peak glow */
+  62%  { transform: rotateY(720deg) scale(1.14);  filter: brightness(1.75) drop-shadow(0 0 26px rgba(255, 255, 255, 0.85)); }
+  /* settle */
+  74%  { transform: rotateY(720deg) scale(0.985); filter: brightness(0.96) drop-shadow(0 0 6px color-mix(in srgb, var(--color-accent-primary) 45%, transparent)); }
+  82%  { transform: rotateY(720deg) scale(1.01);  filter: brightness(1.02) drop-shadow(0 0 7px color-mix(in srgb, var(--color-accent-primary) 52%, transparent)); }
+  100% { transform: rotateY(720deg) scale(1);     filter: brightness(1)    drop-shadow(0 0 5px color-mix(in srgb, var(--color-accent-primary) 50%, transparent)); }
+}
+
+/* Accretion ring: spinning conic gradient, blurred into plasma.
+   Same 12s timeline; four total turns, most of them during spin-up. */
 .bh-logo-accretion {
   position: absolute;
   inset: -6px;
@@ -1740,12 +1765,21 @@ code {
     color-mix(in srgb, var(--color-accent-primary) 45%, transparent) 265deg,
     transparent 330deg
   );
-  filter: blur(5px) saturate(130%);
-  animation: bh-accretion-spin 5.5s linear infinite;
-  opacity: 0.85;
+  filter: blur(4px) saturate(130%);
+  will-change: transform, opacity;
+  animation: bh-accretion-cycle 12s cubic-bezier(0.45, 0, 0.25, 1) infinite;
 }
 
-/* Photon ring: thin bright rim hugging the logo */
+@keyframes bh-accretion-cycle {
+  0%   { transform: rotate(0deg);    opacity: 0.5; }
+  38%  { transform: rotate(160deg);  opacity: 0.66; }
+  56%  { transform: rotate(1020deg); opacity: 1; }
+  62%  { transform: rotate(1140deg); opacity: 1; }
+  74%  { transform: rotate(1260deg); opacity: 0.6; }
+  100% { transform: rotate(1440deg); opacity: 0.5; }
+}
+
+/* Photon ring: quiet flicker with a spike at the flare */
 .bh-logo-photon {
   position: absolute;
   inset: 1px;
@@ -1755,30 +1789,46 @@ code {
     0 0 0 1px rgba(255, 255, 255, 0.35),
     0 0 10px 1px color-mix(in srgb, var(--color-accent-primary) 70%, transparent),
     inset 0 0 8px color-mix(in srgb, var(--color-accent-primary) 45%, transparent);
-  animation: bh-photon-flicker 4s ease-in-out infinite;
+  animation: bh-photon-cycle 12s ease-in-out infinite;
 }
 
-.site-logo-link:hover .bh-logo-accretion {
-  animation-duration: 1.6s;
-  opacity: 1;
+@keyframes bh-photon-cycle {
+  0%, 38% { opacity: 0.55; }
+  56%     { opacity: 0.9; }
+  62%     { opacity: 1; }
+  74%, 100% { opacity: 0.55; }
 }
 
-.site-logo-link:hover .bh-logo-img {
-  transform: scale(1.06);
-  transition: transform var(--transition-base);
+/* Hover: gravitational engagement */
+.site-logo-link:hover .bh-logo {
+  filter: brightness(1.15);
+  transition: filter var(--transition-base);
 }
 
-@keyframes bh-accretion-spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes bh-photon-flicker {
-  0%, 100% { opacity: 0.75; }
-  50%      { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .bh-logo-img,
+  .bh-logo-accretion,
+  .bh-logo-photon {
+    animation: none !important;
+  }
 }
 
 @media (max-width: 640px) {
   .fp-hero-blackhole {
     padding: var(--spacing-3xl) 0;
   }
+}
+
+/* Custom logo centered inside the orbital rings (Parker's band) */
+.cosmic-logo-center-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--logo-size) * 0.44);
+  height: calc(var(--logo-size) * 0.44);
+  margin: calc(var(--logo-size) * -0.22) 0 0 calc(var(--logo-size) * -0.22);
+  object-fit: contain;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 calc(var(--logo-size) * 0.1) color-mix(in srgb, var(--color-accent-primary) 60%, transparent));
+  animation: cosmic-et-pulse 3.2s ease-in-out infinite;
 }

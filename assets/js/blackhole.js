@@ -44,7 +44,7 @@
     'float fbm(vec2 p) {',
     '  float v = 0.0;',
     '  float a = 0.55;',
-    '  for (int i = 0; i < 4; i++) {',
+    '  for (int i = 0; i < 3; i++) {',
     '    v += a * noise(p);',
     '    p = p * 2.1 + vec2(17.3, 9.1);',
     '    a *= 0.5;',
@@ -144,7 +144,7 @@
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   function resize() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.25);
     var w = canvas.clientWidth;
     var h = canvas.clientHeight;
     if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
@@ -158,9 +158,16 @@
   var visible = true;
   var raf = null;
   var start = performance.now();
+  var last = 0;
+  var FRAME_MS = 33; // ~30fps is plenty for a slow accretion swirl
 
-  function frame() {
+  function frame(now) {
     raf = null;
+    if (!reduced && now && now - last < FRAME_MS) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
+    last = now || 0;
     resize();
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);

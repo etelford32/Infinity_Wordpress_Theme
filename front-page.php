@@ -93,7 +93,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
             <article class="fp-featured-card">
                 <?php if (has_post_thumbnail()) : ?>
                     <a class="fp-featured-media" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-                        <?php the_post_thumbnail('large', array('loading' => 'eager')); ?>
+                        <?php the_post_thumbnail('large', array('loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high')); ?>
                     </a>
                 <?php endif; ?>
                 <div class="fp-featured-body">
@@ -170,7 +170,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                     <article class="fp-card">
                         <?php if (has_post_thumbnail()) : ?>
                             <a class="fp-card-media" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-                                <?php the_post_thumbnail('medium_large', array('loading' => 'lazy')); ?>
+                                <?php the_post_thumbnail('medium_large', array('loading' => 'lazy', 'decoding' => 'async')); ?>
                             </a>
                         <?php endif; ?>
                         <div class="fp-card-body">
@@ -200,6 +200,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                         src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4094340/header.jpg"
                         alt="<?php echo esc_attr(sprintf(__('%s key art', 'infinity'), $steam_label)); ?>"
                         loading="lazy"
+                        decoding="async"
                         onerror="this.closest('.fp-band-media').classList.add('fp-media-fallback'); this.remove();"
                     >
                 </div>
@@ -249,7 +250,12 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                 </div>
                 <div class="fp-band-media fp-media-sandbox" aria-hidden="true">
                     <span class="cosmic-logo" style="--logo-size: 140px;">
-                        <span class="cosmic-logo-monogram">ET</span>
+                        <?php if (has_custom_logo()) : ?>
+                            <?php $infinity_fp_logo = wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'medium'); ?>
+                            <img class="cosmic-logo-center-img" src="<?php echo esc_url($infinity_fp_logo); ?>" alt="" loading="lazy" decoding="async">
+                        <?php else : ?>
+                            <span class="cosmic-logo-monogram">ET</span>
+                        <?php endif; ?>
                         <span class="cosmic-orbit cosmic-orbit-a"><span class="cosmic-orbit-ring"></span><span class="cosmic-orbiter"></span></span>
                         <span class="cosmic-orbit cosmic-orbit-b"><span class="cosmic-orbit-ring"></span><span class="cosmic-orbiter"></span></span>
                         <span class="cosmic-logo-sparkle"></span>
