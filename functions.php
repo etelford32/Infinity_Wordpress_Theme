@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '1.1.1');
+define('INFINITY_VERSION', '1.2.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -514,6 +514,32 @@ function infinity_customize_register($wp_customize) {
         'section'     => 'infinity_steam_settings',
         'type'        => 'text',
     ));
+
+    $wp_customize->add_setting('infinity_etu_site_url', array(
+        'type'              => 'option',
+        'default'           => 'https://exploretheuniverse2175.com',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+
+    $wp_customize->add_control('infinity_etu_site_url', array(
+        'label'       => esc_html__('Explore the Universe 2175 site URL', 'infinity'),
+        'description' => esc_html__('The game\'s own site, where players sign up', 'infinity'),
+        'section'     => 'infinity_steam_settings',
+        'type'        => 'url',
+    ));
+
+    $wp_customize->add_setting('infinity_parkers_url', array(
+        'type'              => 'option',
+        'default'           => 'https://parkersphysics.com',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+
+    $wp_customize->add_control('infinity_parkers_url', array(
+        'label'       => esc_html__('Parker\'s Physics URL', 'infinity'),
+        'description' => esc_html__('The live simulation sandbox', 'infinity'),
+        'section'     => 'infinity_steam_settings',
+        'type'        => 'url',
+    ));
 }
 add_action('customize_register', 'infinity_customize_register');
 
@@ -558,6 +584,7 @@ require_once INFINITY_DIR . '/inc/simulation-meta.php';
 require_once INFINITY_DIR . '/inc/api-endpoints.php';
 require_once INFINITY_DIR . '/inc/stripe-api.php';
 require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
+require_once INFINITY_DIR . '/inc/property-promos.php';
 
 // Load WooCommerce compatibility if plugin is active
 if (class_exists('WooCommerce')) {

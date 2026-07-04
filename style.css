@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 1.1.1
+Version: 1.2.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -1407,4 +1407,222 @@ code {
   .fp-hero-title {
     font-size: var(--font-size-4xl);
   }
+}
+
+/* ==========================================================================
+   13.0 Property Promos (widgets, sidebar cards, property strip)
+   ========================================================================== */
+
+.promo-card {
+  background: var(--color-bg-secondary);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 22%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.promo-card-etu {
+  border-color: rgba(102, 192, 244, 0.4);
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(27, 110, 194, 0.18) 0%, transparent 60%),
+    var(--color-bg-secondary);
+}
+
+.promo-card-parkers {
+  background:
+    radial-gradient(ellipse at 80% 0%, color-mix(in srgb, var(--color-accent-secondary) 16%, transparent) 0%, transparent 60%),
+    var(--color-bg-secondary);
+}
+
+.promo-card-landscaping {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, #16a34a 10%, transparent), transparent 55%),
+    var(--color-bg-secondary);
+}
+
+.promo-kicker {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-primary);
+  margin: 0 0 var(--spacing-xs);
+}
+
+.promo-card-etu .promo-kicker {
+  color: #66c0f4;
+}
+
+.promo-title {
+  font-size: var(--font-size-xl);
+  margin: 0 0 var(--spacing-sm);
+  line-height: 1.2;
+}
+
+.promo-copy {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-md);
+  line-height: 1.6;
+}
+
+.promo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.promo-btn + .promo-btn {
+  margin-top: var(--spacing-sm);
+}
+
+.promo-btn:hover {
+  transform: translateY(-1px);
+}
+
+.promo-btn-steam {
+  color: #fff;
+  background: linear-gradient(135deg, #1b2838 0%, #2a475e 55%, #1b6ec2 100%);
+  border: 1px solid rgba(102, 192, 244, 0.45);
+  box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35);
+}
+
+.promo-btn-steam:hover {
+  filter: brightness(1.12);
+  color: #fff;
+}
+
+.promo-btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+}
+
+.promo-btn-primary:hover {
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+}
+
+.promo-btn-outline {
+  color: var(--color-accent-primary);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
+}
+
+.promo-btn-outline:hover {
+  background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+}
+
+/* Widget-area titles wrapping promo cards */
+.post-sidebar .widget-title {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacing-sm);
+}
+
+/* Property strip on the front page */
+.fp-properties {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.property-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.property-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-bg-tertiary);
+  background: var(--color-bg-secondary);
+  text-decoration: none;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.property-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
+  box-shadow: var(--shadow-lg);
+}
+
+.property-card-etu:hover {
+  border-color: rgba(102, 192, 244, 0.6);
+}
+
+.property-card-landscaping:hover {
+  border-color: rgba(22, 163, 74, 0.6);
+}
+
+.property-card-kicker {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.property-card-name {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.property-card-cta {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-accent-primary);
+  margin-top: 4px;
+}
+
+.property-card-etu .property-card-cta {
+  color: #66c0f4;
+}
+
+.property-card-landscaping .property-card-cta {
+  color: #4ade80;
+}
+
+/* Footer family-of-sites nav */
+.footer-sites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm) var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+  border-top: 1px solid var(--color-bg-tertiary);
+  margin-top: var(--spacing-md);
+}
+
+.footer-sites-label {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.footer-sites a {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.footer-sites a:hover {
+  color: var(--color-accent-primary);
 }

@@ -16,9 +16,12 @@
 
 get_header();
 
-$steam_url   = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
-$steam_label = get_option('infinity_steam_label', 'Explore the Universe');
-$landscaping_url = get_option('infinity_landscaping_url', 'https://telfordlandscaping.com');
+$property_urls   = infinity_property_urls();
+$steam_url       = $property_urls['steam'];
+$etu_site_url    = $property_urls['etu'];
+$parkers_url     = $property_urls['parkers'];
+$landscaping_url = $property_urls['landscaping'];
+$steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
 ?>
 
 <div class="front-page">
@@ -43,6 +46,29 @@ $landscaping_url = get_option('infinity_landscaping_url', 'https://telfordlandsc
                         <a href="#landscaping"><?php esc_html_e('Landscaping', 'infinity'); ?></a>
                     </nav>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= Property strip ================= -->
+    <section class="fp-section fp-properties" aria-label="<?php esc_attr_e('The Telford universe', 'infinity'); ?>">
+        <div class="container">
+            <div class="property-strip">
+                <a class="property-card property-card-parkers" href="<?php echo esc_url($parkers_url); ?>" target="_blank" rel="noopener">
+                    <span class="property-card-kicker"><?php esc_html_e('Play with physics', 'infinity'); ?></span>
+                    <span class="property-card-name"><?php esc_html_e("Parker's Physics", 'infinity'); ?></span>
+                    <span class="property-card-cta"><?php esc_html_e('Launch the sandbox', 'infinity'); ?> &rarr;</span>
+                </a>
+                <a class="property-card property-card-etu" href="<?php echo esc_url($etu_site_url); ?>" target="_blank" rel="noopener">
+                    <span class="property-card-kicker"><?php esc_html_e('The space game', 'infinity'); ?></span>
+                    <span class="property-card-name"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></span>
+                    <span class="property-card-cta"><?php esc_html_e('Sign up free', 'infinity'); ?> &rarr;</span>
+                </a>
+                <a class="property-card property-card-landscaping" href="<?php echo esc_url($landscaping_url); ?>" target="_blank" rel="noopener">
+                    <span class="property-card-kicker"><?php esc_html_e('The analog craft', 'infinity'); ?></span>
+                    <span class="property-card-name"><?php esc_html_e('Telford Landscaping', 'infinity'); ?></span>
+                    <span class="property-card-cta"><?php esc_html_e('See the work', 'infinity'); ?> &rarr;</span>
+                </a>
             </div>
         </div>
     </section>
@@ -180,7 +206,7 @@ $landscaping_url = get_option('infinity_landscaping_url', 'https://telfordlandsc
                     <p class="fp-kicker"><?php esc_html_e('Now on Steam', 'infinity'); ?></p>
                     <h2 class="fp-section-title" id="fp-steam-heading"><?php echo esc_html($steam_label); ?> 2175</h2>
                     <p class="fp-section-intro">
-                        <?php esc_html_e('A space exploration game set in a living galaxy — built on the same physics you can play with right here on the site.', 'infinity'); ?>
+                        <?php esc_html_e('The year is 2175 and the frontier is open. Command your own ship in a living galaxy built on real orbital mechanics — the same physics running in the simulations on this site. Wishlist it on Steam, then create a free account to follow development and fly with the first wave of pilots.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
                         <a class="header-steam-cta" href="<?php echo esc_url($steam_url); ?>" target="_blank" rel="noopener noreferrer">
@@ -191,6 +217,9 @@ $landscaping_url = get_option('infinity_landscaping_url', 'https://telfordlandsc
                                 <path d="M9.2 15.1l4.1-4.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
                             </svg>
                             <span><?php esc_html_e('Wishlist on Steam', 'infinity'); ?></span>
+                        </a>
+                        <a class="fp-btn-secondary" href="<?php echo esc_url($etu_site_url); ?>" target="_blank" rel="noopener">
+                            <?php esc_html_e('Sign up at ExploreTheUniverse2175.com', 'infinity'); ?>
                         </a>
                     </div>
                 </div>
@@ -203,14 +232,17 @@ $landscaping_url = get_option('infinity_landscaping_url', 'https://telfordlandsc
         <div class="container">
             <div class="fp-band-inner fp-band-reverse">
                 <div class="fp-band-copy">
-                    <p class="fp-kicker"><?php esc_html_e('In development', 'infinity'); ?></p>
+                    <p class="fp-kicker"><?php esc_html_e('The sandbox', 'infinity'); ?></p>
                     <h2 class="fp-section-title" id="fp-sandbox-heading"><?php esc_html_e("Parker's Physics", 'infinity'); ?></h2>
                     <p class="fp-section-intro">
-                        <?php esc_html_e('The interactive physics sandbox I\'m building for you — run astrophysical simulations, tweak the parameters, and share your experiments, right in the browser.', 'infinity'); ?>
+                        <?php esc_html_e('Real orbital mechanics you can bend with your hands. Spin up a solar system, throw a moon at it, and watch what gravity decides — no install, no login, right in your browser. This is the sandbox I\'m building for you, and it\'s the engine room behind Explore the Universe 2175.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
-                        <a class="fp-btn-primary" href="<?php echo esc_url(home_url('/simulations/')); ?>">
-                            <?php esc_html_e('Enter the sandbox', 'infinity'); ?> &rarr;
+                        <a class="fp-btn-primary" href="<?php echo esc_url($parkers_url); ?>" target="_blank" rel="noopener">
+                            <?php esc_html_e('Launch Parker\'s Physics', 'infinity'); ?> &rarr;
+                        </a>
+                        <a class="fp-btn-secondary" href="<?php echo esc_url(home_url('/simulations/')); ?>">
+                            <?php esc_html_e('Browse simulations here', 'infinity'); ?>
                         </a>
                     </div>
                 </div>

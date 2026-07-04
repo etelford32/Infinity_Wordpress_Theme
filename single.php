@@ -56,15 +56,18 @@ get_header();
             </div>
         <?php endif; ?>
 
-        <div class="entry-content container">
-            <?php
-            the_content();
+        <div class="entry-layout container">
+            <div class="entry-content">
+                <?php
+                the_content();
 
-            wp_link_pages(array(
-                'before' => '<div class="page-links">' . esc_html__('Pages:', 'infinity'),
-                'after'  => '</div>',
-            ));
-            ?>
+                wp_link_pages(array(
+                    'before' => '<div class="page-links">' . esc_html__('Pages:', 'infinity'),
+                    'after'  => '</div>',
+                ));
+                ?>
+            </div>
+            <?php get_sidebar(); ?>
         </div>
 
         <footer class="entry-footer container">
@@ -182,6 +185,32 @@ get_header();
     height: auto;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+}
+
+.entry-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 800px) 340px;
+    gap: var(--spacing-2xl);
+    align-items: start;
+}
+
+.entry-layout .post-sidebar {
+    position: sticky;
+    top: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+@media (max-width: 1024px) {
+    .entry-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .entry-layout .post-sidebar {
+        position: static;
+        max-width: 480px;
+    }
 }
 
 .single-post .entry-content {
