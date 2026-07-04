@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '1.6.0');
+define('INFINITY_VERSION', '1.7.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -960,6 +960,20 @@ function infinity_front_page_customize_register($wp_customize) {
             'sanitize'    => 'sanitize_text_field',
             'type'        => 'text',
         ),
+        'infinity_pillar_space_slugs' => array(
+            'label'       => esc_html__('Space & Simulations categories', 'infinity'),
+            'description' => esc_html__('Comma-separated category slugs', 'infinity'),
+            'default'     => 'space,astronomy,astrophysics,simulations,physics',
+            'sanitize'    => 'sanitize_text_field',
+            'type'        => 'text',
+        ),
+        'infinity_pillar_mind_slugs' => array(
+            'label'       => esc_html__('Mind & Philosophy categories', 'infinity'),
+            'description' => esc_html__('Comma-separated category slugs', 'infinity'),
+            'default'     => 'philosophy,religion,buddhism,hinduism,yoga,mind',
+            'sanitize'    => 'sanitize_text_field',
+            'type'        => 'text',
+        ),
         'infinity_landscaping_url' => array(
             'label'       => esc_html__('Landscaping site URL', 'infinity'),
             'description' => '',
@@ -1165,3 +1179,35 @@ function infinity_breadcrumb_json_ld() {
     );
 }
 add_action('wp_head', 'infinity_breadcrumb_json_ld', 7);
+
+/**
+ * Indexing hygiene: keep thin/duplicate views out of the index.
+ *
+ * GSC showed ~3,850 duplicate URLs. Attachment pages, date/author
+ * archives, and search results are the classic sources: noindex the
+ * archives, disable attachment pages entirely (redirecting old ones
+ * to their file), and let canonicals cover the rest.
+ */
+function infinity_wp_robots($robots) {
+    if (is_date() || is_author() || is_search() || is_attachment()) {
+        $robots['noindex'] = true;
+        $robots['follow']  = true;
+    }
+    return $robots;
+}
+add_filter('wp_robots', 'infinity_wp_robots');
+
+// WP 6.4+: stop generating attachment pages at all
+add_filter('wp_attachment_pages_enabled', '__return_false');
+
+// Legacy attachment URLs redirect to the file itself
+function infinity_attachment_redirect() {
+    if (is_attachment()) {
+        $url = wp_get_attachment_url(get_queried_object_id());
+        if ($url) {
+            wp_safe_redirect($url, 301);
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'infinity_attachment_redirect');

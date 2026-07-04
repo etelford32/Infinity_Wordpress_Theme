@@ -49,11 +49,22 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                     </p>
                     <nav class="fp-pillar-nav" aria-label="<?php esc_attr_e('Site sections', 'infinity'); ?>">
                         <a href="#health-anatomy"><?php esc_html_e('Health & Anatomy', 'infinity'); ?></a>
-                        <a href="#science"><?php esc_html_e('Science', 'infinity'); ?></a>
+                        <a href="#space-simulations"><?php esc_html_e('Space & Simulations', 'infinity'); ?></a>
+                        <a href="#mind-philosophy"><?php esc_html_e('Mind & Philosophy', 'infinity'); ?></a>
                         <a href="#travel"><?php esc_html_e('Travel & Experiences', 'infinity'); ?></a>
                         <a href="#explore-the-universe"><?php esc_html_e('The Game', 'infinity'); ?></a>
                         <a href="#landscaping"><?php esc_html_e('Landscaping', 'infinity'); ?></a>
                     </nav>
+                    <?php
+                    // The hero IS a black hole simulation - link the article
+                    // about simulating one (a top search performer) right here.
+                    $infinity_bh_post = get_page_by_path('simulating-a-black-hole', OBJECT, 'post');
+                    if ($infinity_bh_post && 'publish' === $infinity_bh_post->post_status) :
+                    ?>
+                        <a class="fp-hero-link" href="<?php echo esc_url(get_permalink($infinity_bh_post)); ?>">
+                            <?php esc_html_e('☄️ How I simulated the black hole behind this title', 'infinity'); ?> &rarr;
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -136,6 +147,20 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
             'intro'  => __('Osteology, nutrition, and how the human body is put together.', 'infinity'),
             'slugs'  => get_option('infinity_pillar_health_slugs', 'anatomy,osteology,health,nutrition'),
             'count'  => 4,
+        ),
+        array(
+            'id'     => 'space-simulations',
+            'title'  => __('Space & Simulations', 'infinity'),
+            'intro'  => __('Black holes, orbital mechanics, and simulations you can run yourself.', 'infinity'),
+            'slugs'  => get_option('infinity_pillar_space_slugs', 'space,astronomy,astrophysics,simulations,physics'),
+            'count'  => 3,
+        ),
+        array(
+            'id'     => 'mind-philosophy',
+            'title'  => __('Mind & Philosophy', 'infinity'),
+            'intro'  => __('Eastern philosophy, contemplative practice, and the big questions.', 'infinity'),
+            'slugs'  => get_option('infinity_pillar_mind_slugs', 'philosophy,religion,buddhism,hinduism,yoga,mind'),
+            'count'  => 3,
         ),
         array(
             'id'     => 'science',
