@@ -1,15 +1,21 @@
 /**
- * Header logo orbital system — 12 particles on true 3D orbits around
- * the site logo, rendered with WebGL point sprites. Each particle drags
- * a flashy neon tail; particles pass in FRONT of and BEHIND the logo
- * (two stacked canvases, split per-point by depth each frame).
+ * Header logo orbital system, v2 — a miniature accretion disk.
  *
- * Hover / focus on the logo link: orbital speed ramps up smoothly and
- * the palette inverts (shader-side, u_invert). Light mode (u_light)
- * trades additive neon for darker, more opaque ink so the trails stay
- * visible on a pale header.
+ * 12 particles ride TRUE elliptical Kepler orbits with the logo at the
+ * focus: they whip through periapsis (closest pass) and cruise the far
+ * arc, so orbital speed visibly changes all the time. Eight of them
+ * share a coherent disk plane tilted to match the logo's own ring;
+ * four fly eccentric inclined orbits for depth. Two stacked canvases
+ * (behind / in front of the logo) split every point by z each frame,
+ * so the swarm genuinely circles the logo in 3D.
  *
- * No spin, no pulse — the logo itself stays still; only the swarm moves.
+ * Trails are duotone: each comet fades from its head color to a second
+ * color along the tail. Dark mode renders additive neon; light mode
+ * switches to a separate white-star treatment — white four-ray star
+ * cores inside tinted halos, built for whitespace.
+ *
+ * Hover / focus: orbits contract toward the logo, speed ramps ~3x,
+ * tails stretch longer, twinkle doubles, and the palette inverts.
  */
 (function () {
     'use strict';
@@ -34,32 +40,46 @@
         'attribute vec2 a_pos;',
         'attribute float a_size;',
         'attribute vec4 a_col;',
+        'attribute float a_age;',
         'varying vec4 v_col;',
+        'varying float v_age;',
         'void main() {',
         '  gl_Position = vec4(a_pos, 0.0, 1.0);',
         '  gl_PointSize = a_size;',
         '  v_col = a_col;',
+        '  v_age = a_age;',
         '}'
     ].join('\n');
 
     var FRAG = [
         'precision mediump float;',
         'varying vec4 v_col;',
+        'varying float v_age;',
         'uniform float u_invert;',
         'uniform float u_light;',
+        'uniform float u_heat;',
         'void main() {',
         '  vec2 p = gl_PointCoord * 2.0 - 1.0;',
         '  float d = dot(p, p);',
         '  if (d > 1.0) discard;',
-        '  float glow = exp(-3.2 * d);',
-        '  float core = exp(-15.0 * d);',
+        '  float glow = exp(-3.0 * d);',
+        '  float core = exp(-16.0 * d);',
+        // four-ray diffraction spikes, strongest at the comet head
+        '  float ray = exp(-9.0 * min(abs(p.x), abs(p.y))) * exp(-2.1 * d) * (1.0 - v_age);',
         '  vec3 col = v_col.rgb;',
-        '  col = mix(col, vec3(1.04) - col, u_invert);', // hover: inverted schema
-        '  col += vec3(0.9) * core;',                     // white-hot core
+        '  col = mix(col, vec3(1.05) - col, u_invert);',
         '  float a = v_col.a * glow;',
-        '  col = mix(col, col * 0.5, u_light);',          // light mode: ink, not neon
-        '  a = mix(a, min(1.0, a * 2.7), u_light);',
-        '  gl_FragColor = vec4(col * a, a);',             // premultiplied
+        // DARK: additive neon — colored glow, white-hot core, faint rays
+        '  vec3 neon = col * (1.0 + 0.45 * u_heat) + vec3(0.9) * core + col * ray * 0.5;',
+        // LIGHT: white star — tight vivid halo, white core and rays.
+        // Squaring nudges saturation up so halos stay neon, never muddy.
+        '  vec3 tint = col * col * 0.85;',
+        '  vec3 star = mix(tint, vec3(1.07), clamp(core * 1.5 + ray * (0.95 + 0.4 * u_heat), 0.0, 1.0));',
+        '  float glowL = exp(-5.0 * d);',
+        '  float aL = min(1.0, v_col.a * 2.4) * glowL * (0.5 + 0.5 * (1.0 - v_age));',
+        '  vec3 outCol = mix(neon, star, u_light);',
+        '  float outA = mix(a, aL, u_light);',
+        '  gl_FragColor = vec4(outCol * outA, outA);',
         '}'
     ].join('\n');
 
@@ -82,18 +102,20 @@
             return null;
         }
         gl.useProgram(prog);
-        var buf = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
         var aPos  = gl.getAttribLocation(prog, 'a_pos');
         var aSize = gl.getAttribLocation(prog, 'a_size');
         var aCol  = gl.getAttribLocation(prog, 'a_col');
+        var aAge  = gl.getAttribLocation(prog, 'a_age');
         gl.enableVertexAttribArray(aPos);
         gl.enableVertexAttribArray(aSize);
         gl.enableVertexAttribArray(aCol);
-        var STRIDE = 7 * 4;
+        gl.enableVertexAttribArray(aAge);
+        var STRIDE = 8 * 4;
         gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, STRIDE, 0);
         gl.vertexAttribPointer(aSize, 1, gl.FLOAT, false, STRIDE, 8);
         gl.vertexAttribPointer(aCol, 4, gl.FLOAT, false, STRIDE, 12);
+        gl.vertexAttribPointer(aAge, 1, gl.FLOAT, false, STRIDE, 28);
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.clearColor(0, 0, 0, 0);
@@ -101,7 +123,8 @@
             canvas: canvas,
             gl: gl,
             uInvert: gl.getUniformLocation(prog, 'u_invert'),
-            uLight: gl.getUniformLocation(prog, 'u_light')
+            uLight: gl.getUniformLocation(prog, 'u_light'),
+            uHeat: gl.getUniformLocation(prog, 'u_heat')
         };
     }
 
@@ -114,18 +137,18 @@
     /* ---------- the swarm ---------- */
 
     var N = 12;
-    var TRAIL = 20;
-    var PALETTE = [
-        [0.40, 0.91, 1.00], // neon cyan
-        [0.51, 0.55, 0.98], // indigo
-        [0.78, 0.50, 1.00], // violet
-        [0.96, 0.45, 0.75], // hot pink
-        [0.99, 0.60, 0.22], // ember orange
-        [0.30, 1.00, 0.72]  // aurora mint
+    var TRAIL = 26;
+    // Duotone pairs: [head color, tail color]
+    var DUO = [
+        [[0.40, 0.93, 1.00], [0.55, 0.42, 1.00]], // cyan -> violet
+        [[0.80, 0.48, 1.00], [1.00, 0.36, 0.72]], // violet -> hot pink
+        [[1.00, 0.42, 0.66], [1.00, 0.62, 0.20]], // pink -> ember
+        [[0.48, 0.55, 1.00], [0.30, 0.95, 1.00]], // indigo -> cyan
+        [[0.30, 1.00, 0.72], [0.20, 0.75, 1.00]], // mint -> sky
+        [[1.00, 0.66, 0.22], [1.00, 0.90, 0.45]]  // ember -> gold
     ];
 
     function rng(seed) {
-        // tiny deterministic PRNG so every load looks identical
         var s = seed * 2654435761 % 4294967296;
         return function () {
             s = (s * 1664525 + 1013904223) % 4294967296;
@@ -133,46 +156,63 @@
         };
     }
 
+    function basisFromNormal(nx, ny, nz) {
+        var ux = ny, uy = -nx, uz = 0;
+        var len = Math.sqrt(ux * ux + uy * uy);
+        if (len < 0.001) { ux = 1; uy = 0; uz = 0; len = 1; }
+        ux /= len; uy /= len; uz /= len;
+        return {
+            u: [ux, uy, uz],
+            v: [ny * uz - nz * uy, nz * ux - nx * uz, nx * uy - ny * ux]
+        };
+    }
+
     var parts = [];
     (function () {
-        var i, r, rnd, node, tilt, nx, ny, nz, ux, uy, uz, vx, vy, vz, len;
+        // Shared accretion-disk plane, tilted like the logo's own ring:
+        // mostly edge-on (a flat ellipse) rotated ~ -24 degrees on screen.
+        var diskTilt = 1.12;   // from face-on; bigger = flatter ellipse
+        var diskRoll = -0.42;  // ~ -24deg screen rotation
+        var i, rnd, disk, tilt, roll, nx, ny, nz, b, a, e;
         for (i = 0; i < N; i++) {
-            rnd = rng(i + 7);
-            node = (i / N) * Math.PI * 2 + rnd() * 0.5;
-            tilt = 0.55 + rnd() * 1.05;
-            // orbit-plane normal
-            nx = Math.sin(tilt) * Math.cos(node);
-            ny = Math.sin(tilt) * Math.sin(node);
+            rnd = rng(i * 131 + 17);
+            disk = i < 8; // 8 disk riders, 4 eccentric outliers
+            if (disk) {
+                tilt = diskTilt + (rnd() - 0.5) * 0.3;
+                roll = diskRoll + (rnd() - 0.5) * 0.22;
+            } else {
+                tilt = 0.35 + rnd() * 1.9;
+                roll = rnd() * Math.PI * 2;
+            }
+            nx = Math.sin(tilt) * Math.cos(roll);
+            ny = Math.sin(tilt) * Math.sin(roll);
             nz = Math.cos(tilt);
-            // in-plane basis u = n x Z (fallback n x X), v = n x u
-            ux = ny; uy = -nx; uz = 0;
-            len = Math.sqrt(ux * ux + uy * uy);
-            if (len < 0.001) { ux = 0; uy = 1; uz = 0; len = 1; }
-            ux /= len; uy /= len; uz /= len;
-            vx = ny * uz - nz * uy;
-            vy = nz * ux - nx * uz;
-            vz = nx * uy - ny * ux;
-            r = 0.60 + rnd() * 0.38;
+            b = basisFromNormal(nx, ny, nz);
+            a = disk ? 0.58 + rnd() * 0.34 : 0.55 + rnd() * 0.42;
+            e = disk ? 0.14 + rnd() * 0.26 : 0.30 + rnd() * 0.28;
             parts.push({
-                u: [ux, uy, uz],
-                v: [vx, vy, vz],
-                r: r,
-                w: (0.85 + rnd() * 0.5) / Math.pow(r, 1.5) * (rnd() > 0.28 ? 1 : -1),
-                th0: rnd() * Math.PI * 2,
-                col: PALETTE[i % PALETTE.length],
-                sparkF: 5 + rnd() * 5,
-                sparkP: rnd() * Math.PI * 2,
+                u: b.u,
+                v: b.v,
+                a: a,
+                e: e,
+                // mean rate; Kepler weighting makes the real rate swing
+                w: (disk ? 0.9 : 0.75) * (0.8 + rnd() * 0.5) / Math.pow(a, 1.5) * (disk ? 1 : (rnd() > 0.5 ? 1 : -1)),
+                th: rnd() * Math.PI * 2,
+                duo: DUO[i % DUO.length],
+                sparkF: 4.5 + rnd() * 5,
+                sph: rnd() * Math.PI * 2,
                 trail: new Float32Array(TRAIL * 3),
                 filled: 0
             });
         }
     })();
 
-    var warped = 0;          // speed-warped orbital clock
-    var wall = 0;            // real seconds, for sparkle
-    var speedCur = 1, speedTarget = 1;
-    var invertCur = 0, invertTarget = 0;
-    var lightCur = 0, lightTarget = 0;
+    var wall = 0;
+    var speedCur = 1, speedTarget = 1;      // orbital tempo
+    var invertCur = 0, invertTarget = 0;    // hover palette flip
+    var lightCur = 0, lightTarget = 0;      // dark neon <-> white star
+    var heatCur = 0, heatTarget = 0;        // hover intensity
+    var squeezeCur = 1, squeezeTarget = 1;  // hover orbit contraction
 
     function themeIsLight() {
         return document.documentElement.getAttribute('data-mode') === 'light';
@@ -181,19 +221,26 @@
     lightCur = lightTarget;
 
     function stepSim(dt) {
-        speedCur  += (speedTarget - speedCur) * Math.min(1, dt * 2.0);
-        invertCur += (invertTarget - invertCur) * Math.min(1, dt * 1.8);
-        lightCur  += (lightTarget - lightCur) * Math.min(1, dt * 6.0);
-        warped += dt * speedCur;
+        speedCur   += (speedTarget - speedCur) * Math.min(1, dt * 2.0);
+        invertCur  += (invertTarget - invertCur) * Math.min(1, dt * 1.8);
+        lightCur   += (lightTarget - lightCur) * Math.min(1, dt * 6.0);
+        heatCur    += (heatTarget - heatCur) * Math.min(1, dt * 2.0);
+        squeezeCur += (squeezeTarget - squeezeCur) * Math.min(1, dt * 1.6);
         wall += dt;
-        var i, p, th, x, y, z, t;
+        var i, p, r, x, y, z, t, cs, sn, rate;
         for (i = 0; i < N; i++) {
             p = parts[i];
-            th = p.th0 + p.w * warped;
-            x = p.r * (Math.cos(th) * p.u[0] + Math.sin(th) * p.v[0]);
-            y = p.r * (Math.cos(th) * p.u[1] + Math.sin(th) * p.v[1]);
-            z = p.r * (Math.cos(th) * p.u[2] + Math.sin(th) * p.v[2]);
-            // shift history down, newest at 0
+            // Kepler's second law: sweep faster when closer to the focus
+            r = p.a * (1 - p.e * p.e) / (1 + p.e * Math.cos(p.th));
+            rate = p.w * Math.pow(p.a / r, 2);
+            p.th += dt * speedCur * rate;
+            p.sph += dt * p.sparkF * (1 + 1.1 * heatCur);
+            cs = Math.cos(p.th);
+            sn = Math.sin(p.th);
+            r = p.a * (1 - p.e * p.e) / (1 + p.e * cs) * squeezeCur;
+            x = r * (cs * p.u[0] + sn * p.v[0]);
+            y = r * (cs * p.u[1] + sn * p.v[1]);
+            z = r * (cs * p.u[2] + sn * p.v[2]);
             t = p.trail;
             t.copyWithin(3, 0, (TRAIL - 1) * 3);
             t[0] = x; t[1] = y; t[2] = z;
@@ -203,11 +250,11 @@
 
     /* ---------- projection + render ---------- */
 
-    var F = 2.6; // perspective strength
+    var F = 2.0; // strong perspective: near passes loom, far arcs shrink
 
-    var MAXPTS = N * (TRAIL + 1);
-    var vBack  = new Float32Array(MAXPTS * 7);
-    var vFront = new Float32Array(MAXPTS * 7);
+    var MAXPTS = N * TRAIL;
+    var vBack  = new Float32Array(MAXPTS * 8);
+    var vFront = new Float32Array(MAXPTS * 8);
 
     function sizeLayer(layer, dpr) {
         var c = layer.canvas;
@@ -223,36 +270,42 @@
 
     function render() {
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
-        var dimB = sizeLayer(layerBack, dpr);
-        var dimF = sizeLayer(layerFront, dpr);
-        var w = dimB[0], h = dimB[1];
-        var R = Math.min(w, h) * 0.5 * 0.74; // orbit radius in device px
+        var dim = sizeLayer(layerBack, dpr);
+        sizeLayer(layerFront, dpr);
+        var w = dim[0], h = dim[1];
+        var R = Math.min(w, h) * 0.5 * 0.72;
+        var tailK = 1.9 - 0.85 * heatCur; // hover: tails reach further back
         var nb = 0, nf = 0;
-        var i, j, p, t, x, y, z, scale, cx, cy, size, alpha, age, spark, arr, o;
+        var i, j, p, t, x, y, z, scale, fog, cx, cy, size, alpha, age, spark, mixk, arr, o;
 
         for (i = 0; i < N; i++) {
             p = parts[i];
             t = p.trail;
-            spark = 0.8 + 0.3 * Math.sin(wall * p.sparkF + p.sparkP);
+            spark = 0.78 + 0.34 * Math.sin(p.sph);
             for (j = 0; j < p.filled; j++) {
                 x = t[j * 3]; y = t[j * 3 + 1]; z = t[j * 3 + 2];
                 scale = F / (F + z);
+                fog = 0.45 + 0.55 * Math.min(1, Math.max(0, (1 - z) * 0.5)); // near bright, far dim
                 cx = (x * scale * R) / (w * 0.5);
                 cy = -(y * scale * R) / (h * 0.5);
                 age = j / TRAIL;
                 if (j === 0) {
-                    size = (8.0 + 2.6 * spark) * scale * dpr;
-                    alpha = 0.62;
+                    size = (9.0 + 3.2 * spark) * scale * dpr * (1 + 0.22 * heatCur);
+                    alpha = 0.72 * fog;
                 } else {
-                    size = (5.6 * (1 - age) + 1.3) * scale * dpr;
-                    alpha = 0.4 * Math.pow(1 - age, 1.7) * spark;
+                    size = (6.4 * (1 - age) + 1.4) * scale * dpr;
+                    alpha = 0.46 * Math.pow(1 - age, tailK) * spark * fog;
                 }
-                if (z < 0) { arr = vBack; o = nb * 7; nb++; }
-                else       { arr = vFront; o = nf * 7; nf++; }
+                mixk = age; // duotone: head color -> tail color
+                if (z < 0) { arr = vBack; o = nb * 8; nb++; }
+                else       { arr = vFront; o = nf * 8; nf++; }
                 arr[o] = cx; arr[o + 1] = cy;
                 arr[o + 2] = size;
-                arr[o + 3] = p.col[0]; arr[o + 4] = p.col[1]; arr[o + 5] = p.col[2];
+                arr[o + 3] = p.duo[0][0] + (p.duo[1][0] - p.duo[0][0]) * mixk;
+                arr[o + 4] = p.duo[0][1] + (p.duo[1][1] - p.duo[0][1]) * mixk;
+                arr[o + 5] = p.duo[0][2] + (p.duo[1][2] - p.duo[0][2]) * mixk;
                 arr[o + 6] = alpha;
+                arr[o + 7] = age;
             }
         }
 
@@ -266,14 +319,27 @@
         if (!n) { return; }
         gl.uniform1f(layer.uInvert, invertCur);
         gl.uniform1f(layer.uLight, lightCur);
-        gl.bufferData(gl.ARRAY_BUFFER, arr.subarray(0, n * 7), gl.DYNAMIC_DRAW);
+        gl.uniform1f(layer.uHeat, heatCur);
+        gl.bufferData(gl.ARRAY_BUFFER, arr.subarray(0, n * 8), gl.DYNAMIC_DRAW);
         gl.drawArrays(gl.POINTS, 0, n);
     }
 
     /* ---------- interaction ---------- */
 
-    function engage() { speedTarget = 2.9; invertTarget = 1; poke(); }
-    function release() { speedTarget = 1; invertTarget = 0; poke(); }
+    function engage() {
+        speedTarget = 3.0;
+        invertTarget = 1;
+        heatTarget = 1;
+        squeezeTarget = 0.84; // gravitational pull-in
+        poke();
+    }
+    function release() {
+        speedTarget = 1;
+        invertTarget = 0;
+        heatTarget = 0;
+        squeezeTarget = 1;
+        poke();
+    }
     link.addEventListener('mouseenter', engage);
     link.addEventListener('mouseleave', release);
     link.addEventListener('focusin', engage);
@@ -297,11 +363,11 @@
         requestAnimationFrame(frame);
     }
 
-    // Reduced motion: settle the swarm, draw stills; re-draw briefly on
-    // interaction so hover feedback (invert) still happens, without a loop.
+    // Reduced motion: settle the swarm into a still, redraw briefly on
+    // interaction so hover/theme feedback still lands — colors only.
     function staticSettle() {
         var k;
-        for (k = 0; k < TRAIL + 4; k++) { stepSim(1 / 30); }
+        for (k = 0; k < TRAIL + 6; k++) { stepSim(1 / 30); }
         render();
     }
     function poke() {
@@ -311,6 +377,7 @@
         staticTimer = setInterval(function () {
             invertCur += (invertTarget - invertCur) * 0.25;
             lightCur += (lightTarget - lightCur) * 0.4;
+            heatCur += (heatTarget - heatCur) * 0.3;
             render();
             if (++n > 20) { clearInterval(staticTimer); staticTimer = null; }
         }, 40);

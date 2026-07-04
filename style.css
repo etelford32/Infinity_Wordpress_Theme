@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.0.0
+Version: 3.1.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2995,4 +2995,40 @@ html[data-mode="light"] .theme-toggle-knob {
 
 .fp-hero-blackhole {
   color: #f0f2ff;
+}
+
+/* Light mode header: pure whitespace, quiet chrome. The orbit swarm
+   switches to its white-star rendering (shader-side), so the chrome
+   backs off to let it breathe. */
+[data-theme="science-light"] .site-header,
+[data-theme="light-playful"] .site-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e8ecf4;
+}
+
+[data-theme="science-light"] .bh-logo-photon,
+[data-theme="light-playful"] .bh-logo-photon {
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.08),
+    0 0 12px 1px rgba(99, 102, 241, 0.20),
+    inset 0 0 8px rgba(99, 102, 241, 0.10);
+}
+
+[data-theme="science-light"] .bh-logo-img,
+[data-theme="light-playful"] .bh-logo-img {
+  filter: drop-shadow(0 2px 8px rgba(15, 23, 42, 0.22));
+}
+
+[data-theme="science-light"] .theme-toggle,
+[data-theme="light-playful"] .theme-toggle {
+  background: #f2f5fb;
+}
+
+/* Light-mode hover: keep the ember flip but feather it — whitespace
+   wants a soft corona, not a blob */
+[data-theme="science-light"] .site-logo-link:hover .bh-logo-img,
+[data-theme="light-playful"] .site-logo-link:hover .bh-logo-img,
+[data-theme="science-light"] .site-logo-link:focus-visible .bh-logo-img,
+[data-theme="light-playful"] .site-logo-link:focus-visible .bh-logo-img {
+  filter: drop-shadow(0 0 9px rgba(255, 184, 77, 0.4)) drop-shadow(0 2px 8px rgba(15, 23, 42, 0.16));
 }
