@@ -35,6 +35,8 @@ function infinity_icon_paths() {
         'wall' => '<path d="M3 6.4h18v12H3z"/><path d="M3 10.4h18M3 14.4h18M8 6.4v4M14 6.4v4M6 10.4v4M12 10.4v4M18 10.4v4M9 14.4v4M15 14.4v4"/>',
         'clipboard' => '<rect x="5" y="4.4" width="14" height="16.6" rx="2"/><path d="M9 4.4a3 3 0 0 1 6 0"/><path d="M8.6 11l2.2 2.2 4.6-4.6M8.6 16.6h6.8"/>',
         'spark' => '<path d="M12 2.8c.7 4.4 2.6 6.3 7 7-4.4.7-6.3 2.6-7 7-.7-4.4-2.6-6.3-7-7 4.4-.7 6.3-2.6 7-7z"/><circle cx="19" cy="17.6" r="0.9" fill="currentColor" stroke="none"/>',
+        'sun' => '<circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.8M12 18.6v2.8M2.6 12h2.8M18.6 12h2.8M5.2 5.2l2 2M16.8 16.8l2 2M18.8 5.2l-2 2M7.2 16.8l-2 2"/>',
+        'moon' => '<path d="M20.4 13.4A8.4 8.4 0 1 1 10.6 3.6a6.8 6.8 0 0 0 9.8 9.8z"/><circle cx="17.6" cy="5.8" r="0.8" fill="currentColor" stroke="none"/>',
     );
 }
 

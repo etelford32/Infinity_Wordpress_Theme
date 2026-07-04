@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.9.0');
+define('INFINITY_VERSION', '3.0.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -861,6 +861,24 @@ function infinity_enqueue_navigation_scripts() {
         true
     );
 
+    // 12-particle 3D orbit swarm around the header logo (site-wide)
+    wp_enqueue_script(
+        'infinity-logo-orbits',
+        INFINITY_URI . '/assets/js/logo-orbits.js',
+        array(),
+        INFINITY_VERSION,
+        true
+    );
+
+    // Light/dark toggle (initial mode is set pre-paint in wp_head)
+    wp_enqueue_script(
+        'infinity-theme-toggle',
+        INFINITY_URI . '/assets/js/theme-toggle.js',
+        array(),
+        INFINITY_VERSION,
+        true
+    );
+
     // Pass settings to JavaScript
     wp_localize_script('infinity-navigation', 'infinityNav', array(
         'stickyHeader'   => get_theme_mod('infinity_sticky_header', false),
@@ -890,9 +908,45 @@ function infinity_enqueue_navigation_scripts() {
             INFINITY_VERSION,
             true
         );
+        wp_enqueue_script(
+            'infinity-steam-fit',
+            INFINITY_URI . '/assets/js/steam-fit.js',
+            array(),
+            INFINITY_VERSION,
+            true
+        );
     }
 }
 add_action('wp_enqueue_scripts', 'infinity_enqueue_navigation_scripts');
+
+/**
+ * Pick light or dark before first paint. A stored visitor preference
+ * wins; otherwise the visitor's clock decides (07:00-18:59 = light).
+ * The Customizer theme mode still chooses WHICH light and dark skins
+ * are used. Runs at wp_head priority 0 so no flash of wrong theme.
+ */
+function infinity_theme_mode_boot() {
+    $base  = get_option('infinity_theme_mode', 'dark-cosmic');
+    $dark  = ('science-dark' === $base) ? 'science-dark' : 'dark-cosmic';
+    $light = ('light-playful' === $base) ? 'light-playful' : 'science-light';
+    ?>
+    <script>
+    (function () {
+        window.infinityThemeCfg = { dark: '<?php echo esc_js($dark); ?>', light: '<?php echo esc_js($light); ?>' };
+        var mode = null;
+        try { mode = localStorage.getItem('infinityTheme'); } catch (e) {}
+        if (mode !== 'light' && mode !== 'dark') {
+            var h = new Date().getHours();
+            mode = (h >= 7 && h < 19) ? 'light' : 'dark';
+        }
+        var d = document.documentElement;
+        d.setAttribute('data-theme', mode === 'light' ? window.infinityThemeCfg.light : window.infinityThemeCfg.dark);
+        d.setAttribute('data-mode', mode);
+    })();
+    </script>
+    <?php
+}
+add_action('wp_head', 'infinity_theme_mode_boot', 0);
 
 /**
  * Add Navigation Customizer Settings

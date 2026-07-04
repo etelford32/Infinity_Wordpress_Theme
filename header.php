@@ -20,16 +20,18 @@
             <div class="site-branding">
                 <?php if (has_custom_logo()) : ?>
                     <?php
-                    // The user's own logo, wrapped in black-hole physics:
-                    // spinning accretion ring behind it, photon-ring rim.
+                    // The user's own logo, orbited by a 12-particle 3D
+                    // swarm (WebGL): back canvas behind the logo, front
+                    // canvas above, so particles genuinely circle it.
                     $infinity_logo_id  = get_theme_mod('custom_logo');
                     $infinity_logo_src = wp_get_attachment_image_url($infinity_logo_id, 'medium');
                     ?>
                     <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
                         <span class="bh-logo" aria-hidden="true">
-                            <span class="bh-logo-accretion"></span>
+                            <canvas class="bh-orbits bh-orbits-back"></canvas>
                             <span class="bh-logo-photon"></span>
                             <img class="bh-logo-img" src="<?php echo esc_url($infinity_logo_src); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>">
+                            <canvas class="bh-orbits bh-orbits-front"></canvas>
                         </span>
                         <span class="site-title-group">
                             <span class="site-title"><?php bloginfo('name'); ?></span>
@@ -56,6 +58,11 @@
                         </span>
                     </a>
                 <?php endif; ?>
+                <button type="button" class="theme-toggle" data-theme-toggle aria-label="<?php esc_attr_e('Toggle light and dark mode', 'infinity'); ?>">
+                    <span class="theme-toggle-icon theme-toggle-moon"><?php infinity_icon('moon', 11); ?></span>
+                    <span class="theme-toggle-icon theme-toggle-sun"><?php infinity_icon('sun', 11); ?></span>
+                    <span class="theme-toggle-knob"></span>
+                </button>
             </div>
 
             <button
