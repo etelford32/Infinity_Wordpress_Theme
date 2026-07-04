@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.1.0');
+define('INFINITY_VERSION', '2.2.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -844,6 +844,13 @@ function infinity_enqueue_navigation_scripts() {
         wp_enqueue_script(
             'infinity-property-previews',
             INFINITY_URI . '/assets/js/property-previews.js',
+            array(),
+            INFINITY_VERSION,
+            true
+        );
+        wp_enqueue_script(
+            'infinity-tag-globe',
+            INFINITY_URI . '/assets/js/tag-globe.js',
             array(),
             INFINITY_VERSION,
             true

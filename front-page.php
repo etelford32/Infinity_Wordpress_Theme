@@ -374,13 +374,16 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                     <p class="fp-kicker"><?php esc_html_e('The sandbox', 'infinity'); ?></p>
                     <h2 class="fp-section-title" id="fp-sandbox-heading"><?php esc_html_e("Parker's Physics", 'infinity'); ?></h2>
                     <p class="fp-section-intro">
-                        <?php esc_html_e('Real orbital mechanics you can bend with your hands. Spin up a solar system, throw a moon at it, and watch what gravity decides — no install, no login, right in your browser. This is the sandbox I\'m building for you, and it\'s the engine room behind Explore the Universe 2175.', 'infinity'); ?>
+                        <?php esc_html_e('Home of the Earth simulation: a living planet running real thermospheric physics — the same engine that forecasts satellite drag through geomagnetic storms. Spin the whole planet, kick a storm at it, and watch real orbits respond in your browser. No install, no login.', 'infinity'); ?>
+                    </p>
+                    <p class="fp-band-flex">
+                        <?php esc_html_e('This is the engine room behind Explore the Universe 2175 — and it\'s free to fly.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
-                        <a class="fp-btn-primary" href="<?php echo esc_url($parkers_url); ?>" target="_blank" rel="noopener">
-                            <?php esc_html_e('Launch Parker\'s Physics', 'infinity'); ?> &rarr;
+                        <a class="fp-btn-primary fp-btn-big" href="<?php echo esc_url($parkers_url); ?>" target="_blank" rel="noopener">
+                            <span>🌍</span> <?php esc_html_e('Fly the Earth simulation', 'infinity'); ?> &rarr;
                         </a>
-                        <a class="fp-btn-secondary" href="<?php echo esc_url(home_url('/simulations/')); ?>">
+                        <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url(home_url('/simulations/')); ?>">
                             <?php esc_html_e('Browse simulations here', 'infinity'); ?>
                         </a>
                     </div>
@@ -413,7 +416,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                         <?php esc_html_e('The analog side of the operation — real dirt, real stone, real results. Project write-ups will land here on the blog.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
-                        <a class="fp-btn-secondary" href="<?php echo esc_url($landscaping_url); ?>" target="_blank" rel="noopener">
+                        <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url($landscaping_url); ?>" target="_blank" rel="noopener">
                             <?php esc_html_e('Visit TelfordLandscaping.com', 'infinity'); ?> &rarr;
                         </a>
                     </div>
@@ -446,6 +449,43 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                     </li>
                 <?php endwhile; wp_reset_postdata(); ?>
             </ul>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- ================= Category tag globe ================= -->
+    <?php
+    $infinity_globe_cats = get_categories(array(
+        'orderby' => 'count',
+        'order'   => 'DESC',
+        'number'  => 26,
+    ));
+    if (count($infinity_globe_cats) >= 5) :
+        $infinity_total_posts = (int) wp_count_posts()->publish;
+        $infinity_max_count   = max(array_map(function ($c) { return (int) $c->count; }, $infinity_globe_cats));
+    ?>
+    <section class="fp-section fp-tagverse" id="explore-everything" aria-labelledby="fp-tagverse-heading">
+        <div class="container">
+            <header class="fp-section-header fp-tagverse-header">
+                <div>
+                    <p class="fp-kicker"><?php esc_html_e('The archive runs deep', 'infinity'); ?></p>
+                    <h2 class="fp-section-title" id="fp-tagverse-heading"><?php esc_html_e('Explore everything', 'infinity'); ?></h2>
+                    <p class="fp-section-intro">
+                        <?php printf(esc_html__('%1$s articles across %2$s worlds of interest — grab the cloud, give it a spin, pick a door.', 'infinity'), number_format_i18n($infinity_total_posts), number_format_i18n(count($infinity_globe_cats))); ?>
+                    </p>
+                </div>
+            </header>
+            <div class="tag-globe" id="tag-globe" aria-label="<?php esc_attr_e('Browse categories', 'infinity'); ?>">
+                <?php foreach ($infinity_globe_cats as $infinity_gi => $infinity_gcat) :
+                    $infinity_weight = $infinity_max_count > 0 ? (int) $infinity_gcat->count / $infinity_max_count : 0.5;
+                ?>
+                    <a class="tag-globe-item tag-globe-hue-<?php echo (int) ($infinity_gi % 4); ?>"
+                       style="--w: <?php echo esc_attr(round($infinity_weight, 3)); ?>;"
+                       href="<?php echo esc_url(get_category_link($infinity_gcat)); ?>">
+                        <?php echo esc_html($infinity_gcat->name); ?><span class="tag-globe-count"><?php echo (int) $infinity_gcat->count; ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
     </section>
     <?php endif; ?>
