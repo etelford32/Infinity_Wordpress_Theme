@@ -22,6 +22,31 @@ $etu_site_url    = $property_urls['etu'];
 $parkers_url     = $property_urls['parkers'];
 $landscaping_url = $property_urls['landscaping'];
 $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
+
+/*
+ * ETU marketing art: Customizer-uploaded official art wins; otherwise
+ * walk Steam's CDN URL variants; the theme-bundled key art is the
+ * final link in the chain, so the band can never render empty.
+ */
+$infinity_etu_app   = infinity_steam_app_id();
+$infinity_etu_local = INFINITY_URI . '/assets/img/etu-key-art.jpg';
+$infinity_etu_over  = get_option('infinity_etu_band_art', '');
+if ($infinity_etu_over) {
+    $infinity_etu_art   = $infinity_etu_over;
+    $infinity_etu_chain = array($infinity_etu_local);
+} elseif ($infinity_etu_app) {
+    $infinity_etu_art   = 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/' . $infinity_etu_app . '/header.jpg';
+    $infinity_etu_chain = array(
+        'https://cdn.akamai.steamstatic.com/steam/apps/' . $infinity_etu_app . '/header.jpg',
+        'https://cdn.cloudflare.steamstatic.com/steam/apps/' . $infinity_etu_app . '/header.jpg',
+        'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/' . $infinity_etu_app . '/capsule_616x353.jpg',
+        $infinity_etu_local,
+    );
+} else {
+    $infinity_etu_art   = $infinity_etu_local;
+    $infinity_etu_chain = array();
+}
+$infinity_etu_onerror = "var q=(this.dataset.alt||'').split('|').filter(Boolean);if(q.length){this.dataset.alt=q.slice(1).join('|');this.src=q[0];}else{this.remove();}";
 ?>
 
 <div class="front-page">
@@ -151,7 +176,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                         'mono'   => '2175',
                         // The game's site refuses embedding, so its card shows
                         // the Steam key art until infinity_etu_embed is enabled
-                        'art'    => $infinity_app_for_art ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/' . $infinity_app_for_art . '/header.jpg' : '',
+                        'art'    => $infinity_etu_art,
                         'embed'  => (bool) get_option('infinity_etu_embed', 0),
                     ),
                     array(
@@ -175,7 +200,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                         <span class="property-live-placeholder">
                             <span class="property-live-mono"><?php echo esc_html($infinity_prop['mono']); ?></span>
                             <?php if ($infinity_prop['art']) : ?>
-                                <img class="property-live-art" src="<?php echo esc_url($infinity_prop['art']); ?>" alt="" loading="lazy" decoding="async" onerror="this.remove();">
+                                <img class="property-live-art" src="<?php echo esc_url($infinity_prop['art']); ?>" data-alt="<?php echo esc_attr(implode('|', $infinity_etu_chain)); ?>" alt="" loading="lazy" decoding="async" onerror="<?php echo esc_attr($infinity_etu_onerror); ?>">
                             <?php endif; ?>
                             <?php if ($infinity_logo) : ?>
                                 <img class="property-live-logo" src="<?php echo esc_url($infinity_logo); ?>" alt="" loading="lazy" decoding="async" onerror="this.remove();">
@@ -330,11 +355,12 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
             <div class="fp-band-inner">
                 <div class="fp-band-media">
                     <img
-                        src="https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4094340/header.jpg"
+                        src="<?php echo esc_url($infinity_etu_art); ?>"
+                        data-alt="<?php echo esc_attr(implode('|', $infinity_etu_chain)); ?>"
                         alt="<?php echo esc_attr(sprintf(__('%s key art', 'infinity'), $steam_label)); ?>"
                         loading="lazy"
                         decoding="async"
-                        onerror="this.closest('.fp-band-media').classList.add('fp-media-fallback'); this.remove();"
+                        onerror="<?php echo esc_attr($infinity_etu_onerror); ?>"
                     >
                 </div>
                 <div class="fp-band-copy">

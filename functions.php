@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.3.0');
+define('INFINITY_VERSION', '2.4.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -607,6 +607,18 @@ function infinity_customize_register($wp_customize) {
         'default'           => 0,
         'sanitize_callback' => 'absint',
     ));
+
+    $wp_customize->add_setting('infinity_etu_band_art', array(
+        'type'              => 'option',
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'infinity_etu_band_art', array(
+        'label'       => esc_html__('Official ETU 2175 key art', 'infinity'),
+        'description' => esc_html__('Shown in the game band and preview card. Leave empty to pull from Steam (with a bundled fallback).', 'infinity'),
+        'section'     => 'infinity_steam_settings',
+    )));
 
     $wp_customize->add_control('infinity_etu_embed', array(
         'label'       => esc_html__('Live-embed ExploreTheUniverse2175.com on the homepage', 'infinity'),
