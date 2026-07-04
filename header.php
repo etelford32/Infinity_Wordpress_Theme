@@ -20,12 +20,14 @@
             <div class="site-branding">
                 <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
                     <span class="cosmic-logo" aria-hidden="true">
-                        <span class="cosmic-logo-star"></span>
-                        <span class="cosmic-logo-orbit cosmic-logo-orbit-a">
-                            <span class="cosmic-logo-planet cosmic-logo-planet-a"></span>
+                        <span class="cosmic-logo-monogram">ET</span>
+                        <span class="cosmic-orbit cosmic-orbit-a">
+                            <span class="cosmic-orbit-ring"></span>
+                            <span class="cosmic-orbiter"></span>
                         </span>
-                        <span class="cosmic-logo-orbit cosmic-logo-orbit-b">
-                            <span class="cosmic-logo-planet cosmic-logo-planet-b"></span>
+                        <span class="cosmic-orbit cosmic-orbit-b">
+                            <span class="cosmic-orbit-ring"></span>
+                            <span class="cosmic-orbiter"></span>
                         </span>
                         <span class="cosmic-logo-sparkle"></span>
                     </span>

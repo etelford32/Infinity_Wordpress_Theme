@@ -1,9 +1,9 @@
 /**
- * AnimatedLogo — cosmic orbital mark for the site header.
+ * AnimatedLogo — the ET orbital mark.
  *
- * A glowing star core with two orbiting planets and a twinkling
- * sparkle, built from pure CSS animations (see globals.css,
- * "ANIMATED LOGO" section). Honors prefers-reduced-motion.
+ * ET monogram core with planets traveling tilted elliptical orbital
+ * paths, built from pure CSS animations (see globals.css, "ANIMATED
+ * LOGO" section). Honors prefers-reduced-motion.
  */
 interface AnimatedLogoProps {
   /**
@@ -11,22 +11,25 @@ interface AnimatedLogoProps {
    * to CSS (--logo-size, default 44px) so media queries can scale it.
    */
   size?: number;
+  monogram?: string;
   className?: string;
 }
 
-export function AnimatedLogo({ size, className = '' }: AnimatedLogoProps) {
+export function AnimatedLogo({ size, monogram = 'ET', className = '' }: AnimatedLogoProps) {
   return (
     <span
       className={`cosmic-logo ${className}`}
       style={size != null ? { ['--logo-size' as string]: `${size}px` } : undefined}
       aria-hidden="true"
     >
-      <span className="cosmic-logo-star" />
-      <span className="cosmic-logo-orbit cosmic-logo-orbit-a">
-        <span className="cosmic-logo-planet cosmic-logo-planet-a" />
+      <span className="cosmic-logo-monogram">{monogram}</span>
+      <span className="cosmic-orbit cosmic-orbit-a">
+        <span className="cosmic-orbit-ring" />
+        <span className="cosmic-orbiter" />
       </span>
-      <span className="cosmic-logo-orbit cosmic-logo-orbit-b">
-        <span className="cosmic-logo-planet cosmic-logo-planet-b" />
+      <span className="cosmic-orbit cosmic-orbit-b">
+        <span className="cosmic-orbit-ring" />
+        <span className="cosmic-orbiter" />
       </span>
       <span className="cosmic-logo-sparkle" />
     </span>

@@ -422,8 +422,8 @@ canvas {
 
 /* ============================================================
    ANIMATED LOGO
-   A glowing star core with two orbiting planets and a sparkle.
-   Scaled via --logo-size so the same mark works at any size.
+   The ET orbital mark: monogram core, planets on tilted elliptical
+   orbital paths (CSS motion path). Scaled via --logo-size.
    ============================================================ */
 .cosmic-logo {
   --logo-size: 44px;
@@ -434,67 +434,76 @@ canvas {
   flex-shrink: 0;
 }
 
-.cosmic-logo-star {
+.cosmic-logo-monogram {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: calc(var(--logo-size) * 0.32);
-  height: calc(var(--logo-size) * 0.32);
-  margin: calc(var(--logo-size) * -0.16) 0 0 calc(var(--logo-size) * -0.16);
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff 0%, var(--accent-primary) 55%, var(--accent-secondary) 100%);
-  box-shadow:
-    0 0 calc(var(--logo-size) * 0.18) rgba(var(--accent-primary-rgb), 0.9),
-    0 0 calc(var(--logo-size) * 0.45) rgba(var(--accent-primary-rgb), 0.45);
-  animation: cosmic-star-pulse 3s ease-in-out infinite;
-}
-
-.cosmic-logo-orbit {
-  position: absolute;
-  border: 1px solid rgba(var(--accent-primary-rgb), 0.35);
-  border-radius: 50%;
-  animation: cosmic-orbit-spin linear infinite;
-}
-
-.cosmic-logo-orbit-a {
   inset: 0;
-  animation-duration: 7s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--logo-size) * 0.42);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--accent-primary);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 calc(var(--logo-size) * 0.12) rgba(var(--accent-primary-rgb), 0.65));
+  animation: cosmic-et-pulse 3.2s ease-in-out infinite;
 }
 
-.cosmic-logo-orbit-b {
-  inset: calc(var(--logo-size) * 0.17);
-  border-color: rgba(var(--accent-primary-rgb), 0.22);
-  animation-duration: 4s;
-  animation-direction: reverse;
-}
-
-.cosmic-logo-planet {
+.cosmic-orbit {
   position: absolute;
-  top: calc(var(--logo-size) * -0.06);
-  left: 50%;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cosmic-orbit-a { transform: rotate(-26deg); }
+.cosmic-orbit-b { transform: rotate(34deg); }
+
+.cosmic-orbit-ring {
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  top: 30%;
+  bottom: 30%;
+  border: 1px solid rgba(var(--accent-primary-rgb), 0.4);
   border-radius: 50%;
 }
 
-.cosmic-logo-planet-a {
-  width: calc(var(--logo-size) * 0.14);
-  height: calc(var(--logo-size) * 0.14);
-  margin-left: calc(var(--logo-size) * -0.07);
-  background: var(--accent-secondary);
-  box-shadow: 0 0 calc(var(--logo-size) * 0.14) rgba(var(--accent-primary-rgb), 0.8);
+.cosmic-orbit-b .cosmic-orbit-ring {
+  border-color: rgba(var(--accent-primary-rgb), 0.24);
 }
 
-.cosmic-logo-planet-b {
-  width: calc(var(--logo-size) * 0.1);
-  height: calc(var(--logo-size) * 0.1);
-  margin-left: calc(var(--logo-size) * -0.05);
+.cosmic-orbiter {
+  position: absolute;
+  width: calc(var(--logo-size) * 0.12);
+  height: calc(var(--logo-size) * 0.12);
+  left: calc(50% - var(--logo-size) * 0.06);
+  top: calc(30% - var(--logo-size) * 0.06);
+  border-radius: 50%;
+  background: var(--accent-secondary);
+  box-shadow: 0 0 calc(var(--logo-size) * 0.13) rgba(var(--accent-primary-rgb), 0.85);
+  offset-path: ellipse(47% 20% at 50% 50%);
+  offset-rotate: 0deg;
+  animation: cosmic-orbit-travel 7s linear infinite;
+}
+
+.cosmic-orbit-b .cosmic-orbiter {
+  width: calc(var(--logo-size) * 0.09);
+  height: calc(var(--logo-size) * 0.09);
+  left: calc(50% - var(--logo-size) * 0.045);
+  top: calc(30% - var(--logo-size) * 0.045);
   background: var(--accent-primary);
-  box-shadow: 0 0 calc(var(--logo-size) * 0.1) rgba(var(--accent-primary-rgb), 0.7);
+  animation-duration: 4.2s;
+  animation-direction: reverse;
 }
 
 .cosmic-logo-sparkle {
   position: absolute;
-  top: calc(var(--logo-size) * 0.12);
-  right: calc(var(--logo-size) * 0.06);
+  top: calc(var(--logo-size) * 0.08);
+  right: calc(var(--logo-size) * 0.1);
   width: calc(var(--logo-size) * 0.07);
   height: calc(var(--logo-size) * 0.07);
   border-radius: 50%;
@@ -502,22 +511,17 @@ canvas {
   animation: cosmic-sparkle-twinkle 2.2s ease-in-out infinite;
 }
 
-/* Speed up + brighten when the logo link is hovered */
-a:hover > .cosmic-logo .cosmic-logo-orbit-a { animation-duration: 2.5s; }
-a:hover > .cosmic-logo .cosmic-logo-orbit-b { animation-duration: 1.6s; }
-a:hover > .cosmic-logo .cosmic-logo-star {
-  box-shadow:
-    0 0 calc(var(--logo-size) * 0.25) rgba(var(--accent-primary-rgb), 1),
-    0 0 calc(var(--logo-size) * 0.6) rgba(var(--accent-primary-rgb), 0.6);
+a:hover > .cosmic-logo .cosmic-logo-monogram {
+  filter: drop-shadow(0 0 calc(var(--logo-size) * 0.2) rgba(var(--accent-primary-rgb), 0.95));
 }
 
-@keyframes cosmic-orbit-spin {
-  to { transform: rotate(360deg); }
+@keyframes cosmic-orbit-travel {
+  to { offset-distance: 100%; }
 }
 
-@keyframes cosmic-star-pulse {
+@keyframes cosmic-et-pulse {
   0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.15); }
+  50%      { transform: scale(1.06); }
 }
 
 @keyframes cosmic-sparkle-twinkle {
@@ -526,8 +530,8 @@ a:hover > .cosmic-logo .cosmic-logo-star {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cosmic-logo-star,
-  .cosmic-logo-orbit,
+  .cosmic-logo-monogram,
+  .cosmic-orbiter,
   .cosmic-logo-sparkle {
     animation: none !important;
   }

@@ -215,10 +215,10 @@ $landscaping_url = get_option('infinity_landscaping_url', 'https://telfordlandsc
                     </div>
                 </div>
                 <div class="fp-band-media fp-media-sandbox" aria-hidden="true">
-                    <span class="cosmic-logo" style="--logo-size: 120px;">
-                        <span class="cosmic-logo-star"></span>
-                        <span class="cosmic-logo-orbit cosmic-logo-orbit-a"><span class="cosmic-logo-planet cosmic-logo-planet-a"></span></span>
-                        <span class="cosmic-logo-orbit cosmic-logo-orbit-b"><span class="cosmic-logo-planet cosmic-logo-planet-b"></span></span>
+                    <span class="cosmic-logo" style="--logo-size: 140px;">
+                        <span class="cosmic-logo-monogram">ET</span>
+                        <span class="cosmic-orbit cosmic-orbit-a"><span class="cosmic-orbit-ring"></span><span class="cosmic-orbiter"></span></span>
+                        <span class="cosmic-orbit cosmic-orbit-b"><span class="cosmic-orbit-ring"></span><span class="cosmic-orbiter"></span></span>
                         <span class="cosmic-logo-sparkle"></span>
                     </span>
                 </div>
