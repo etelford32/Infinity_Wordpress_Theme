@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 1.5.0
+Version: 1.6.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -1682,52 +1682,78 @@ code {
   filter: drop-shadow(0 2px 20px rgba(10, 14, 26, 0.9));
 }
 
-/* Each letter is an ember waiting its turn: a heat wave sweeps
-   through the wordmark left to right, letters ignite — lifted,
-   twisted, and burnt white-orange — then cool back to starlight. */
+/* Each letter is cinema-grade worn metal. Layering: the span
+   itself is the dark extruded depth (solid color + stacked shadows);
+   the beveled face — a metallic gradient blended with turbulence
+   for pitting and wear — sits on ::after above it. The burn wave
+   heats the whole letter via filter, so face and depth glow
+   together. */
 .bh-char {
+  position: relative;
   display: inline-block;
-  color: #e7e8ff;
+  color: #0d1128;
   text-shadow:
-    0 2px 10px rgba(5, 8, 18, 0.95),
-    0 0 14px color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
+    0.015em 0.015em 0 #0b0f24,
+    0.03em 0.03em 0 #090c1f,
+    0.045em 0.05em 0.02em #060919,
+    0.07em 0.09em 0.14em rgba(0, 0, 0, 0.6);
   will-change: transform, filter;
+  filter:
+    drop-shadow(0 0 12px color-mix(in srgb, var(--color-accent-primary) 40%, transparent))
+    drop-shadow(0 3px 5px rgba(3, 5, 12, 0.85));
   animation: bh-char-burn 7s ease-in-out infinite;
   animation-delay: calc(var(--ci) * 0.22s);
 }
 
+/* Beveled worn-metal face riding above the depth layer */
+.bh-char::after {
+  content: attr(data-ch);
+  position: absolute;
+  left: -0.015em;
+  top: -0.025em;
+  z-index: 1;
+  text-shadow: none;
+  background-image:
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.87 0 0 0 0 1 0 0 0 0.38 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(178deg, #ffffff 0%, #f0f2ff 26%, #ccd2f4 50%, #9aa2d6 72%, #6b74ab 88%, #4a5288 100%);
+  background-size: 140px 140px, 100% 100%;
+  background-blend-mode: soft-light, normal;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  -webkit-text-stroke: 0.6px rgba(238, 242, 255, 0.3);
+}
+
 @keyframes bh-char-burn {
   0%, 52% {
-    color: #e7e8ff;
-    text-shadow:
-      0 2px 10px rgba(5, 8, 18, 0.95),
-      0 0 14px color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
     transform: translateY(0) rotate(0deg) skewX(0deg);
+    filter:
+      drop-shadow(0 0 12px color-mix(in srgb, var(--color-accent-primary) 40%, transparent))
+      drop-shadow(0 3px 5px rgba(3, 5, 12, 0.85));
   }
-  /* ignition: caught in the stream */
+  /* ignition: metal catches the stream, heats white-orange */
   60% {
-    color: #fff7e8;
-    text-shadow:
-      0 0 10px rgba(255, 244, 214, 0.95),
-      0 0 26px rgba(255, 150, 50, 0.9),
-      0 0 52px rgba(255, 80, 20, 0.5);
     transform: translateY(-0.09em) rotate(2deg) skewX(-6deg);
+    filter:
+      brightness(2.1) saturate(2.6) sepia(0.6) hue-rotate(-32deg)
+      drop-shadow(0 0 18px rgba(255, 150, 55, 0.95))
+      drop-shadow(0 0 44px rgba(255, 85, 20, 0.5));
   }
-  /* ember: tumbling, cooling to orange */
+  /* ember: cooling through orange */
   68% {
-    color: #ffb36b;
-    text-shadow:
-      0 0 12px rgba(255, 140, 60, 0.85),
-      0 0 30px rgba(230, 70, 20, 0.45);
     transform: translateY(-0.03em) rotate(-1.4deg) skewX(2deg);
+    filter:
+      brightness(1.35) saturate(2.1) sepia(0.45) hue-rotate(-22deg)
+      drop-shadow(0 0 14px rgba(255, 130, 55, 0.75))
+      drop-shadow(0 0 30px rgba(230, 70, 20, 0.35));
   }
-  /* ash settles back to starlight */
+  /* ash cools back to worn starlight metal */
   80%, 100% {
-    color: #e7e8ff;
-    text-shadow:
-      0 2px 10px rgba(5, 8, 18, 0.95),
-      0 0 14px color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
     transform: translateY(0) rotate(0deg) skewX(0deg);
+    filter:
+      drop-shadow(0 0 12px color-mix(in srgb, var(--color-accent-primary) 40%, transparent))
+      drop-shadow(0 3px 5px rgba(3, 5, 12, 0.85));
   }
 }
 
@@ -1887,4 +1913,14 @@ code {
   border-radius: 50%;
   filter: drop-shadow(0 0 calc(var(--logo-size) * 0.1) color-mix(in srgb, var(--color-accent-primary) 60%, transparent));
   animation: cosmic-et-pulse 3.2s ease-in-out infinite;
+}
+
+/* Related posts under single articles */
+.related-posts {
+  margin: var(--spacing-2xl) auto;
+}
+
+.related-posts-title {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-lg);
 }

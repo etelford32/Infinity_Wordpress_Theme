@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '1.5.0');
+define('INFINITY_VERSION', '1.6.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -1019,6 +1019,11 @@ function infinity_seo_meta_tags() {
     printf('<meta property="og:type" content="%s">' . "\n", esc_attr($type));
     printf('<meta property="og:site_name" content="%s">' . "\n", esc_attr(get_bloginfo('name')));
     printf('<meta property="og:image" content="%s">' . "\n", esc_url($image));
+    printf('<meta property="og:locale" content="%s">' . "\n", esc_attr(get_locale()));
+    if (is_singular('post')) {
+        printf('<meta property="article:published_time" content="%s">' . "\n", esc_attr(get_the_date('c')));
+        printf('<meta property="article:modified_time" content="%s">' . "\n", esc_attr(get_the_modified_date('c')));
+    }
     echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
 }
 add_action('wp_head', 'infinity_seo_meta_tags', 5);
@@ -1081,3 +1086,82 @@ function infinity_seo_json_ld() {
     }
 }
 add_action('wp_head', 'infinity_seo_json_ld', 6);
+
+/**
+ * Point crawlers at the core XML sitemap (/wp-sitemap.xml).
+ */
+function infinity_robots_txt($output, $public) {
+    if ($public) {
+        $output .= "\nSitemap: " . esc_url(home_url('/wp-sitemap.xml')) . "\n";
+    }
+    return $output;
+}
+add_filter('robots_txt', 'infinity_robots_txt', 10, 2);
+
+/**
+ * Canonical URLs for non-singular views (core only covers singular).
+ */
+function infinity_canonical_tag() {
+    if (defined('WPSEO_VERSION') || class_exists('RankMath') || defined('AIOSEO_VERSION')) {
+        return;
+    }
+    if (is_singular()) {
+        return; // core handles it
+    }
+    $canonical = '';
+    if (is_front_page()) {
+        $canonical = home_url('/');
+    } elseif (is_home()) {
+        $canonical = get_permalink(get_option('page_for_posts'));
+    } elseif (is_category() || is_tag() || is_tax()) {
+        $canonical = get_term_link(get_queried_object());
+    } elseif (is_post_type_archive()) {
+        $canonical = get_post_type_archive_link(get_query_var('post_type'));
+    }
+    if ($canonical && !is_wp_error($canonical)) {
+        printf('<link rel="canonical" href="%s">' . "\n", esc_url($canonical));
+    }
+}
+add_action('wp_head', 'infinity_canonical_tag', 4);
+
+/**
+ * BreadcrumbList structured data on single posts.
+ */
+function infinity_breadcrumb_json_ld() {
+    if (defined('WPSEO_VERSION') || class_exists('RankMath') || defined('AIOSEO_VERSION')) {
+        return;
+    }
+    if (!is_singular('post')) {
+        return;
+    }
+    $items = array(array(
+        '@type'    => 'ListItem',
+        'position' => 1,
+        'name'     => get_bloginfo('name'),
+        'item'     => home_url('/'),
+    ));
+    $cats = get_the_category();
+    if ($cats) {
+        $items[] = array(
+            '@type'    => 'ListItem',
+            'position' => 2,
+            'name'     => $cats[0]->name,
+            'item'     => get_category_link($cats[0]),
+        );
+    }
+    $items[] = array(
+        '@type'    => 'ListItem',
+        'position' => count($items) + 1,
+        'name'     => get_the_title(),
+        'item'     => get_permalink(),
+    );
+    printf(
+        '<script type="application/ld+json">%s</script>' . "\n",
+        wp_json_encode(array(
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => $items,
+        ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+    );
+}
+add_action('wp_head', 'infinity_breadcrumb_json_ld', 7);

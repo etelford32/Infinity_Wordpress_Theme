@@ -39,7 +39,7 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
                     $infinity_chars    = preg_split('//u', $infinity_wordmark, -1, PREG_SPLIT_NO_EMPTY);
                     ?>
                     <h1 class="fp-hero-title" aria-label="<?php echo esc_attr($infinity_wordmark); ?>">
-                        <?php foreach ($infinity_chars as $infinity_i => $infinity_ch) : ?><span class="bh-char" style="--ci:<?php echo (int) $infinity_i; ?>" aria-hidden="true"><?php echo esc_html($infinity_ch); ?></span><?php endforeach; ?>
+                        <?php foreach ($infinity_chars as $infinity_i => $infinity_ch) : ?><span class="bh-char" style="--ci:<?php echo (int) $infinity_i; ?>" data-ch="<?php echo esc_attr($infinity_ch); ?>" aria-hidden="true"><?php echo esc_html($infinity_ch); ?></span><?php endforeach; ?>
                     </h1>
                     <p class="fp-hero-tagline">
                         <?php
