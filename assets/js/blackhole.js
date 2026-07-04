@@ -28,6 +28,7 @@
     'precision highp float;',
     'uniform vec2 u_res;',
     'uniform float u_time;',
+    'uniform vec2 u_center;',
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -53,7 +54,8 @@
     '}',
     '',
     'void main() {',
-    '  vec2 uv = (gl_FragCoord.xy - vec2(0.5, 0.60) * u_res) / u_res.y;',
+    '  vec2 uv = (gl_FragCoord.xy - u_center * u_res) / u_res.y;',
+    '  uv *= 1.55;',
     '  float tilt = -0.10;',
     '  uv = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * uv;',
     '',
@@ -79,7 +81,7 @@
     '  /* Doppler beaming: approaching side glows brighter */',
     '  float doppler = 1.0 + 0.55 * (-uv.x / max(r, 0.001));',
     '',
-    '  float bright = disk * (0.28 + 1.15 * streaks) * doppler;',
+    '  float bright = disk * (0.24 + 1.3 * streaks) * doppler;',
     '',
     '  /* Photon ring: thin, hot, just outside the horizon */',
     '  float photon = exp(-pow((rc - 0.148) * 95.0, 2.0));',
@@ -87,17 +89,19 @@
     '  /* Event horizon: everything goes dark inside */',
     '  float horizon = 1.0 - smoothstep(0.118, 0.138, rc);',
     '',
-    '  /* Color ramp: white-hot inner, indigo mid, violet outer */',
-    '  vec3 hot   = vec3(1.0, 0.97, 0.90);',
-    '  vec3 indig = vec3(0.44, 0.44, 0.97);',
-    '  vec3 viol  = vec3(0.58, 0.37, 0.96);',
-    '  vec3 col = mix(hot, indig, smoothstep(0.20, 0.42, rr));',
-    '  col = mix(col, viol, smoothstep(0.42, 0.85, rr));',
+    '  /* Color ramp: incandescent - white core, gold, ember, violet fringe */',
+    '  vec3 hot   = vec3(1.0, 0.98, 0.93);',
+    '  vec3 gold  = vec3(1.0, 0.78, 0.40);',
+    '  vec3 ember = vec3(0.98, 0.42, 0.14);',
+    '  vec3 viol  = vec3(0.55, 0.32, 0.85);',
+    '  vec3 col = mix(hot, gold, smoothstep(0.17, 0.34, rr));',
+    '  col = mix(col, ember, smoothstep(0.34, 0.60, rr));',
+    '  col = mix(col, viol, smoothstep(0.62, 0.95, rr));',
     '',
-    '  vec3 c = col * bright + vec3(1.0, 0.96, 0.88) * photon * 0.85;',
+    '  vec3 c = col * bright + vec3(1.0, 0.94, 0.82) * photon * 0.9;',
     '',
     '  /* Faint ambient halo so the hole reads against the page */',
-    '  c += indig * 0.05 * (1.0 - smoothstep(0.0, 0.9, rc));',
+    '  c += ember * 0.045 * (1.0 - smoothstep(0.0, 0.9, rc));',
     '',
     '  c *= 1.0 - horizon;',
     '  float alpha = clamp(bright * 1.5 + photon * 0.8 + 0.04 * (1.0 - smoothstep(0.0, 0.9, rc)), 0.0, 1.0);',
@@ -139,6 +143,7 @@
 
   var uRes = gl.getUniformLocation(prog, 'u_res');
   var uTime = gl.getUniformLocation(prog, 'u_time');
+  var uCenter = gl.getUniformLocation(prog, 'u_center');
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -173,6 +178,9 @@
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform2f(uRes, canvas.width, canvas.height);
     gl.uniform1f(uTime, (performance.now() - start) / 1000);
+    // Disk centers behind the left-aligned title on wide screens
+    var cx = canvas.clientWidth > 900 ? 0.195 : 0.5;
+    gl.uniform2f(uCenter, cx, 0.42);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     if (!reduced && visible) {
       raf = requestAnimationFrame(frame);
