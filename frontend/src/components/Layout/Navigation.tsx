@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme, THEMES } from '@lib/theme/ThemeProvider';
+import { AnimatedLogo } from '@components/UI/AnimatedLogo';
+import { SteamCta, STEAM_LABEL } from '@components/UI/SteamCta';
+
+const SITE_NAME = window.infinityData?.siteName || 'Elliot Telford';
 
 /* ============================================================
    NAV STRUCTURE
@@ -245,26 +249,29 @@ export function Navigation() {
 
   return (
     <nav className="nav-root" role="navigation" aria-label="Main navigation">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-14">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 lg:h-20">
 
-          {/* Logo */}
+          {/* Animated logo */}
           <Link
             to="/"
-            className="flex items-center gap-2 group flex-shrink-0"
-            aria-label="Infinity home"
+            className="flex items-center gap-3 group flex-shrink-0"
+            aria-label={`${SITE_NAME} home`}
           >
-            <span
-              className="text-2xl font-black tracking-tight leading-none transition-colors duration-150"
-              style={{ color: 'var(--accent-primary)' }}
-            >
-              ∞
-            </span>
-            <span
-              className="text-base font-semibold tracking-tight hidden sm:block transition-colors duration-150"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              Infinity
+            <AnimatedLogo className="nav-cosmic-logo" />
+            <span className="hidden sm:flex flex-col leading-tight">
+              <span
+                className="text-base lg:text-lg font-bold tracking-tight transition-colors duration-150"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {SITE_NAME}
+              </span>
+              <span
+                className="text-[0.65rem] lg:text-xs font-medium tracking-widest uppercase"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                Explore the Universe
+              </span>
             </span>
           </Link>
 
@@ -344,16 +351,18 @@ export function Navigation() {
             ))}
           </div>
 
-          {/* Right actions */}
+          {/* Right actions — Steam is the primary conversion CTA */}
           <div className="flex items-center gap-2">
             <ThemePicker />
 
+            <SteamCta className="steam-cta-nav" />
+
             <Link
               to="/pricing"
-              className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 hover:scale-105"
+              className="hidden lg:flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 hover:scale-105"
               style={{
-                background: 'var(--accent-primary)',
-                color: '#fff',
+                border: '1px solid var(--accent-primary)',
+                color: 'var(--accent-primary)',
               }}
             >
               Upgrade
@@ -413,13 +422,17 @@ export function Navigation() {
             ))}
 
             <div
-              className="pt-3 border-t"
+              className="pt-3 border-t space-y-2"
               style={{ borderColor: 'var(--glass-border)' }}
             >
+              <SteamCta large>{STEAM_LABEL} — on Steam</SteamCta>
               <Link
                 to="/pricing"
                 className="flex items-center justify-center w-full py-2.5 rounded-lg text-sm font-semibold"
-                style={{ background: 'var(--accent-primary)', color: '#fff' }}
+                style={{
+                  border: '1px solid var(--accent-primary)',
+                  color: 'var(--accent-primary)',
+                }}
               >
                 Upgrade to Cosmic Explorer
               </Link>

@@ -11,11 +11,14 @@ declare global {
       nonce: string;
       graphqlUrl: string;
       siteUrl: string;
+      siteName?: string;
       themePath: string;
       currentUserId: number;
       isUserLoggedIn: boolean;
       theme: string;
       stripeKey: string;
+      steamUrl?: string;
+      steamLabel?: string;
     };
   }
 }

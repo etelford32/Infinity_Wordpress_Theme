@@ -1,6 +1,6 @@
-# Copyright (C) 2026 Ethan Telford
+# Copyright (C) 2026 Elliot Telford
 # This file is distributed under the same license as the Infinity theme.
-# Ethan Telford, 2026.
+# Elliot Telford & Claude, 2026.
 #
 #, fuzzy
 msgid ""
@@ -32,7 +32,7 @@ msgid "A cutting-edge WordPress theme for creating interactive astrophysical sim
 msgstr ""
 
 #. Author of the theme
-msgid "Ethan Telford"
+msgid "Elliot Telford & Claude"
 msgstr ""
 
 #. Author URI of the theme
