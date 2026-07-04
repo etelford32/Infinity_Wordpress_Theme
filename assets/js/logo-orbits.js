@@ -213,6 +213,8 @@
     var lightCur = 0, lightTarget = 0;      // dark neon <-> white star
     var heatCur = 0, heatTarget = 0;        // hover intensity
     var squeezeCur = 1, squeezeTarget = 1;  // hover orbit contraction
+    var burst = null;                       // click: collapse -> slingshot
+    var burstFade = 1;
 
     function themeIsLight() {
         return document.documentElement.getAttribute('data-mode') === 'light';
@@ -221,26 +223,59 @@
     lightCur = lightTarget;
 
     function stepSim(dt) {
-        speedCur   += (speedTarget - speedCur) * Math.min(1, dt * 2.0);
-        invertCur  += (invertTarget - invertCur) * Math.min(1, dt * 1.8);
-        lightCur   += (lightTarget - lightCur) * Math.min(1, dt * 6.0);
-        heatCur    += (heatTarget - heatCur) * Math.min(1, dt * 2.0);
-        squeezeCur += (squeezeTarget - squeezeCur) * Math.min(1, dt * 1.6);
+        if (burst) {
+            burst.t += dt;
+            if (burst.phase === 'in') {
+                // event-horizon feeding frenzy: everything spirals in
+                speedCur   += (8.0 - speedCur) * Math.min(1, dt * 10);
+                squeezeCur += (0.12 - squeezeCur) * Math.min(1, dt * 9);
+                heatCur    += (1 - heatCur) * Math.min(1, dt * 8);
+                invertCur  += (1 - invertCur) * Math.min(1, dt * 6);
+                if (burst.t >= 0.26) {
+                    burst.phase = 'out';
+                    var bi, bp, bx, by, bz, bl, brnd;
+                    for (bi = 0; bi < N; bi++) {
+                        bp = parts[bi];
+                        bx = bp.trail[0]; by = bp.trail[1]; bz = bp.trail[2];
+                        bl = Math.sqrt(bx * bx + by * by + bz * bz) || 1;
+                        brnd = 0.75 + ((bi * 2654435761 % 97) / 97) * 0.9;
+                        bp.bv = [bx / bl * 2.8 * brnd, by / bl * 2.8 * brnd, bz / bl * 2.8 * brnd];
+                    }
+                }
+            } else {
+                burstFade = Math.max(0, 1 - (burst.t - 0.26) / 0.5);
+            }
+        } else {
+            speedCur   += (speedTarget - speedCur) * Math.min(1, dt * 2.0);
+            invertCur  += (invertTarget - invertCur) * Math.min(1, dt * 1.8);
+            heatCur    += (heatTarget - heatCur) * Math.min(1, dt * 2.0);
+            squeezeCur += (squeezeTarget - squeezeCur) * Math.min(1, dt * 1.6);
+        }
+        lightCur += (lightTarget - lightCur) * Math.min(1, dt * 6.0);
         wall += dt;
-        var i, p, r, x, y, z, t, cs, sn, rate;
+        var i, p, r, x, y, z, t, cs, sn, rate, eject;
+        eject = burst && burst.phase === 'out';
         for (i = 0; i < N; i++) {
             p = parts[i];
-            // Kepler's second law: sweep faster when closer to the focus
-            r = p.a * (1 - p.e * p.e) / (1 + p.e * Math.cos(p.th));
-            rate = p.w * Math.pow(p.a / r, 2);
-            p.th += dt * speedCur * rate;
+            if (eject) {
+                // relativistic slingshot: fly the captured direction, accelerating
+                p.bv[0] *= 1 + 2.4 * dt; p.bv[1] *= 1 + 2.4 * dt; p.bv[2] *= 1 + 2.4 * dt;
+                x = p.trail[0] + p.bv[0] * dt;
+                y = p.trail[1] + p.bv[1] * dt;
+                z = p.trail[2] + p.bv[2] * dt;
+            } else {
+                // Kepler's second law: sweep faster when closer to the focus
+                r = p.a * (1 - p.e * p.e) / (1 + p.e * Math.cos(p.th));
+                rate = p.w * Math.pow(p.a / r, 2);
+                p.th += dt * speedCur * rate;
+                cs = Math.cos(p.th);
+                sn = Math.sin(p.th);
+                r = p.a * (1 - p.e * p.e) / (1 + p.e * cs) * squeezeCur;
+                x = r * (cs * p.u[0] + sn * p.v[0]);
+                y = r * (cs * p.u[1] + sn * p.v[1]);
+                z = r * (cs * p.u[2] + sn * p.v[2]);
+            }
             p.sph += dt * p.sparkF * (1 + 1.1 * heatCur);
-            cs = Math.cos(p.th);
-            sn = Math.sin(p.th);
-            r = p.a * (1 - p.e * p.e) / (1 + p.e * cs) * squeezeCur;
-            x = r * (cs * p.u[0] + sn * p.v[0]);
-            y = r * (cs * p.u[1] + sn * p.v[1]);
-            z = r * (cs * p.u[2] + sn * p.v[2]);
             t = p.trail;
             t.copyWithin(3, 0, (TRAIL - 1) * 3);
             t[0] = x; t[1] = y; t[2] = z;
@@ -297,6 +332,7 @@
                     alpha = 0.46 * Math.pow(1 - age, tailK) * spark * fog;
                 }
                 mixk = age; // duotone: head color -> tail color
+                alpha *= burstFade;
                 if (z < 0) { arr = vBack; o = nb * 8; nb++; }
                 else       { arr = vFront; o = nf * 8; nf++; }
                 arr[o] = cx; arr[o + 1] = cy;
@@ -348,6 +384,24 @@
     window.addEventListener('infinity:theme', function () {
         lightTarget = themeIsLight() ? 1 : 0;
         poke();
+    });
+
+    // Click: the whole swarm gets eaten. Orbits collapse into the
+    // horizon (0.26s feeding frenzy), the logo implodes and flashes,
+    // a shockwave ring detonates, and every particle slingshots out
+    // along its own escape vector — then we actually navigate.
+    link.addEventListener('click', function (e) {
+        if (reduced || burst) { return; }
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
+        var href = link.getAttribute('href');
+        if (!href) { return; }
+        e.preventDefault();
+        burst = { phase: 'in', t: 0 };
+        burstFade = 1;
+        stage.classList.add('bh-burst');
+        setTimeout(function () {
+            window.location.href = href;
+        }, 700);
     });
 
     /* ---------- loop ---------- */

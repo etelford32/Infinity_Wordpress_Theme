@@ -77,6 +77,13 @@ $infinity_etu_video   = infinity_etu_video_url();
                                     <stop offset="0.72" stop-color="#9aa2d6"/>
                                     <stop offset="1" stop-color="#4a5288"/>
                                 </linearGradient>
+                                <linearGradient id="wm-face-grad-light" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#4d5878"/>
+                                    <stop offset="0.28" stop-color="#333c5e"/>
+                                    <stop offset="0.55" stop-color="#1c2240"/>
+                                    <stop offset="0.78" stop-color="#10142c"/>
+                                    <stop offset="1" stop-color="#070a1a"/>
+                                </linearGradient>
                                 <filter id="wm-blur-huge" x="-20%" y="-40%" width="140%" height="200%">
                                     <feGaussianBlur stdDeviation="11"/>
                                 </filter>
@@ -90,6 +97,14 @@ $infinity_etu_video   = infinity_etu_video_url();
                                     </feSpecularLighting>
                                     <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
                                     <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="1.15" k4="0"/>
+                                </filter>
+                                <filter id="wm-bevel-light" x="-20%" y="-40%" width="140%" height="200%">
+                                    <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/>
+                                    <feSpecularLighting in="blur" surfaceScale="3" specularConstant="0.34" specularExponent="14" lighting-color="#dfe6ff" result="spec">
+                                        <feDistantLight azimuth="235" elevation="45"/>
+                                    </feSpecularLighting>
+                                    <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
+                                    <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.55" k4="0"/>
                                 </filter>
                             </defs>
                             <text class="wm-shadow" x="14" y="122" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-huge)"><?php echo esc_html($infinity_wordmark); ?></text>

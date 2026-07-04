@@ -36,6 +36,7 @@ function infinityBlackhole(canvas, cfg) {
     'uniform vec2 u_center;',
     'uniform float u_zoom;',
     'uniform float u_variant;',
+    'uniform float u_light;',
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -127,9 +128,23 @@ function infinityBlackhole(canvas, cfg) {
     '    col = mix(col, col * vec3(1.6, 0.7, 0.3), clamp(-dop, 0.0, 1.0) * 0.45);',
     '  }',
     '',
+    '  /* LIGHT MODE: black-body-on-paper. The same disk, but rendered',
+    '     as ink: the hotter the plasma, the deeper the black — a true',
+    '     black body reading against a white page. */',
+    '  vec3 hotL   = vec3(0.05, 0.035, 0.03);',
+    '  vec3 goldL  = vec3(0.42, 0.19, 0.05);',
+    '  vec3 emberL = vec3(0.72, 0.34, 0.10);',
+    '  vec3 violL  = vec3(0.45, 0.33, 0.60);',
+    '  vec3 colL = mix(hotL, goldL, smoothstep(0.17, 0.34, rr));',
+    '  colL = mix(colL, emberL, smoothstep(0.34, 0.60, rr));',
+    '  colL = mix(colL, violL, smoothstep(0.62, 0.95, rr));',
+    '  colL = mix(colL, colL * vec3(0.7, 0.8, 1.4), clamp(dop, 0.0, 1.0) * 0.35);',
+    '  colL = mix(colL, colL * vec3(1.3, 0.7, 0.5), clamp(-dop, 0.0, 1.0) * 0.4);',
+    '  col = mix(col, colL, u_light);',
+    '',
     '  /* Hot inner rim facing the viewer on the near side */',
     '  float rim = smoothstep(0.30, 0.17, rr) * smoothstep(0.14, 0.20, rr) * nearMask * disk;',
-    '  col += hot * rim * 0.6;',
+    '  col += mix(hot, vec3(0.02), u_light) * rim * 0.6;',
     '',
     '  /* ---- composite back-to-front ---- */',
     '  vec3 c = vec3(0.0);',
@@ -139,6 +154,7 @@ function infinityBlackhole(canvas, cfg) {
     '  vec2 cell = floor(gl_FragCoord.xy / 2.0);',
     '  float star = pow(hash(cell), 220.0) * smoothstep(0.45, 0.85, rc);',
     '  star *= 0.55 + 0.45 * sin(u_time * 2.2 + hash(cell + 7.0) * 44.0);',
+    '  star *= 1.0 - u_light; /* whitespace: no starfield on paper */',
     '  c += vec3(0.75, 0.82, 1.0) * star * 1.4 * (1.0 - horizon);',
     '  alpha += star * 1.2 * (1.0 - horizon);',
     '',
@@ -146,21 +162,24 @@ function infinityBlackhole(canvas, cfg) {
     '  c += col * bright * farMask * (1.0 - horizon);',
     '  alpha += bright * 1.5 * farMask * (1.0 - horizon);',
     '',
-    '  /* The black hole itself: an opaque void */',
-    '  alpha += horizon * 0.92;',
+    '  /* The black hole itself: an opaque void — jet black on paper */',
+    '  alpha += horizon * mix(0.92, 1.0, u_light);',
     '',
     '  /* Photon ring, lensed arc, bloom (outside the silhouette) */',
-    '  c += vec3(1.0, 0.94, 0.82) * photon * 0.9 * (1.0 - horizon);',
-    '  c += mix(vec3(1.0, 0.85, 0.55), vec3(1.0, 0.97, 0.9), 0.5) * arc * 0.75 * (1.0 - horizon);',
-    '  c += vec3(1.0, 0.8, 0.5) * exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.16;',
+    '  vec3 photonCol = mix(vec3(1.0, 0.94, 0.82), vec3(0.06, 0.04, 0.03), u_light);',
+    '  vec3 arcCol = mix(mix(vec3(1.0, 0.85, 0.55), vec3(1.0, 0.97, 0.9), 0.5), vec3(0.30, 0.14, 0.05), u_light);',
+    '  vec3 bloomCol = mix(vec3(1.0, 0.8, 0.5), vec3(0.62, 0.32, 0.10), u_light);',
+    '  c += photonCol * photon * 0.9 * (1.0 - horizon);',
+    '  c += arcCol * arc * 0.75 * (1.0 - horizon);',
+    '  c += bloomCol * exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.16;',
     '  alpha += (photon * 0.8 + arc * 0.6) * (1.0 - horizon) + exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.12;',
     '',
     '  /* Near side of the disk: drawn OVER the hole — the depth cue */',
     '  c += col * bright * nearMask;',
     '  alpha += bright * 1.5 * nearMask;',
     '',
-    '  /* Faint warm halo */',
-    '  c += ember * 0.045 * (1.0 - smoothstep(0.0, 0.9, rc));',
+    '  /* Faint warm halo — a paper-warming amber wash in light mode */',
+    '  c += mix(ember * 0.045, vec3(0.85, 0.55, 0.22) * 0.05, u_light) * (1.0 - smoothstep(0.0, 0.9, rc));',
     '  alpha += 0.04 * (1.0 - smoothstep(0.0, 0.9, rc));',
     '',
     '  gl_FragColor = vec4(c, clamp(alpha, 0.0, 1.0));',
@@ -228,6 +247,8 @@ function infinityBlackhole(canvas, cfg) {
     'varying float v_heat;',
     'varying float v_fade;',
     '',
+    'uniform float u_light;',
+    '',
     'void main() {',
     '  float d = length(gl_PointCoord - 0.5);',
     '  float a = smoothstep(0.5, 0.0, d);',
@@ -235,6 +256,9 @@ function infinityBlackhole(canvas, cfg) {
     '  vec3 cool = vec3(1.0, 0.58, 0.24);',
     '  vec3 hotc = vec3(1.0, 0.97, 0.9);',
     '  vec3 col = mix(cool, hotc, v_heat);',
+    '  /* light mode: sparks become cinders — hotter burns blacker */',
+    '  vec3 ink = mix(vec3(0.62, 0.30, 0.10), vec3(0.05, 0.04, 0.04), v_heat);',
+    '  col = mix(col, ink, u_light);',
     '  gl_FragColor = vec4(col * a, a * 0.9);',
     '}'
   ].join('\n');
@@ -279,6 +303,7 @@ function infinityBlackhole(canvas, cfg) {
   var dCenter = gl.getUniformLocation(diskProg, 'u_center');
   var dZoom = gl.getUniformLocation(diskProg, 'u_zoom');
   var dVariant = gl.getUniformLocation(diskProg, 'u_variant');
+  var dLight = gl.getUniformLocation(diskProg, 'u_light');
 
   /* Particles: each has a head + tail segments along its orbit */
   var PART_N = cfg.particles.n;
@@ -300,6 +325,19 @@ function infinityBlackhole(canvas, cfg) {
   var pTime = partProg ? gl.getUniformLocation(partProg, 'u_time') : null;
   var pCenter = partProg ? gl.getUniformLocation(partProg, 'u_center') : null;
   var pZoom = partProg ? gl.getUniformLocation(partProg, 'u_zoom') : null;
+  var pLight = partProg ? gl.getUniformLocation(partProg, 'u_light') : null;
+
+  /* Black-body-on-white rendering follows the site's light mode, but
+     only where the canvas actually sits on a light background */
+  var lightAware = !!cfg.lightAware;
+  var lightCur = 0;
+  function lightTarget() {
+    return (lightAware && document.documentElement.getAttribute('data-mode') === 'light') ? 1 : 0;
+  }
+  lightCur = lightTarget();
+  window.addEventListener('infinity:theme', function () {
+    if (!raf) raf = requestAnimationFrame(frame);
+  });
 
   gl.enable(gl.BLEND);
 
@@ -335,6 +373,10 @@ function infinityBlackhole(canvas, cfg) {
     var cx = c[0];
     var cy = c[1];
 
+    var lt = lightTarget();
+    lightCur = reduced ? lt : lightCur + (lt - lightCur) * 0.09;
+    if (Math.abs(lightCur - lt) < 0.005) lightCur = lt;
+
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -349,11 +391,13 @@ function infinityBlackhole(canvas, cfg) {
     gl.uniform2f(dCenter, cx, cy);
     gl.uniform1f(dZoom, cfg.zoom);
     gl.uniform1f(dVariant, cfg.variant);
+    gl.uniform1f(dLight, lightCur);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-    /* Particle pass: additive sparks */
+    /* Particle pass: additive sparks (normal blending on paper,
+       where additive light would vanish into white) */
     if (partProg) {
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+      gl.blendFunc(gl.SRC_ALPHA, lightCur > 0.5 ? gl.ONE_MINUS_SRC_ALPHA : gl.ONE);
       gl.useProgram(partProg);
       gl.bindBuffer(gl.ARRAY_BUFFER, partBuf);
       gl.enableVertexAttribArray(partSeed);
@@ -362,6 +406,7 @@ function infinityBlackhole(canvas, cfg) {
       gl.uniform1f(pTime, t);
       gl.uniform2f(pCenter, cx, cy);
       gl.uniform1f(pZoom, cfg.zoom);
+      gl.uniform1f(pLight, lightCur);
       gl.drawArrays(gl.POINTS, 0, PART_COUNT);
     }
 
@@ -393,6 +438,7 @@ function infinityBlackhole(canvas, cfg) {
     infinityBlackhole(hero, {
       zoom: 1.55,
       variant: 0,
+      lightAware: true,
       particles: { n: 90, tail: 8 },
       center: function (w) { return [w > 900 ? 0.195 : 0.5, 0.42]; }
     });

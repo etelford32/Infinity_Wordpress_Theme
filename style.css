@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.1.0
+Version: 3.2.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2966,12 +2966,10 @@ html[data-mode="light"] .theme-toggle-knob {
   }
 }
 
-/* In light mode the cosmic set-pieces stay deliberately dark: the hero
-   black-hole scene and the tag globe are space — space stays black.
-   Re-pinning the palette vars on those sections means every chip, pill
-   and note inside them keeps its dark-mode styling. */
-[data-theme="science-light"] .fp-hero-blackhole,
-[data-theme="light-playful"] .fp-hero-blackhole,
+/* In light mode the tag globe stays deliberately dark (a space panel);
+   the hero instead gets its own full light treatment below — white
+   page, black-body disk. Re-pinning the palette vars here keeps every
+   chip inside the globe section on its dark-mode styling. */
 [data-theme="science-light"] .fp-tagverse,
 [data-theme="light-playful"] .fp-tagverse {
   --color-bg-primary: #0a0e1a;
@@ -3031,4 +3029,133 @@ html[data-mode="light"] .theme-toggle-knob {
 [data-theme="science-light"] .site-logo-link:focus-visible .bh-logo-img,
 [data-theme="light-playful"] .site-logo-link:focus-visible .bh-logo-img {
   filter: drop-shadow(0 0 9px rgba(255, 184, 77, 0.4)) drop-shadow(0 2px 8px rgba(15, 23, 42, 0.16));
+}
+
+/* ==========================================================================
+   22.0 Hero light mode: black body on a white page + logo click burst
+   ========================================================================== */
+
+/* White hero. The WebGL disk re-renders itself as ink (u_light):
+   hotter plasma = deeper black, the horizon a jet-black sphere. */
+[data-theme="science-light"] .fp-hero-blackhole,
+[data-theme="light-playful"] .fp-hero-blackhole {
+  background: #ffffff;
+  color: var(--color-text-primary);
+}
+
+/* CSS fallback disk (no WebGL) in ink */
+[data-theme="science-light"] #fp-blackhole.fp-blackhole-fallback,
+[data-theme="light-playful"] #fp-blackhole.fp-blackhole-fallback {
+  background:
+    radial-gradient(ellipse 62% 20% at 50% 50%, transparent 22%, rgba(120, 53, 15, 0.55) 34%, rgba(194, 65, 12, 0.30) 48%, transparent 68%),
+    radial-gradient(circle at 50% 50%, #000 0%, #000 9%, transparent 11%);
+}
+
+/* Wordmark on paper: the metal face goes dark-ink (gradient swapped in
+   the SVG defs), the extrusion lightens to slate, the shadow softens */
+[data-theme="science-light"] .wm-face,
+[data-theme="light-playful"] .wm-face {
+  fill: url(#wm-face-grad-light);
+  stroke: rgba(15, 23, 42, 0.35);
+  filter: url(#wm-bevel-light); /* gentler specular: ink, not chrome */
+}
+
+[data-theme="science-light"] .wm-shadow,
+[data-theme="light-playful"] .wm-shadow {
+  fill: #8a96ba;
+  opacity: 0.3;
+}
+
+[data-theme="science-light"] .wm-depth,
+[data-theme="light-playful"] .wm-depth {
+  fill: #39415f;
+}
+
+/* Racers on white: deeper neon inks, ambient shadow lightened */
+[data-theme="science-light"] .wm-trail-c,
+[data-theme="light-playful"] .wm-trail-c { stroke: #0e93b4; stroke-opacity: 0.8; filter: drop-shadow(0 0 4px rgba(14, 147, 180, 0.75)) drop-shadow(0 2px 5px rgba(148, 163, 194, 0.5)); }
+[data-theme="science-light"] .wm-trail-m,
+[data-theme="light-playful"] .wm-trail-m { stroke: #cf2fb3; stroke-opacity: 0.8; filter: drop-shadow(0 0 4px rgba(207, 47, 179, 0.7)) drop-shadow(0 2px 5px rgba(148, 163, 194, 0.5)); }
+[data-theme="science-light"] .wm-trail-a,
+[data-theme="light-playful"] .wm-trail-a { stroke: #d97706; stroke-opacity: 0.8; filter: drop-shadow(0 0 4px rgba(217, 119, 6, 0.7)) drop-shadow(0 2px 5px rgba(148, 163, 194, 0.5)); }
+[data-theme="science-light"] .wm-ball-c,
+[data-theme="light-playful"] .wm-ball-c { stroke: #067a96; filter: drop-shadow(0 0 5px rgba(6, 122, 150, 0.85)); }
+[data-theme="science-light"] .wm-ball-m,
+[data-theme="light-playful"] .wm-ball-m { stroke: #a21caf; filter: drop-shadow(0 0 5px rgba(162, 28, 175, 0.8)); }
+[data-theme="science-light"] .wm-ball-a,
+[data-theme="light-playful"] .wm-ball-a { stroke: #b45309; filter: drop-shadow(0 0 5px rgba(180, 83, 9, 0.8)); }
+
+/* Tagline: ink gradient instead of starlight, soft paper shadow */
+[data-theme="science-light"] .fp-hero-blackhole .fp-hero-tagline,
+[data-theme="light-playful"] .fp-hero-blackhole .fp-hero-tagline {
+  background: linear-gradient(95deg, #b45309 0%, #7c3aed 45%, #0e7490 80%, #b45309 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 1px 2px rgba(148, 163, 194, 0.45));
+}
+
+/* Hero chips on paper: quiet borders, no glass blur needed */
+[data-theme="science-light"] .fp-hero-blackhole .fp-pillar-nav a,
+[data-theme="light-playful"] .fp-hero-blackhole .fp-pillar-nav a {
+  background: rgba(248, 250, 252, 0.85);
+}
+
+/* ---- Logo click: collapse, flash, shockwave ---- */
+
+/* Shockwave ring lives on the stage itself */
+.bh-logo::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 0 14px 2px color-mix(in srgb, var(--color-accent-primary) 80%, transparent),
+    inset 0 0 8px rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  transform: scale(0.4);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.bh-logo.bh-burst::after {
+  animation: bh-shockwave 0.55s cubic-bezier(0.16, 0.84, 0.44, 1) 0.24s;
+}
+
+@keyframes bh-shockwave {
+  0%   { opacity: 0.95; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(3.6); }
+}
+
+/* The logo itself: implode during the feeding frenzy, detonate white,
+   settle back — mirrors the swarm's collapse/slingshot timeline */
+.bh-logo.bh-burst .bh-logo-img {
+  animation: bh-implode-pop 0.7s cubic-bezier(0.34, 1.4, 0.44, 1);
+}
+
+@keyframes bh-implode-pop {
+  0%   { transform: scale(1.24); filter: brightness(1); }
+  34%  { transform: scale(0.78); filter: brightness(1.3) drop-shadow(0 0 8px rgba(255, 184, 77, 0.7)); }
+  46%  { transform: scale(1.42); filter: brightness(2.6) drop-shadow(0 0 30px rgba(255, 255, 255, 0.95)); }
+  100% { transform: scale(1.24); filter: brightness(1.1) drop-shadow(0 0 12px rgba(255, 184, 77, 0.6)); }
+}
+
+.bh-logo.bh-burst .bh-logo-photon {
+  animation: bh-photon-blink 0.7s ease-out;
+}
+
+@keyframes bh-photon-blink {
+  0%   { opacity: 1; }
+  40%  { opacity: 0.1; }
+  50%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bh-logo.bh-burst .bh-logo-img,
+  .bh-logo.bh-burst .bh-logo-photon,
+  .bh-logo.bh-burst::after {
+    animation: none !important;
+  }
 }
