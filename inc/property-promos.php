@@ -37,6 +37,21 @@ function infinity_property_urls() {
 }
 
 /**
+ * Logo URL for a property: the Customizer-uploaded logo when set,
+ * otherwise the site's favicon via Google's resolver (works for
+ * virtually every live site; cards fall back to a monogram if even
+ * that fails to load).
+ */
+function infinity_property_logo_url($key, $site_url) {
+    $custom = get_option('infinity_' . $key . '_logo', '');
+    if ($custom) {
+        return $custom;
+    }
+    $host = wp_parse_url($site_url, PHP_URL_HOST);
+    return $host ? 'https://www.google.com/s2/favicons?domain=' . rawurlencode($host) . '&sz=128' : '';
+}
+
+/**
  * Steam app id parsed from the configured store URL (for the widget).
  */
 function infinity_steam_app_id() {
@@ -55,7 +70,10 @@ function infinity_etu_promo_card() {
     ?>
     <div class="promo-card promo-card-etu">
         <p class="promo-kicker"><?php esc_html_e('The Game', 'infinity'); ?></p>
-        <h3 class="promo-title"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></h3>
+        <div class="promo-title-row">
+            <img class="promo-logo" src="<?php echo esc_url(infinity_property_logo_url('etu', $urls['etu'])); ?>" alt="" loading="lazy" decoding="async" onerror="this.remove();">
+            <h3 class="promo-title"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></h3>
+        </div>
         <p class="promo-copy">
             <?php esc_html_e('Command your own ship in a living galaxy. The year is 2175 — the frontier is open, and the first wave of pilots is signing up now.', 'infinity'); ?>
         </p>
@@ -78,7 +96,10 @@ function infinity_parkers_promo_card() {
     ?>
     <div class="promo-card promo-card-parkers">
         <p class="promo-kicker"><?php esc_html_e('The Sandbox', 'infinity'); ?></p>
-        <h3 class="promo-title"><?php esc_html_e("Parker's Physics", 'infinity'); ?></h3>
+        <div class="promo-title-row">
+            <img class="promo-logo" src="<?php echo esc_url(infinity_property_logo_url('parkers', $urls['parkers'])); ?>" alt="" loading="lazy" decoding="async" onerror="this.remove();">
+            <h3 class="promo-title"><?php esc_html_e("Parker's Physics", 'infinity'); ?></h3>
+        </div>
         <p class="promo-copy">
             <?php esc_html_e('Real orbital mechanics you can bend with your hands. Spin up a solar system, break it, fix it, share it — no install, right in your browser.', 'infinity'); ?>
         </p>
@@ -97,7 +118,10 @@ function infinity_landscaping_promo_card() {
     ?>
     <div class="promo-card promo-card-landscaping">
         <p class="promo-kicker"><?php esc_html_e('Off Screen', 'infinity'); ?></p>
-        <h3 class="promo-title"><?php esc_html_e('Telford Landscaping', 'infinity'); ?></h3>
+        <div class="promo-title-row">
+            <img class="promo-logo" src="<?php echo esc_url(infinity_property_logo_url('landscaping', $urls['landscaping'])); ?>" alt="" loading="lazy" decoding="async" onerror="this.remove();">
+            <h3 class="promo-title"><?php esc_html_e('Telford Landscaping', 'infinity'); ?></h3>
+        </div>
         <p class="promo-copy">
             <?php esc_html_e('Stone, soil, and honest work — the analog side of the operation.', 'infinity'); ?>
         </p>

@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.0.0');
+define('INFINITY_VERSION', '2.1.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -72,6 +72,14 @@ add_action('after_setup_theme', 'infinity_theme_setup');
 function infinity_enqueue_scripts() {
     // Main stylesheet
     wp_enqueue_style('infinity-style', get_stylesheet_uri(), array(), INFINITY_VERSION);
+
+    // Orbitron display face for headings and the wordmark
+    wp_enqueue_style(
+        'infinity-orbitron',
+        'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap',
+        array(),
+        null
+    );
 
     /*
      * The React app (~270 KB JS + 38 KB CSS) only mounts on templates
@@ -181,11 +189,15 @@ add_filter('script_loader_tag', 'infinity_module_script_loader_tag', 10, 3);
  * where the game's key art is loaded from it.
  */
 function infinity_resource_hints($urls, $relation_type) {
-    if ('preconnect' === $relation_type && is_front_page()) {
-        $urls[] = array(
-            'href' => 'https://shared.akamai.steamstatic.com',
-            'crossorigin',
-        );
+    if ('preconnect' === $relation_type) {
+        $urls[] = array('href' => 'https://fonts.googleapis.com');
+        $urls[] = array('href' => 'https://fonts.gstatic.com', 'crossorigin');
+        if (is_front_page()) {
+            $urls[] = array(
+                'href' => 'https://shared.akamai.steamstatic.com',
+                'crossorigin',
+            );
+        }
     }
     return $urls;
 }
@@ -570,6 +582,37 @@ function infinity_customize_register($wp_customize) {
         'description' => esc_html__('The live simulation sandbox', 'infinity'),
         'section'     => 'infinity_steam_settings',
         'type'        => 'url',
+    ));
+
+    // Property logos (fall back to each site's favicon when empty)
+    $logo_fields = array(
+        'infinity_parkers_logo'     => __('Parker\'s Physics logo', 'infinity'),
+        'infinity_etu_logo'         => __('Explore the Universe 2175 logo', 'infinity'),
+        'infinity_landscaping_logo' => __('Telford Landscaping logo', 'infinity'),
+    );
+    foreach ($logo_fields as $logo_id => $logo_label) {
+        $wp_customize->add_setting($logo_id, array(
+            'type'              => 'option',
+            'default'           => '',
+            'sanitize_callback' => 'esc_url_raw',
+        ));
+        $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, $logo_id, array(
+            'label'   => $logo_label,
+            'section' => 'infinity_steam_settings',
+        )));
+    }
+
+    $wp_customize->add_setting('infinity_etu_embed', array(
+        'type'              => 'option',
+        'default'           => 0,
+        'sanitize_callback' => 'absint',
+    ));
+
+    $wp_customize->add_control('infinity_etu_embed', array(
+        'label'       => esc_html__('Live-embed ExploreTheUniverse2175.com on the homepage', 'infinity'),
+        'description' => esc_html__('Enable only after that site allows framing (frame-ancestors https://elliottelford.com). Until then its card shows the Steam key art.', 'infinity'),
+        'section'     => 'infinity_steam_settings',
+        'type'        => 'checkbox',
     ));
 }
 add_action('customize_register', 'infinity_customize_register');

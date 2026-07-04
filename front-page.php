@@ -130,40 +130,56 @@ $steam_label     = get_option('infinity_steam_label', 'Explore the Universe');
         <div class="container">
             <div class="property-strip property-strip-live">
                 <?php
-                $infinity_properties = array(
+                $infinity_app_for_art = infinity_steam_app_id();
+                $infinity_properties  = array(
                     array(
-                        'class'  => 'parkers',
+                        'key'    => 'parkers',
                         'url'    => $parkers_url,
                         'kicker' => __('Play with physics', 'infinity'),
                         'name'   => __("Parker's Physics", 'infinity'),
                         'cta'    => __('Launch the sandbox', 'infinity'),
                         'mono'   => 'PP',
+                        'art'    => '',
+                        'embed'  => true,
                     ),
                     array(
-                        'class'  => 'etu',
+                        'key'    => 'etu',
                         'url'    => $etu_site_url,
                         'kicker' => __('The space game', 'infinity'),
                         'name'   => __('Explore the Universe 2175', 'infinity'),
                         'cta'    => __('Sign up free', 'infinity'),
                         'mono'   => '2175',
+                        // The game's site refuses embedding, so its card shows
+                        // the Steam key art until infinity_etu_embed is enabled
+                        'art'    => $infinity_app_for_art ? 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/' . $infinity_app_for_art . '/header.jpg' : '',
+                        'embed'  => (bool) get_option('infinity_etu_embed', 0),
                     ),
                     array(
-                        'class'  => 'landscaping',
+                        'key'    => 'landscaping',
                         'url'    => $landscaping_url,
                         'kicker' => __('The analog craft', 'infinity'),
                         'name'   => __('Telford Landscaping', 'infinity'),
                         'cta'    => __('See the work', 'infinity'),
                         'mono'   => 'TL',
+                        'art'    => '',
+                        'embed'  => true,
                     ),
                 );
                 foreach ($infinity_properties as $infinity_prop) :
+                    $infinity_logo = infinity_property_logo_url($infinity_prop['key'], $infinity_prop['url']);
                 ?>
-                <a class="property-card property-card-<?php echo esc_attr($infinity_prop['class']); ?> property-live"
+                <a class="property-card property-card-<?php echo esc_attr($infinity_prop['key']); ?> property-live"
                    href="<?php echo esc_url($infinity_prop['url']); ?>" target="_blank" rel="noopener"
-                   data-preview="<?php echo esc_url($infinity_prop['url']); ?>">
+                   <?php if ($infinity_prop['embed']) : ?>data-preview="<?php echo esc_url($infinity_prop['url']); ?>"<?php endif; ?>>
                     <span class="property-live-screen">
                         <span class="property-live-placeholder">
                             <span class="property-live-mono"><?php echo esc_html($infinity_prop['mono']); ?></span>
+                            <?php if ($infinity_prop['art']) : ?>
+                                <img class="property-live-art" src="<?php echo esc_url($infinity_prop['art']); ?>" alt="" loading="lazy" decoding="async" onerror="this.remove();">
+                            <?php endif; ?>
+                            <?php if ($infinity_logo) : ?>
+                                <img class="property-live-logo" src="<?php echo esc_url($infinity_logo); ?>" alt="" loading="lazy" decoding="async" onerror="this.remove();">
+                            <?php endif; ?>
                         </span>
                     </span>
                     <span class="property-card-body">
