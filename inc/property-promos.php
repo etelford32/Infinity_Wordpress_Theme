@@ -90,6 +90,70 @@ function infinity_clear_etu_video_cache() {
 add_action('add_attachment', 'infinity_clear_etu_video_cache');
 
 /**
+ * Feature highlight lists for the property bands. Stored as editable
+ * "Label|Description|URL" lines in the Customizer; defaults reflect
+ * each site's real navigation and fall back to the site root.
+ */
+function infinity_property_features($key) {
+    $urls = infinity_property_urls();
+
+    $defaults = array(
+        'parkers' => array(
+            array('🌍', 'Earth Simulation', 'A living planet with real thermospheric physics', $urls['parkers']),
+            array('🛰️', 'LEO Drag Forecasts', 'Space-weather forecasts that hold up during the storm', $urls['parkers']),
+            array('📡', 'Orbit Telemetry', 'Live orbit determination you can watch', $urls['parkers']),
+            array('🧪', 'The Sandbox', 'Spin up systems, break them, share them', $urls['parkers']),
+        ),
+        'landscaping' => array(
+            array('🎨', 'Design Studio', 'Live 3D preview of your yard', $urls['landscaping']),
+            array('🌳', '30-Year Growth Sim', 'See your yard in 2055 — watch plants mature', $urls['landscaping']),
+            array('🌿', 'Plant Library', '60+ California species, curated', $urls['landscaping']),
+            array('🧱', 'Hardscape Tools', 'Patios, walls, and structures that outlast us', $urls['landscaping']),
+            array('📋', 'Request a Consultation', 'Estate-scale design-build, Sacramento foothills', $urls['landscaping']),
+        ),
+    );
+
+    $stored = trim((string) get_option('infinity_' . $key . '_features', ''));
+    if ('' === $stored) {
+        return isset($defaults[$key]) ? $defaults[$key] : array();
+    }
+
+    $features = array();
+    foreach (explode("\n", $stored) as $line) {
+        $parts = array_map('trim', explode('|', $line));
+        if (count($parts) >= 4) {
+            $features[] = array($parts[0], $parts[1], $parts[2], $parts[3]);
+        } elseif (count($parts) === 3) {
+            $features[] = array('✦', $parts[0], $parts[1], $parts[2]);
+        }
+    }
+    return $features;
+}
+
+/**
+ * Render a band feature grid.
+ */
+function infinity_render_feature_grid($key, $aria_label) {
+    $features = infinity_property_features($key);
+    if (!$features) {
+        return;
+    }
+    ?>
+    <nav class="band-features" aria-label="<?php echo esc_attr($aria_label); ?>">
+        <?php foreach ($features as $f) : ?>
+            <a class="band-feature" href="<?php echo esc_url($f[3]); ?>" target="_blank" rel="noopener">
+                <span class="band-feature-icon" aria-hidden="true"><?php echo esc_html($f[0]); ?></span>
+                <span class="band-feature-text">
+                    <span class="band-feature-label"><?php echo esc_html($f[1]); ?></span>
+                    <span class="band-feature-desc"><?php echo esc_html($f[2]); ?></span>
+                </span>
+            </a>
+        <?php endforeach; ?>
+    </nav>
+    <?php
+}
+
+/**
  * Steam app id parsed from the configured store URL (for the widget).
  */
 function infinity_steam_app_id() {

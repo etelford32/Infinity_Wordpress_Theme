@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '2.5.0');
+define('INFINITY_VERSION', '2.6.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -1071,6 +1071,20 @@ function infinity_front_page_customize_register($wp_customize) {
             'default'     => 'https://telfordlandscaping.com',
             'sanitize'    => 'esc_url_raw',
             'type'        => 'url',
+        ),
+        'infinity_parkers_features' => array(
+            'label'       => esc_html__("Parker's Physics highlights", 'infinity'),
+            'description' => esc_html__('One per line: Emoji|Label|Description|URL. Empty = built-in defaults.', 'infinity'),
+            'default'     => '',
+            'sanitize'    => 'sanitize_textarea_field',
+            'type'        => 'textarea',
+        ),
+        'infinity_landscaping_features' => array(
+            'label'       => esc_html__('Telford Landscaping highlights', 'infinity'),
+            'description' => esc_html__('One per line: Emoji|Label|Description|URL. Empty = built-in defaults.', 'infinity'),
+            'default'     => '',
+            'sanitize'    => 'sanitize_textarea_field',
+            'type'        => 'textarea',
         ),
     );
 

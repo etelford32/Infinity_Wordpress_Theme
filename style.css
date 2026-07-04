@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 2.5.0
+Version: 2.6.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2630,4 +2630,70 @@ code {
 
 .property-live-video {
   object-fit: cover;
+}
+
+/* Band feature highlight grids */
+.band-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+}
+
+.band-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 22%, transparent);
+  background: color-mix(in srgb, var(--color-bg-primary) 55%, transparent);
+  text-decoration: none;
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.band-feature:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+}
+
+.fp-band-landscaping .band-feature {
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+.fp-band-landscaping .band-feature:hover {
+  border-color: #4ade80;
+  box-shadow: 0 6px 22px rgba(22, 163, 74, 0.3);
+}
+
+.band-feature-icon {
+  font-size: 1.2rem;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
+.band-feature-label {
+  display: block;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.band-feature-desc {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.band-feature:hover .band-feature-label {
+  color: var(--color-accent-primary);
+}
+
+.fp-band-landscaping .band-feature:hover .band-feature-label {
+  color: #4ade80;
 }

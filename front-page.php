@@ -433,6 +433,7 @@ $infinity_etu_video   = infinity_etu_video_url();
                             <?php esc_html_e('Browse simulations here', 'infinity'); ?>
                         </a>
                     </div>
+                    <?php infinity_render_feature_grid('parkers', __("Parker's Physics features", 'infinity')); ?>
                 </div>
                 <div class="fp-band-media fp-media-sandbox" aria-hidden="true">
                     <span class="cosmic-logo" style="--logo-size: 140px;">
@@ -466,6 +467,7 @@ $infinity_etu_video   = infinity_etu_video_url();
                             <?php esc_html_e('Visit TelfordLandscaping.com', 'infinity'); ?> &rarr;
                         </a>
                     </div>
+                    <?php infinity_render_feature_grid('landscaping', __('Telford Landscaping features', 'infinity')); ?>
                 </div>
             </div>
         </div>
