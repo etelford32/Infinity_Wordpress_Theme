@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '1.0.1');
+define('INFINITY_VERSION', '1.1.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -801,3 +801,214 @@ function infinity_navigation_body_classes($classes) {
     return $classes;
 }
 add_filter('body_class', 'infinity_navigation_body_classes');
+
+/* ==========================================================================
+   Front Page Content & SEO
+   ========================================================================== */
+
+/**
+ * Query recent posts from a comma-separated list of category slugs.
+ *
+ * Only slugs that exist as categories are used; if none match, falls
+ * back to recent posts so homepage sections never render empty on a
+ * site whose category names differ.
+ */
+function infinity_fp_query($slugs_csv, $count = 3) {
+    $slugs = array_filter(array_map('trim', explode(',', (string) $slugs_csv)));
+    $existing = array();
+
+    foreach ($slugs as $slug) {
+        if (get_category_by_slug($slug)) {
+            $existing[] = $slug;
+        }
+    }
+
+    $args = array(
+        'post_type'           => 'post',
+        'posts_per_page'      => (int) $count,
+        'ignore_sticky_posts' => true,
+    );
+
+    if ($existing) {
+        $args['category_name'] = implode(',', $existing);
+    }
+
+    return new WP_Query($args);
+}
+
+/**
+ * Get the archive link for the first existing category in a slug list.
+ */
+function infinity_fp_first_category_link($slugs_csv) {
+    $slugs = array_filter(array_map('trim', explode(',', (string) $slugs_csv)));
+
+    foreach ($slugs as $slug) {
+        $cat = get_category_by_slug($slug);
+        if ($cat) {
+            return get_category_link($cat);
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Homepage Content customizer settings
+ */
+function infinity_front_page_customize_register($wp_customize) {
+    $wp_customize->add_section('infinity_front_page', array(
+        'title'       => esc_html__('Homepage Content', 'infinity'),
+        'description' => esc_html__('Controls the sections of the front page. Category lists are comma-separated slugs; the first slugs that exist on your site are used.', 'infinity'),
+        'priority'    => 32,
+    ));
+
+    $fields = array(
+        'infinity_featured_post_id' => array(
+            'label'       => esc_html__('Featured Post ID', 'infinity'),
+            'description' => esc_html__('Post ID to feature at the top (e.g. the mushroom article). Leave 0 for the most recent post.', 'infinity'),
+            'default'     => 0,
+            'sanitize'    => 'absint',
+            'type'        => 'number',
+        ),
+        'infinity_pillar_health_slugs' => array(
+            'label'       => esc_html__('Health & Anatomy categories', 'infinity'),
+            'description' => esc_html__('Comma-separated category slugs', 'infinity'),
+            'default'     => 'anatomy,osteology,health,nutrition',
+            'sanitize'    => 'sanitize_text_field',
+            'type'        => 'text',
+        ),
+        'infinity_pillar_science_slugs' => array(
+            'label'       => esc_html__('Science categories', 'infinity'),
+            'description' => esc_html__('Comma-separated category slugs', 'infinity'),
+            'default'     => 'science',
+            'sanitize'    => 'sanitize_text_field',
+            'type'        => 'text',
+        ),
+        'infinity_pillar_travel_slugs' => array(
+            'label'       => esc_html__('Travel categories', 'infinity'),
+            'description' => esc_html__('Comma-separated category slugs', 'infinity'),
+            'default'     => 'travel,experiences',
+            'sanitize'    => 'sanitize_text_field',
+            'type'        => 'text',
+        ),
+        'infinity_landscaping_url' => array(
+            'label'       => esc_html__('Landscaping site URL', 'infinity'),
+            'description' => '',
+            'default'     => 'https://telfordlandscaping.com',
+            'sanitize'    => 'esc_url_raw',
+            'type'        => 'url',
+        ),
+    );
+
+    foreach ($fields as $id => $field) {
+        $wp_customize->add_setting($id, array(
+            'type'              => 'option',
+            'default'           => $field['default'],
+            'sanitize_callback' => $field['sanitize'],
+        ));
+        $wp_customize->add_control($id, array(
+            'label'       => $field['label'],
+            'description' => $field['description'],
+            'section'     => 'infinity_front_page',
+            'type'        => $field['type'],
+        ));
+    }
+}
+add_action('customize_register', 'infinity_front_page_customize_register');
+
+/**
+ * Basic SEO tags: meta description, Open Graph, Twitter card.
+ *
+ * Skipped automatically when a dedicated SEO plugin (Yoast, Rank Math,
+ * All in One SEO) is active so we never emit duplicate tags.
+ */
+function infinity_seo_meta_tags() {
+    if (defined('WPSEO_VERSION') || class_exists('RankMath') || defined('AIOSEO_VERSION')) {
+        return;
+    }
+
+    $title = wp_get_document_title();
+
+    if (is_front_page()) {
+        $description = get_bloginfo('description');
+        $url         = home_url('/');
+        $image       = get_template_directory_uri() . '/screenshot.png';
+        $type        = 'website';
+    } elseif (is_singular()) {
+        $description = get_the_excerpt() ? wp_trim_words(get_the_excerpt(), 30) : get_bloginfo('description');
+        $url         = get_permalink();
+        $image       = get_the_post_thumbnail_url(null, 'large') ?: get_template_directory_uri() . '/screenshot.png';
+        $type        = 'article';
+    } else {
+        return;
+    }
+
+    printf('<meta name="description" content="%s">' . "\n", esc_attr($description));
+    printf('<meta property="og:title" content="%s">' . "\n", esc_attr($title));
+    printf('<meta property="og:description" content="%s">' . "\n", esc_attr($description));
+    printf('<meta property="og:url" content="%s">' . "\n", esc_url($url));
+    printf('<meta property="og:type" content="%s">' . "\n", esc_attr($type));
+    printf('<meta property="og:site_name" content="%s">' . "\n", esc_attr(get_bloginfo('name')));
+    printf('<meta property="og:image" content="%s">' . "\n", esc_url($image));
+    echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+}
+add_action('wp_head', 'infinity_seo_meta_tags', 5);
+
+/**
+ * JSON-LD structured data: WebSite + Person on the front page,
+ * Article on single posts. Skipped when an SEO plugin is active.
+ */
+function infinity_seo_json_ld() {
+    if (defined('WPSEO_VERSION') || class_exists('RankMath') || defined('AIOSEO_VERSION')) {
+        return;
+    }
+
+    $schema = array();
+
+    if (is_front_page()) {
+        $schema[] = array(
+            '@context'        => 'https://schema.org',
+            '@type'           => 'WebSite',
+            'name'            => get_bloginfo('name'),
+            'url'             => home_url('/'),
+            'description'     => get_bloginfo('description'),
+            'potentialAction' => array(
+                '@type'       => 'SearchAction',
+                'target'      => home_url('/?s={search_term_string}'),
+                'query-input' => 'required name=search_term_string',
+            ),
+        );
+        $schema[] = array(
+            '@context' => 'https://schema.org',
+            '@type'    => 'Person',
+            'name'     => 'Elliot Telford',
+            'url'      => home_url('/'),
+            'sameAs'   => array_filter(array(
+                get_option('infinity_steam_url', ''),
+                get_option('infinity_landscaping_url', 'https://telfordlandscaping.com'),
+            )),
+        );
+    } elseif (is_singular('post')) {
+        $schema[] = array(
+            '@context'      => 'https://schema.org',
+            '@type'         => 'Article',
+            'headline'      => get_the_title(),
+            'datePublished' => get_the_date('c'),
+            'dateModified'  => get_the_modified_date('c'),
+            'author'        => array(
+                '@type' => 'Person',
+                'name'  => get_the_author(),
+            ),
+            'image'         => get_the_post_thumbnail_url(null, 'large') ?: '',
+            'mainEntityOfPage' => get_permalink(),
+        );
+    }
+
+    foreach ($schema as $item) {
+        printf(
+            '<script type="application/ld+json">%s</script>' . "\n",
+            wp_json_encode($item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        );
+    }
+}
+add_action('wp_head', 'infinity_seo_json_ld', 6);

@@ -31,10 +31,10 @@ const NAV_GROUPS: NavGroup[] = [
     icon: '⚛',
     items: [
       {
-        label: 'Simulations',
+        label: "Parker's Physics",
         href: '/simulations',
         icon: '🪐',
-        description: 'Interactive astrophysical models',
+        description: 'The interactive physics sandbox',
       },
       {
         label: 'Blueprints',
