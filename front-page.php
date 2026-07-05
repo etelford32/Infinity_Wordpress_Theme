@@ -78,11 +78,11 @@ $infinity_etu_video   = infinity_etu_video_url();
                                     <stop offset="1" stop-color="#4a5288"/>
                                 </linearGradient>
                                 <linearGradient id="wm-face-grad-light" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#4d5878"/>
-                                    <stop offset="0.28" stop-color="#333c5e"/>
-                                    <stop offset="0.55" stop-color="#1c2240"/>
-                                    <stop offset="0.78" stop-color="#10142c"/>
-                                    <stop offset="1" stop-color="#070a1a"/>
+                                    <stop offset="0" stop-color="#2a3150"/>
+                                    <stop offset="0.3" stop-color="#1a2038"/>
+                                    <stop offset="0.55" stop-color="#0d1226"/>
+                                    <stop offset="0.78" stop-color="#060a18"/>
+                                    <stop offset="1" stop-color="#02040c"/>
                                 </linearGradient>
                                 <filter id="wm-blur-huge" x="-20%" y="-40%" width="140%" height="200%">
                                     <feGaussianBlur stdDeviation="11"/>
@@ -98,7 +98,7 @@ $infinity_etu_video   = infinity_etu_video_url();
                                 </filter>
                                 <filter id="wm-bevel" x="-20%" y="-40%" width="140%" height="200%">
                                     <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/>
-                                    <feSpecularLighting in="blur" surfaceScale="4" specularConstant="0.68" specularExponent="16" lighting-color="#ffffff" result="spec">
+                                    <feSpecularLighting in="blur" surfaceScale="4" specularConstant="0.85" specularExponent="19" lighting-color="#ffffff" result="spec">
                                         <feDistantLight azimuth="235" elevation="45"/>
                                     </feSpecularLighting>
                                     <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
@@ -106,11 +106,11 @@ $infinity_etu_video   = infinity_etu_video_url();
                                 </filter>
                                 <filter id="wm-bevel-light" x="-20%" y="-40%" width="140%" height="200%">
                                     <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/>
-                                    <feSpecularLighting in="blur" surfaceScale="3" specularConstant="0.34" specularExponent="14" lighting-color="#dfe6ff" result="spec">
+                                    <feSpecularLighting in="blur" surfaceScale="3.4" specularConstant="0.55" specularExponent="17" lighting-color="#e6ecff" result="spec">
                                         <feDistantLight azimuth="235" elevation="45"/>
                                     </feSpecularLighting>
                                     <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>
-                                    <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.55" k4="0"/>
+                                    <feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k1="0" k2="1" k3="0.8" k4="0"/>
                                 </filter>
                             </defs>
                             <text class="wm-shadow" x="18" y="127" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-huge)"><?php echo esc_html($infinity_wordmark); ?></text>
@@ -122,12 +122,15 @@ $infinity_etu_video   = infinity_etu_video_url();
                             <g class="wm-traces" aria-hidden="true">
                                 <text class="wm-wake wm-wake-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-wake)"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-trail wm-trail-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-soft)"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-halo wm-halo-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-wake)"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-ball wm-ball-c" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-wake wm-wake-m" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-wake)"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-trail wm-trail-m" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-soft)"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-halo wm-halo-m" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-wake)"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-ball wm-ball-m" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-wake wm-wake-a" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-wake)"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-trail wm-trail-a" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-soft)"><?php echo esc_html($infinity_wordmark); ?></text>
+                                <text class="wm-halo wm-halo-a" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs" filter="url(#wm-blur-wake)"><?php echo esc_html($infinity_wordmark); ?></text>
                                 <text class="wm-ball wm-ball-a" x="8" y="110" textLength="<?php echo (int) $infinity_wm_len; ?>" lengthAdjust="spacingAndGlyphs"><?php echo esc_html($infinity_wordmark); ?></text>
                             </g>
                         </svg>

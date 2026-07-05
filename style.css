@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.7.0
+Version: 3.8.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2020,8 +2020,8 @@ code {
 
 .wm-face {
   fill: url(#wm-face-grad);
-  stroke: rgba(238, 242, 255, 0.26);
-  stroke-width: 0.8;
+  stroke: rgba(238, 242, 255, 0.4);
+  stroke-width: 0.9;
 }
 
 /* Neon racers: dashed strokes rolling along the glyph outlines.
@@ -2030,7 +2030,8 @@ code {
    screen blend ADDS them to white, separating again to pure color. */
 .wm-trail,
 .wm-ball,
-.wm-wake {
+.wm-wake,
+.wm-halo {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -2038,7 +2039,10 @@ code {
 }
 
 .wm-trail { stroke-width: 3; opacity: 0.8; }
-.wm-ball  { stroke-width: 4.5; }
+
+/* little balls, big lights: tiny hot core inside a huge halo orb */
+.wm-ball  { stroke-width: 3.6; }
+.wm-halo  { stroke-width: 12; opacity: 0.85; }
 
 /* Wake: a long, heavily blurred smear dragged behind each racer —
    the comet-tail underlayer beneath the sharp trail */
@@ -2046,15 +2050,18 @@ code {
 
 /* 5x laps: the racers sprint the glyph outlines now */
 .wm-trail-c { stroke: #22d3ee; stroke-dasharray: 170 344; animation: wm-roll-514 0.52s linear infinite, wm-tailflex-514 1.3s ease-in-out infinite alternate; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
-.wm-ball-c  { stroke: #dbfcff; stroke-dasharray: 14 500; animation: wm-roll-514-lead 0.52s linear infinite, wm-flick 0.09s linear infinite alternate; filter: drop-shadow(0 0 6px #22d3ee) drop-shadow(0 0 16px rgba(34, 211, 238, 0.7)); }
+.wm-ball-c  { stroke: #eefdff; stroke-dasharray: 9 505; animation: wm-roll-514-lead 0.52s linear infinite, wm-flick 0.09s linear infinite alternate; filter: drop-shadow(0 0 8px #22d3ee) drop-shadow(0 0 22px rgba(34, 211, 238, 0.9)) drop-shadow(0 0 40px rgba(34, 211, 238, 0.5)); }
+.wm-halo-c  { stroke: #22d3ee; stroke-dasharray: 22 492; animation: wm-roll-514-lead 0.52s linear infinite; }
 .wm-wake-c  { stroke: #22d3ee; stroke-dasharray: 215 299; animation: wm-roll-514-wake 0.52s linear infinite; }
 
 .wm-trail-m { stroke: #ff4fd8; stroke-dasharray: 150 377; animation: wm-roll-527 0.68s linear infinite reverse, wm-tailflex-527 1.7s ease-in-out infinite alternate; filter: drop-shadow(0 0 4px rgba(255, 79, 216, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
-.wm-ball-m  { stroke: #ffd9f6; stroke-dasharray: 13 514; animation: wm-roll-527-lead 0.68s linear infinite reverse, wm-flick 0.11s linear infinite alternate; filter: drop-shadow(0 0 6px #ff4fd8) drop-shadow(0 0 16px rgba(255, 79, 216, 0.7)); }
+.wm-ball-m  { stroke: #fff0fc; stroke-dasharray: 9 518; animation: wm-roll-527-lead 0.68s linear infinite reverse, wm-flick 0.11s linear infinite alternate; filter: drop-shadow(0 0 8px #ff4fd8) drop-shadow(0 0 22px rgba(255, 79, 216, 0.9)) drop-shadow(0 0 40px rgba(255, 79, 216, 0.5)); }
+.wm-halo-m  { stroke: #ff4fd8; stroke-dasharray: 21 506; animation: wm-roll-527-lead 0.68s linear infinite reverse; }
 .wm-wake-m  { stroke: #ff4fd8; stroke-dasharray: 205 322; animation: wm-roll-527-wake 0.68s linear infinite reverse; }
 
 .wm-trail-a { stroke: #ffb84d; stroke-dasharray: 140 363; animation: wm-roll-503 0.4s linear infinite, wm-tailflex-503 1.05s ease-in-out infinite alternate; filter: drop-shadow(0 0 4px rgba(255, 184, 77, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
-.wm-ball-a  { stroke: #fff3dd; stroke-dasharray: 12 491; animation: wm-roll-503-lead 0.4s linear infinite, wm-flick 0.08s linear infinite alternate; filter: drop-shadow(0 0 6px #ffb84d) drop-shadow(0 0 16px rgba(255, 184, 77, 0.7)); }
+.wm-ball-a  { stroke: #fff8ec; stroke-dasharray: 8 495; animation: wm-roll-503-lead 0.4s linear infinite, wm-flick 0.08s linear infinite alternate; filter: drop-shadow(0 0 8px #ffb84d) drop-shadow(0 0 22px rgba(255, 184, 77, 0.9)) drop-shadow(0 0 40px rgba(255, 184, 77, 0.5)); }
+.wm-halo-a  { stroke: #ffb84d; stroke-dasharray: 20 483; animation: wm-roll-503-lead 0.4s linear infinite; }
 .wm-wake-a  { stroke: #ffb84d; stroke-dasharray: 195 308; animation: wm-roll-503-wake 0.4s linear infinite; }
 
 @keyframes wm-roll-514 { to { stroke-dashoffset: -514; } }
@@ -3183,16 +3190,38 @@ html[data-mode="light"] .theme-toggle-knob {
 [data-theme="light-playful"] .wm-wake-m { stroke: #cf2fb3; opacity: 0.15; stroke-width: 4; }
 [data-theme="science-light"] .wm-wake-a,
 [data-theme="light-playful"] .wm-wake-a { stroke: #d97706; opacity: 0.15; stroke-width: 4; }
-/* On paper the racers draw as ink lines, not screened light — the
-   dark face stays dark, the color rides the edges */
+/* On paper the trails draw as ink lines — but the ball cores and
+   their halos stay luminous in both modes: light looks like light */
 [data-theme="science-light"] .wm-trail,
 [data-theme="light-playful"] .wm-trail,
-[data-theme="science-light"] .wm-ball,
-[data-theme="light-playful"] .wm-ball,
 [data-theme="science-light"] .wm-wake,
 [data-theme="light-playful"] .wm-wake {
   mix-blend-mode: normal;
 }
+
+[data-theme="science-light"] .wm-face,
+[data-theme="light-playful"] .wm-face {
+  stroke: rgba(140, 158, 255, 0.5); /* cool rim light on the dark ink */
+}
+
+[data-theme="science-light"] .wm-halo,
+[data-theme="light-playful"] .wm-halo {
+  mix-blend-mode: normal; /* screened light dies on white paper */
+  opacity: 0.4;
+}
+
+[data-theme="science-light"] .wm-ball-c,
+[data-theme="light-playful"] .wm-ball-c { stroke: #dffaff; filter: drop-shadow(0 0 6px #0891b2) drop-shadow(0 0 18px rgba(8, 145, 178, 0.85)) drop-shadow(0 0 34px rgba(8, 145, 178, 0.45)); }
+[data-theme="science-light"] .wm-ball-m,
+[data-theme="light-playful"] .wm-ball-m { stroke: #ffe9fb; filter: drop-shadow(0 0 6px #c026d3) drop-shadow(0 0 18px rgba(192, 38, 211, 0.8)) drop-shadow(0 0 34px rgba(192, 38, 211, 0.45)); }
+[data-theme="science-light"] .wm-ball-a,
+[data-theme="light-playful"] .wm-ball-a { stroke: #fff4e2; filter: drop-shadow(0 0 6px #d97706) drop-shadow(0 0 18px rgba(217, 119, 6, 0.8)) drop-shadow(0 0 34px rgba(217, 119, 6, 0.45)); }
+[data-theme="science-light"] .wm-halo-c,
+[data-theme="light-playful"] .wm-halo-c { stroke: #0891b2; }
+[data-theme="science-light"] .wm-halo-m,
+[data-theme="light-playful"] .wm-halo-m { stroke: #c026d3; }
+[data-theme="science-light"] .wm-halo-a,
+[data-theme="light-playful"] .wm-halo-a { stroke: #d97706; }
 
 /* Tagline: ink gradient instead of starlight, soft paper shadow */
 [data-theme="science-light"] .fp-hero-blackhole .fp-hero-tagline,
