@@ -96,8 +96,22 @@ function infinityBlackhole(canvas, cfg) {
     '  float bright = disk * (0.24 + 1.3 * streaks) * doppler;',
     '  bright *= 0.78 + 0.5 * u_act; /* the disk breathes with its feeding phase */',
     '',
+    '  /* Orbiting hot spots: three plasma knots on true Keplerian rates',
+    '     (inner laps fastest), riding the disk plane through doppler and',
+    '     shading like everything else — the orbit is unmistakable */',
+    '  float spots = 0.0;',
+    '  for (int si = 0; si < 3; si++) {',
+    '    float fi = float(si);',
+    '    float sr = 0.26 + 0.13 * fi;',
+    '    float sw = -u_rott * (0.55 / pow(sr, 1.5)) + fi * 2.4;',
+    '    vec2 sp = vec2(cos(sw), sin(sw)) * sr;',
+    '    float sd = length(p - sp);',
+    '    spots += exp(-sd * sd * 750.0) * (0.75 + 0.35 * sin(u_time * 2.6 + fi * 1.9));',
+    '  }',
+    '  bright += spots * disk * (0.5 + 0.9 * u_act);',
+    '',
     '  /* 3D shading: lit from above, near (lower) side in shadow */',
-    '  float vshade = 0.78 + 0.5 * smoothstep(-0.3, 0.35, uv.y);',
+    '  float vshade = 0.68 + 0.68 * smoothstep(-0.3, 0.35, uv.y);',
     '  bright *= vshade;',
     '  bright *= 1.0 + 0.35 * u_variant;',
     '',
@@ -117,7 +131,7 @@ function infinityBlackhole(canvas, cfg) {
     '  vec3 hot   = vec3(1.0, 0.98, 0.93);',
     '  vec3 gold  = vec3(1.0, 0.78, 0.40);',
     '  vec3 ember = vec3(0.98, 0.42, 0.14);',
-    '  vec3 viol  = vec3(0.55, 0.32, 0.85);',
+    '  vec3 viol  = vec3(0.5, 0.28, 1.0);',
     '  vec3 col = mix(hot, gold, smoothstep(0.17, 0.34, rr));',
     '  col = mix(col, ember, smoothstep(0.34, 0.60, rr));',
     '  col = mix(col, viol, smoothstep(0.62, 0.95, rr));',
@@ -147,6 +161,12 @@ function infinityBlackhole(canvas, cfg) {
     '  colL = mix(colL, colL * vec3(1.3, 0.7, 0.5), clamp(-dop, 0.0, 1.0) * 0.4);',
     '  col = mix(col, colL, u_light);',
     '',
+    '  /* Upper-spectrum UV sheen: synchrotron glow licking the inner disk */',
+    '  float uvband = smoothstep(0.36, 0.17, rr) * disk;',
+    '  float uvn = fbm(vec2(swirl * 3.1, rr * 22.0 + u_time * 0.4));',
+    '  vec3 uvCol = mix(vec3(0.56, 0.3, 1.0), vec3(0.2, 0.09, 0.38), u_light);',
+    '  col += uvCol * uvband * uvn * (0.5 + 0.6 * u_act);',
+    '',
     '  /* Hot inner rim facing the viewer on the near side */',
     '  float rim = smoothstep(0.30, 0.17, rr) * smoothstep(0.14, 0.20, rr) * nearMask * disk;',
     '  col += mix(hot, vec3(0.02), u_light) * rim * 0.6;',
@@ -171,7 +191,7 @@ function infinityBlackhole(canvas, cfg) {
     '  alpha += horizon * mix(0.92, 1.0, u_light);',
     '',
     '  /* Photon ring, lensed arc, bloom (outside the silhouette) */',
-    '  vec3 photonCol = mix(vec3(1.0, 0.94, 0.82), vec3(0.06, 0.04, 0.03), u_light);',
+    '  vec3 photonCol = mix(vec3(0.95, 0.9, 1.0) + vec3(0.1, 0.02, 0.2) * sin(u_time * 2.7), vec3(0.06, 0.04, 0.05), u_light);',
     '  vec3 arcCol = mix(mix(vec3(1.0, 0.85, 0.55), vec3(1.0, 0.97, 0.9), 0.5), vec3(0.30, 0.14, 0.05), u_light);',
     '  vec3 bloomCol = mix(vec3(1.0, 0.8, 0.5), vec3(0.62, 0.32, 0.10), u_light);',
     '  c += photonCol * photon * 0.9 * (1.0 - horizon);',
@@ -411,7 +431,7 @@ function infinityBlackhole(canvas, cfg) {
     var act = activity(t);
     var dtw = Math.max(0, Math.min(t - lastT, 0.1));
     lastT = t;
-    rotT += dtw * (0.5 + 1.15 * act);
+    rotT += dtw * (0.8 + 1.7 * act);
     ptT += dtw * (0.55 + 1.35 * act);
     jetT += dtw * (2.0 + 7.0 * act);
     if (reduced) { act = 0.75; rotT = 9; ptT = 9; jetT = 26; }

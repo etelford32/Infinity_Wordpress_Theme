@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '4.0.0');
+define('INFINITY_VERSION', '4.1.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
