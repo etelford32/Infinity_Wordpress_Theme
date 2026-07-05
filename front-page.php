@@ -517,16 +517,37 @@ $infinity_etu_video   = infinity_etu_video_url();
     </section>
     <?php endif; ?>
 
-    <!-- ================= Category tag globe ================= -->
+    <!-- ================= Category + tag globe ================= -->
     <?php
-    $infinity_globe_cats = get_categories(array(
-        'orderby' => 'count',
-        'order'   => 'DESC',
-        'number'  => 26,
+    // Top 100 terms across BOTH taxonomies, sized by how much writing
+    // lives under each. Fetch extra so case-insensitive name dedupe
+    // (a "Yoga" category vs a "yoga" tag) still leaves a full 100.
+    $infinity_globe_cats = get_terms(array(
+        'taxonomy'   => array('category', 'post_tag'),
+        'orderby'    => 'count',
+        'order'      => 'DESC',
+        'number'     => 140,
+        'hide_empty' => true,
     ));
+    if (is_wp_error($infinity_globe_cats)) {
+        $infinity_globe_cats = array();
+    }
+    $infinity_globe_seen = array();
+    $infinity_globe_cats = array_values(array_filter($infinity_globe_cats, function ($t) use (&$infinity_globe_seen) {
+        $k = function_exists('mb_strtolower') ? mb_strtolower($t->name) : strtolower($t->name);
+        if (isset($infinity_globe_seen[$k])) {
+            return false;
+        }
+        $infinity_globe_seen[$k] = true;
+        return true;
+    }));
+    $infinity_globe_cats = array_slice($infinity_globe_cats, 0, 100);
     if (count($infinity_globe_cats) >= 5) :
         $infinity_total_posts = (int) wp_count_posts()->publish;
         $infinity_max_count   = max(array_map(function ($c) { return (int) $c->count; }, $infinity_globe_cats));
+        // Sphere positions follow DOM order — shuffle so the headline
+        // terms scatter across the globe instead of pooling at one pole
+        shuffle($infinity_globe_cats);
     ?>
     <section class="fp-section fp-tagverse" id="explore-everything" aria-labelledby="fp-tagverse-heading">
         <div class="container">
@@ -539,13 +560,19 @@ $infinity_etu_video   = infinity_etu_video_url();
                     </p>
                 </div>
             </header>
-            <div class="tag-globe" id="tag-globe" aria-label="<?php esc_attr_e('Browse categories', 'infinity'); ?>">
+            <div class="tag-globe" id="tag-globe" aria-label="<?php esc_attr_e('Browse categories and tags', 'infinity'); ?>">
                 <?php foreach ($infinity_globe_cats as $infinity_gi => $infinity_gcat) :
-                    $infinity_weight = $infinity_max_count > 0 ? (int) $infinity_gcat->count / $infinity_max_count : 0.5;
+                    // sqrt curve: a 4-article tag still reads, a 90-article
+                    // pillar dominates without drowning everything else
+                    $infinity_weight = $infinity_max_count > 0 ? sqrt((int) $infinity_gcat->count / $infinity_max_count) : 0.5;
+                    $infinity_glink  = get_term_link($infinity_gcat);
+                    if (is_wp_error($infinity_glink)) {
+                        continue;
+                    }
                 ?>
                     <a class="tag-globe-item tag-globe-hue-<?php echo (int) ($infinity_gi % 4); ?>"
                        style="--w: <?php echo esc_attr(round($infinity_weight, 3)); ?>;"
-                       href="<?php echo esc_url(get_category_link($infinity_gcat)); ?>">
+                       href="<?php echo esc_url($infinity_glink); ?>">
                         <?php echo esc_html($infinity_gcat->name); ?><span class="tag-globe-count"><?php echo (int) $infinity_gcat->count; ?></span>
                     </a>
                 <?php endforeach; ?>

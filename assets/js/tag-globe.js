@@ -41,7 +41,8 @@
         dists.push([dx * dx + dy * dy + dz * dz, j]);
       }
       dists.sort(function (a, b) { return a[0] - b[0]; });
-      for (j = 0; j < Math.min(3, dists.length); j++) {
+      var nei = N > 60 ? 2 : 3; /* denser sphere, fewer lines each */
+      for (j = 0; j < Math.min(nei, dists.length); j++) {
         var key = Math.min(i, dists[j][1]) + '-' + Math.max(i, dists[j][1]);
         if (!seen[key]) {
           seen[key] = 1;
@@ -97,8 +98,8 @@
       p.d = depth;
 
       var s = p.el.style;
-      s.transform = 'translate(-50%, -50%) translate(' + p.px.toFixed(1) + 'px,' + p.py.toFixed(1) + 'px) scale(' + (0.5 + 0.7 * depth).toFixed(3) + ')';
-      s.opacity = (0.22 + 0.78 * depth * depth).toFixed(3);
+      s.transform = 'translate(-50%, -50%) translate(' + p.px.toFixed(1) + 'px,' + p.py.toFixed(1) + 'px) scale(' + (0.42 + 0.75 * depth).toFixed(3) + ')';
+      s.opacity = (0.13 + 0.87 * depth * depth).toFixed(3);
       s.zIndex = Math.round(depth * 100);
       s.pointerEvents = depth > 0.45 ? 'auto' : 'none';
     }

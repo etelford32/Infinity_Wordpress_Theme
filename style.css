@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.3.0
+Version: 3.4.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2438,7 +2438,7 @@ code {
 
 .tag-globe {
   position: relative;
-  height: 440px;
+  height: 580px;
   margin-top: var(--spacing-xl);
   cursor: grab;
 }
@@ -2451,8 +2451,9 @@ code {
   text-decoration: none;
   font-family: var(--font-family-display);
   font-weight: 700;
-  font-size: calc(0.85rem + var(--w, 0.5) * 1.05rem);
-  padding: 6px 14px;
+  /* 100 terms share the sphere: small floor, weight buys headline size */
+  font-size: calc(0.58rem + var(--w, 0.5) * 1.55rem);
+  padding: 3px 9px;
   border-radius: 999px;
   border: 1px solid transparent;
   will-change: transform, opacity;
@@ -2477,7 +2478,8 @@ code {
 }
 
 @media (max-width: 640px) {
-  .tag-globe { height: 340px; }
+  .tag-globe { height: 420px; }
+  .tag-globe-item { font-size: calc(0.5rem + var(--w, 0.5) * 1.1rem); }
 }
 
 /* ==========================================================================
