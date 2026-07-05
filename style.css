@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.4.0
+Version: 3.5.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -607,20 +607,49 @@ code {
 }
 
 .nav-menu a {
+  position: relative;
   display: block;
   padding: var(--spacing-sm) var(--spacing-md);
   color: var(--color-text-secondary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.04em;
   border-radius: var(--radius-md);
   transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+/* Gradient underline that sweeps in from the left */
+.nav-menu > li > a::after {
+  content: '';
+  position: absolute;
+  left: var(--spacing-md);
+  right: var(--spacing-md);
+  bottom: 5px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-accent-tertiary), var(--color-accent-primary), var(--color-accent-secondary));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.nav-menu > li > a:hover::after,
+.nav-menu > li.current-menu-item > a::after,
+.nav-menu > li.current_page_item > a::after {
+  transform: scaleX(1);
 }
 
 .nav-menu a:hover,
 .nav-menu .current-menu-item > a,
 .nav-menu .current_page_item > a {
   color: var(--color-text-primary);
-  background-color: var(--color-bg-tertiary);
+  background-color: color-mix(in srgb, var(--color-bg-tertiary) 65%, transparent);
+}
+
+.nav-menu a:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
 }
 
 /* Dropdown Menus */
@@ -628,12 +657,13 @@ code {
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 200px;
+  min-width: 210px;
   padding: var(--spacing-sm) 0;
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-bg-tertiary);
+  background-color: color-mix(in srgb, var(--color-bg-secondary) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 22%, var(--color-bg-tertiary));
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-lg), 0 0 24px color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
@@ -655,7 +685,9 @@ code {
 }
 
 .nav-menu .sub-menu a:hover {
-  background-color: var(--color-bg-tertiary);
+  background-color: color-mix(in srgb, var(--color-accent-primary) 14%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-accent-primary);
+  color: var(--color-text-primary);
 }
 
 /* Mobile Menu Toggle */
@@ -1783,27 +1815,30 @@ code {
 }
 
 .fp-hero-blackhole .fp-hero-tagline {
-  font-size: clamp(1rem, 1.9vw, 1.35rem);
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: clamp(1.15rem, 2.3vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: linear-gradient(95deg, #ffd9a0 0%, #ffb84d 25%, #f0f2ff 52%, #22d3ee 78%, #ffd9a0 100%);
+  background: linear-gradient(95deg, #ffd9a0 0%, #ffb84d 16%, #f472b6 36%, #f0f2ff 52%, #22d3ee 70%, #a78bfa 86%, #ffd9a0 100%);
   background-size: 240% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 14px rgba(5, 8, 18, 0.95)) drop-shadow(0 0 22px rgba(255, 184, 77, 0.28));
-  animation: tagline-shimmer 11s ease-in-out infinite;
+  filter: drop-shadow(0 2px 3px rgba(4, 7, 16, 0.95)) drop-shadow(0 4px 16px rgba(4, 7, 16, 0.9)) drop-shadow(0 0 24px rgba(103, 232, 249, 0.22));
+  animation: tagline-aurora 8s linear infinite;
   margin-bottom: var(--spacing-lg);
 }
 
-@keyframes tagline-shimmer {
-  0%, 100% { background-position: 0% 0; }
-  50%      { background-position: 100% 0; }
+/* Continuous color flow: the gradient tiles (first stop == last stop),
+   so a full -240% sweep loops seamlessly — aurora through the glyphs */
+@keyframes tagline-aurora {
+  0%   { background-position: 0% 0; }
+  100% { background-position: -240% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fp-hero-blackhole .fp-hero-tagline { animation: none; }
+  .fp-hero-blackhole .fp-hero-tagline,
+  .fp-hero-latest-label { animation: none !important; }
 }
 
 .fp-hero-blackhole .fp-pillar-nav {
@@ -2184,12 +2219,18 @@ code {
 }
 
 .fp-hero-latest-label {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #ffb84d;
-  text-shadow: 0 2px 10px rgba(5, 8, 18, 0.9);
+  color: #ffb84d; /* fallback if background-clip is unsupported */
+  background: linear-gradient(95deg, #ffb84d 0%, #f472b6 30%, #67e8f9 62%, #a78bfa 82%, #ffb84d 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 2px rgba(4, 7, 16, 0.9)) drop-shadow(0 3px 10px rgba(4, 7, 16, 0.8));
+  animation: tagline-aurora 8s linear infinite reverse;
 }
 
 .fp-hero-latest-pill {
@@ -2441,6 +2482,17 @@ code {
   height: 580px;
   margin-top: var(--spacing-xl);
   cursor: grab;
+  touch-action: pan-y; /* horizontal drags spin the globe, page still scrolls */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tag-globe.is-dragging {
+  cursor: grabbing;
+}
+
+.tag-globe.is-dragging .tag-globe-item {
+  pointer-events: none !important;
 }
 
 .tag-globe-item {
@@ -3073,11 +3125,21 @@ html[data-mode="light"] .theme-toggle-knob {
 /* Tagline: ink gradient instead of starlight, soft paper shadow */
 [data-theme="science-light"] .fp-hero-blackhole .fp-hero-tagline,
 [data-theme="light-playful"] .fp-hero-blackhole .fp-hero-tagline {
-  background: linear-gradient(95deg, #b45309 0%, #7c3aed 45%, #0e7490 80%, #b45309 100%);
+  background: linear-gradient(95deg, #b45309 0%, #be185d 28%, #7c3aed 50%, #0e7490 74%, #b45309 100%);
   background-size: 240% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   filter: drop-shadow(0 1px 2px rgba(148, 163, 194, 0.45));
+}
+
+[data-theme="science-light"] .fp-hero-latest-label,
+[data-theme="light-playful"] .fp-hero-latest-label {
+  color: #b45309;
+  background: linear-gradient(95deg, #b45309 0%, #a21caf 35%, #0e7490 68%, #b45309 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 1px 1px rgba(148, 163, 194, 0.4));
 }
 
 /* Hero chips on paper: quiet borders, no glass blur needed */

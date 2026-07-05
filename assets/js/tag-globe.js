@@ -71,10 +71,20 @@
 
   var rotX = -0.35;
   var rotY = 0;
-  var velX = 0.0035;
-  var velY = 0.011;
+  var BASE_VX = 0.006;
+  var BASE_VY = 0.02;
+  var velX = BASE_VX;
+  var velY = BASE_VY;
   var targetVelX = velX;
   var targetVelY = velY;
+
+  /* drag state */
+  var dragging = false;
+  var dragMoved = 0;
+  var lastPX = 0;
+  var lastPY = 0;
+  var lastDX = 0;
+  var lastDY = 0;
 
   function radius() {
     return Math.min(globe.clientWidth, globe.clientHeight * 2) * 0.36;
@@ -145,11 +155,13 @@
     }
     last = now || 0;
 
-    var damp = hovered ? 0.06 : 1;
-    velX += (targetVelX * damp - velX) * 0.05;
-    velY += (targetVelY * damp - velY) * 0.05;
-    rotX += velX;
-    rotY += velY;
+    if (!dragging) {
+      var damp = hovered ? 0.3 : 1;
+      velX += (targetVelX * damp - velX) * 0.045;
+      velY += (targetVelY * damp - velY) * 0.045;
+      rotX += velX;
+      rotY += velY;
+    }
 
     render();
 
@@ -159,18 +171,66 @@
   }
 
   globe.addEventListener('pointermove', function (e) {
+    if (dragging) {
+      var dx = e.clientX - lastPX;
+      var dy = e.clientY - lastPY;
+      lastPX = e.clientX;
+      lastPY = e.clientY;
+      lastDX = dx;
+      lastDY = dy;
+      dragMoved += Math.abs(dx) + Math.abs(dy);
+      /* grab the sphere: pointer motion drives rotation directly */
+      rotY += dx * 0.006;
+      rotX += dy * 0.005;
+      if (reduced) { render(); }
+      return;
+    }
     var rect = globe.getBoundingClientRect();
     var nx = (e.clientX - rect.left) / rect.width - 0.5;
     var ny = (e.clientY - rect.top) / rect.height - 0.5;
-    targetVelY = 0.011 + nx * 0.02;
-    targetVelX = 0.0035 + ny * 0.012;
+    targetVelY = BASE_VY + nx * 0.03;
+    targetVelX = BASE_VX + ny * 0.018;
   });
+
+  globe.addEventListener('pointerdown', function (e) {
+    if (e.button !== undefined && e.button !== 0) return;
+    dragging = true;
+    dragMoved = 0;
+    lastPX = e.clientX;
+    lastPY = e.clientY;
+    lastDX = 0;
+    lastDY = 0;
+    globe.classList.add('is-dragging');
+    if (globe.setPointerCapture && e.pointerId !== undefined) {
+      try { globe.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+  });
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    globe.classList.remove('is-dragging');
+    /* fling: leave the sphere with the release velocity, then let the
+       frame loop ease it back toward the ambient spin */
+    velY = Math.max(-0.09, Math.min(0.09, lastDX * 0.006));
+    velX = Math.max(-0.07, Math.min(0.07, lastDY * 0.005));
+  }
+  globe.addEventListener('pointerup', endDrag);
+  globe.addEventListener('pointercancel', endDrag);
+
+  /* a real drag shouldn't trigger the link under the pointer */
+  globe.addEventListener('click', function (e) {
+    if (dragMoved > 8) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
 
   globe.addEventListener('pointerenter', function () { hovered = true; });
   globe.addEventListener('pointerleave', function () {
     hovered = false;
-    targetVelX = 0.0035;
-    targetVelY = 0.011;
+    targetVelX = BASE_VX;
+    targetVelY = BASE_VY;
   });
 
   if ('IntersectionObserver' in window) {
