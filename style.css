@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.6.0
+Version: 3.7.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -1997,6 +1997,9 @@ code {
   max-width: 900px;
   height: auto;
   overflow: visible;
+  /* loom: the top of the letters leans out over the viewer */
+  transform: perspective(950px) rotateX(8deg);
+  transform-origin: 50% 85%;
 }
 
 .fp-wordmark text {
@@ -2007,8 +2010,13 @@ code {
 }
 
 /* Giant soft shadow + extrusion: the wordmark reads as monumental */
-.wm-shadow { fill: #04060e; opacity: 0.9; }
-.wm-depth  { fill: #0d1128; }
+.wm-shadow { fill: #04060e; opacity: 0.95; }
+.wm-ground { fill: #02040a; opacity: 0.6; }
+
+/* Extrusion stack: three steps marching from darkness up to the face */
+.wm-depth   { fill: #0d1128; }
+.wm-depth-2 { fill: #090c1e; }
+.wm-depth-3 { fill: #050711; }
 
 .wm-face {
   fill: url(#wm-face-grad);
@@ -2037,15 +2045,15 @@ code {
 .wm-wake  { stroke-width: 5; opacity: 0.3; }
 
 /* 5x laps: the racers sprint the glyph outlines now */
-.wm-trail-c { stroke: #22d3ee; stroke-dasharray: 170 344; animation: wm-roll-514 0.52s linear infinite; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
+.wm-trail-c { stroke: #22d3ee; stroke-dasharray: 170 344; animation: wm-roll-514 0.52s linear infinite, wm-tailflex-514 1.3s ease-in-out infinite alternate; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
 .wm-ball-c  { stroke: #dbfcff; stroke-dasharray: 14 500; animation: wm-roll-514-lead 0.52s linear infinite, wm-flick 0.09s linear infinite alternate; filter: drop-shadow(0 0 6px #22d3ee) drop-shadow(0 0 16px rgba(34, 211, 238, 0.7)); }
 .wm-wake-c  { stroke: #22d3ee; stroke-dasharray: 215 299; animation: wm-roll-514-wake 0.52s linear infinite; }
 
-.wm-trail-m { stroke: #ff4fd8; stroke-dasharray: 150 377; animation: wm-roll-527 0.68s linear infinite reverse; filter: drop-shadow(0 0 4px rgba(255, 79, 216, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
+.wm-trail-m { stroke: #ff4fd8; stroke-dasharray: 150 377; animation: wm-roll-527 0.68s linear infinite reverse, wm-tailflex-527 1.7s ease-in-out infinite alternate; filter: drop-shadow(0 0 4px rgba(255, 79, 216, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
 .wm-ball-m  { stroke: #ffd9f6; stroke-dasharray: 13 514; animation: wm-roll-527-lead 0.68s linear infinite reverse, wm-flick 0.11s linear infinite alternate; filter: drop-shadow(0 0 6px #ff4fd8) drop-shadow(0 0 16px rgba(255, 79, 216, 0.7)); }
 .wm-wake-m  { stroke: #ff4fd8; stroke-dasharray: 205 322; animation: wm-roll-527-wake 0.68s linear infinite reverse; }
 
-.wm-trail-a { stroke: #ffb84d; stroke-dasharray: 140 363; animation: wm-roll-503 0.4s linear infinite; filter: drop-shadow(0 0 4px rgba(255, 184, 77, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
+.wm-trail-a { stroke: #ffb84d; stroke-dasharray: 140 363; animation: wm-roll-503 0.4s linear infinite, wm-tailflex-503 1.05s ease-in-out infinite alternate; filter: drop-shadow(0 0 4px rgba(255, 184, 77, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
 .wm-ball-a  { stroke: #fff3dd; stroke-dasharray: 12 491; animation: wm-roll-503-lead 0.4s linear infinite, wm-flick 0.08s linear infinite alternate; filter: drop-shadow(0 0 6px #ffb84d) drop-shadow(0 0 16px rgba(255, 184, 77, 0.7)); }
 .wm-wake-a  { stroke: #ffb84d; stroke-dasharray: 195 308; animation: wm-roll-503-wake 0.4s linear infinite; }
 
@@ -2063,6 +2071,21 @@ code {
 @keyframes wm-flick {
   from { opacity: 1; }
   to   { opacity: 0.72; }
+}
+
+/* Elastic tails: each trail stretches and squashes while it races —
+   dash + gap always sum to the lap length, so the loop never skips */
+@keyframes wm-tailflex-514 {
+  from { stroke-dasharray: 170 344; stroke-width: 2.6; }
+  to   { stroke-dasharray: 108 406; stroke-width: 4.1; }
+}
+@keyframes wm-tailflex-527 {
+  from { stroke-dasharray: 150 377; stroke-width: 2.6; }
+  to   { stroke-dasharray: 96 431; stroke-width: 4.2; }
+}
+@keyframes wm-tailflex-503 {
+  from { stroke-dasharray: 140 363; stroke-width: 2.6; }
+  to   { stroke-dasharray: 90 413; stroke-width: 4.0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3123,6 +3146,22 @@ html[data-mode="light"] .theme-toggle-knob {
 [data-theme="science-light"] .wm-depth,
 [data-theme="light-playful"] .wm-depth {
   fill: #39415f;
+}
+
+[data-theme="science-light"] .wm-depth-2,
+[data-theme="light-playful"] .wm-depth-2 {
+  fill: #4d5878;
+}
+
+[data-theme="science-light"] .wm-depth-3,
+[data-theme="light-playful"] .wm-depth-3 {
+  fill: #67729a;
+}
+
+[data-theme="science-light"] .wm-ground,
+[data-theme="light-playful"] .wm-ground {
+  fill: #55617f;
+  opacity: 0.38;
 }
 
 /* Racers on white: deeper neon inks, ambient shadow lightened */
