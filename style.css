@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.2.0
+Version: 3.3.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2966,23 +2966,6 @@ html[data-mode="light"] .theme-toggle-knob {
   }
 }
 
-/* In light mode the tag globe stays deliberately dark (a space panel);
-   the hero instead gets its own full light treatment below — white
-   page, black-body disk. Re-pinning the palette vars here keeps every
-   chip inside the globe section on its dark-mode styling. */
-[data-theme="science-light"] .fp-tagverse,
-[data-theme="light-playful"] .fp-tagverse {
-  --color-bg-primary: #0a0e1a;
-  --color-bg-secondary: #141824;
-  --color-bg-tertiary: #1e2330;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #b8c0d4;
-  --color-text-tertiary: #7a8199;
-  --color-accent-primary: #6366f1;
-  --color-accent-secondary: #8b5cf6;
-  --color-accent-tertiary: #06b6d4;
-  color-scheme: dark;
-}
 
 /* Explicit deep-space backdrop so the dark set-pieces read as panels
    once the body behind them goes light */
@@ -3158,4 +3141,122 @@ html[data-mode="light"] .theme-toggle-knob {
   .bh-logo.bh-burst::after {
     animation: none !important;
   }
+}
+
+/* ==========================================================================
+   23.0 Footer widgets, Parker's light stage, writing-globe constellation
+   ========================================================================== */
+
+/* Footer widgets hold arbitrary user content (text widgets with
+   headings, embeds, dividers). Scope the typography so a pasted h1
+   can't detonate the layout, and let long URLs wrap. */
+.footer-widgets .widget,
+.footer-widgets > div,
+.footer-widgets > section {
+  min-width: 0;
+}
+
+.footer-widgets .widget-title,
+.footer-widgets h1,
+.footer-widgets h2,
+.footer-widgets h3,
+.footer-widgets h4,
+.footer-widgets h5,
+.footer-widgets h6 {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm);
+  overflow-wrap: anywhere;
+}
+
+.footer-widgets p,
+.footer-widgets li,
+.footer-widgets td {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.footer-widgets a {
+  color: var(--color-accent-primary);
+}
+
+.footer-widgets img {
+  max-width: 100%;
+  height: auto;
+}
+
+.footer-widgets hr {
+  border: 0;
+  border-top: 1px solid var(--color-bg-tertiary);
+  margin: var(--spacing-md) 0;
+}
+
+/* ---- Parker's stage in light mode: the dark logo art becomes a
+   floating framed panel on paper, with the ink accretion disk
+   (u_light) swirling across the whole stage around it ---- */
+[data-theme="science-light"] .pp-stage,
+[data-theme="light-playful"] .pp-stage {
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(1px 1px at 18% 22%, rgba(15, 23, 42, 0.30) 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 14%, rgba(15, 23, 42, 0.22) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 84% 58%, rgba(51, 65, 85, 0.28) 50%, transparent 51%),
+    radial-gradient(1px 1px at 34% 74%, rgba(15, 23, 42, 0.18) 50%, transparent 51%),
+    radial-gradient(1px 1px at 56% 38%, rgba(120, 53, 15, 0.25) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 8% 62%, rgba(15, 23, 42, 0.16) 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 84%, rgba(51, 65, 85, 0.22) 50%, transparent 51%);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="science-light"] .pp-backdrop,
+[data-theme="light-playful"] .pp-backdrop {
+  /* replaced elements don't stretch from insets — size it explicitly */
+  top: 9%;
+  left: 20%;
+  width: 60%;
+  height: 82%;
+  border-radius: 18px;
+  filter: none;
+  box-shadow:
+    0 22px 48px rgba(15, 23, 42, 0.30),
+    0 0 0 1px rgba(15, 23, 42, 0.10);
+}
+
+[data-theme="science-light"] .pp-stage #pp-blackhole,
+[data-theme="light-playful"] .pp-stage #pp-blackhole {
+  mix-blend-mode: normal; /* ink on paper, not screened light */
+}
+
+/* ---- Writing globe: light mode + constellation lines ---- */
+.tag-globe-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="science-light"] .fp-tagverse,
+[data-theme="light-playful"] .fp-tagverse {
+  background-color: #ffffff;
+}
+
+[data-theme="science-light"] .tag-globe-hue-0,
+[data-theme="light-playful"] .tag-globe-hue-0 { color: #4f46e5; }
+[data-theme="science-light"] .tag-globe-hue-1,
+[data-theme="light-playful"] .tag-globe-hue-1 { color: #0e7490; }
+[data-theme="science-light"] .tag-globe-hue-2,
+[data-theme="light-playful"] .tag-globe-hue-2 { color: #b45309; }
+[data-theme="science-light"] .tag-globe-hue-3,
+[data-theme="light-playful"] .tag-globe-hue-3 { color: #a21caf; }
+
+[data-theme="science-light"] .tag-globe-item:hover,
+[data-theme="light-playful"] .tag-globe-item:hover {
+  text-shadow: 0 1px 10px color-mix(in srgb, currentColor 45%, transparent);
 }

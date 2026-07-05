@@ -533,7 +533,7 @@ $infinity_etu_video   = infinity_etu_video_url();
             <header class="fp-section-header fp-tagverse-header">
                 <div>
                     <p class="fp-kicker"><?php esc_html_e('The archive runs deep', 'infinity'); ?></p>
-                    <h2 class="fp-section-title" id="fp-tagverse-heading"><?php esc_html_e('Explore everything', 'infinity'); ?></h2>
+                    <h2 class="fp-section-title" id="fp-tagverse-heading"><?php esc_html_e("Explore Elliot's Writing", 'infinity'); ?></h2>
                     <p class="fp-section-intro">
                         <?php printf(esc_html__('%1$s articles across %2$s worlds of interest — grab the cloud, give it a spin, pick a door.', 'infinity'), number_format_i18n($infinity_total_posts), number_format_i18n(count($infinity_globe_cats))); ?>
                     </p>

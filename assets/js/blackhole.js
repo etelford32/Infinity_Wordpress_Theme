@@ -450,6 +450,7 @@ function infinityBlackhole(canvas, cfg) {
     infinityBlackhole(pp, {
       zoom: 1.3,
       variant: 1,
+      lightAware: true,
       particles: { n: 56, tail: 7 },
       center: function () { return [0.5, 0.5]; }
     });
