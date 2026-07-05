@@ -34,7 +34,7 @@
                             <canvas class="bh-orbits bh-orbits-front"></canvas>
                         </span>
                         <span class="site-title-group">
-                            <span class="site-title"><?php bloginfo('name'); ?></span>
+                            <span class="site-title"><?php echo esc_html(str_ireplace('elliottelford', 'ElliotTelford', get_bloginfo('name'))); ?></span>
                             <span class="site-tagline"><?php bloginfo('description'); ?></span>
                         </span>
                     </a>
@@ -53,7 +53,7 @@
                             <span class="cosmic-logo-sparkle"></span>
                         </span>
                         <span class="site-title-group">
-                            <span class="site-title"><?php bloginfo('name'); ?></span>
+                            <span class="site-title"><?php echo esc_html(str_ireplace('elliottelford', 'ElliotTelford', get_bloginfo('name'))); ?></span>
                             <span class="site-tagline"><?php bloginfo('description'); ?></span>
                         </span>
                     </a>
