@@ -172,13 +172,17 @@ $infinity_etu_video   = infinity_etu_video_url();
                 <?php $infinity_hero_app = infinity_steam_app_id(); if ($infinity_hero_app) : ?>
                 <aside class="hero-steam-card" aria-label="<?php esc_attr_e('Explore the Universe 2175 on Steam', 'infinity'); ?>">
                     <p class="hero-steam-card-kicker"><?php esc_html_e('Now on Steam — Wishlist', 'infinity'); ?></p>
-                    <div class="steam-fit" data-basewidth="646" data-baseheight="190">
+                    <div class="steam-fit" data-basewidth="500" data-baseheight="190">
                         <iframe
                             class="hero-steam-frame"
                             src="<?php echo esc_url('https://store.steampowered.com/widget/' . $infinity_hero_app . '/?utm_source=elliottelford.com&utm_medium=hero_widget&utm_campaign=homepage'); ?>"
                             title="<?php esc_attr_e('Explore the Universe 2175 on Steam', 'infinity'); ?>"
                         ></iframe>
                     </div>
+                    <a class="hero-wishlist-btn" href="<?php echo esc_url($steam_url); ?>" target="_blank" rel="noopener noreferrer">
+                        <span><?php esc_html_e('Wishlist on Steam', 'infinity'); ?></span>
+                        <span class="hero-wishlist-arrow" aria-hidden="true">&rarr;</span>
+                    </a>
                     <p class="hero-steam-card-note"><?php esc_html_e('Every wishlist boosts launch visibility', 'infinity'); ?></p>
                 </aside>
                 <?php endif; ?>

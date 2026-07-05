@@ -304,7 +304,7 @@
     }
 
     function render() {
-        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
         var dim = sizeLayer(layerBack, dpr);
         sizeLayer(layerFront, dpr);
         var w = dim[0], h = dim[1];
@@ -408,8 +408,13 @@
 
     var last = 0;
     var staticTimer = null;
+    var FRAME_MS = 21; /* ~45fps is plenty for a 52px stage */
 
     function frame(ts) {
+        if (ts && ts - last < FRAME_MS) {
+            requestAnimationFrame(frame);
+            return;
+        }
         var dt = last ? Math.min((ts - last) / 1000, 0.05) : 1 / 60;
         last = ts;
         stepSim(dt);

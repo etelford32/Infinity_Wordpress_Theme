@@ -135,6 +135,7 @@
       var a = pts[pairs[k][0]];
       var b = pts[pairs[k][1]];
       var d = (a.d + b.d) / 2;
+      if (d < 0.18) continue; /* far-side lines are invisible anyway */
       var alpha = 0.04 + 0.30 * d * d;
       lctx.strokeStyle = light
         ? 'rgba(71, 85, 105, ' + alpha.toFixed(3) + ')'

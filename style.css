@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 4.3.0
+Version: 4.4.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -2179,7 +2179,7 @@ code {
 @media (min-width: 1100px) {
   .fp-hero-blackhole .fp-hero-inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 500px;
+    grid-template-columns: minmax(0, 1fr) 545px;
     gap: var(--spacing-2xl);
     align-items: center;
   }
@@ -2232,11 +2232,82 @@ code {
 
 .hero-steam-frame {
   display: block;
-  width: 646px;
+  width: 500px;
   height: 190px;
   border: 0;
   border-radius: var(--radius-md);
   transform-origin: top left;
+}
+
+/* The wishlist CTA: a button that actually asks for the click.
+   Slow heartbeat + flowing green gradient + sheen sweep. */
+.hero-wishlist-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: var(--spacing-md);
+  padding: 15px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: var(--font-size-lg);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: #f2ffe9;
+  background: linear-gradient(100deg, #4c8f1f 0%, #75b022 40%, #8ed629 70%, #75b022 100%);
+  background-size: 220% 100%;
+  box-shadow:
+    0 8px 26px rgba(117, 176, 34, 0.35),
+    0 0 0 1px rgba(142, 214, 41, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+  animation: wl-heartbeat 2.4s ease-in-out infinite, wl-flow 5s linear infinite;
+  transition: filter var(--transition-fast);
+}
+
+.hero-wishlist-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  animation: wl-sheen 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.hero-wishlist-btn:hover {
+  filter: brightness(1.12);
+}
+
+.hero-wishlist-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.hero-wishlist-btn:hover .hero-wishlist-arrow {
+  transform: translateX(5px);
+}
+
+@keyframes wl-heartbeat {
+  0%, 100% { transform: scale(1);     box-shadow: 0 8px 26px rgba(117, 176, 34, 0.35), 0 0 0 1px rgba(142, 214, 41, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+  50%      { transform: scale(1.03);  box-shadow: 0 10px 34px rgba(117, 176, 34, 0.55), 0 0 22px rgba(142, 214, 41, 0.45), 0 0 0 1px rgba(142, 214, 41, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+}
+
+@keyframes wl-flow {
+  to { background-position: -220% 0; }
+}
+
+@keyframes wl-sheen {
+  0%, 35% { background-position: 130% 0; }
+  75%, 100% { background-position: -130% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-wishlist-btn,
+  .hero-wishlist-btn::after {
+    animation: none;
+  }
 }
 
 .hero-steam-card-note {

@@ -454,7 +454,9 @@ function infinityBlackhole(canvas, cfg) {
   gl.enable(gl.BLEND);
 
   function resize() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    /* adaptive resolution: the plasma is soft — wide canvases drop to
+       1.0 DPR and nobody can tell, but the GPU surely can */
+    var dpr = Math.min(window.devicePixelRatio || 1, canvas.clientWidth > 1600 ? 1.0 : 1.25);
     var w = canvas.clientWidth;
     var h = canvas.clientHeight;
     if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
