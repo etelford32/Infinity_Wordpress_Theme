@@ -686,6 +686,7 @@ require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 require_once INFINITY_DIR . '/inc/property-promos.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';
+require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 
 // Load WooCommerce compatibility if plugin is active
 if (class_exists('WooCommerce')) {
@@ -1308,7 +1309,11 @@ add_action('wp_head', 'infinity_seo_json_ld', 6);
  * Point crawlers at the core XML sitemap (/wp-sitemap.xml).
  */
 function infinity_robots_txt($output, $public) {
-    if ($public) {
+    // A stray Crawl-delay throttles Bing (Google ignores it); strip it if
+    // something upstream injected one. A physical robots.txt file on the
+    // server would bypass this filter entirely.
+    $output = str_ireplace("Crawl-delay: 10\n", '', $output);
+    if ($public && false === stripos($output, 'sitemap:')) {
         $output .= "\nSitemap: " . esc_url(home_url('/wp-sitemap.xml')) . "\n";
     }
     return $output;
@@ -1392,7 +1397,7 @@ add_action('wp_head', 'infinity_breadcrumb_json_ld', 7);
  * to their file), and let canonicals cover the rest.
  */
 function infinity_wp_robots($robots) {
-    if (is_date() || is_author() || is_search() || is_attachment()) {
+    if (is_date() || is_author() || is_search() || is_attachment() || is_tag() || is_tax('post_format')) {
         $robots['noindex'] = true;
         $robots['follow']  = true;
     }
