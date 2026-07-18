@@ -30,20 +30,25 @@ git clone https://github.com/etelford32/Infinity_Wordpress_Theme.git
 cd Infinity_Wordpress_Theme
 ```
 
-### Step 2: Install Required WordPress Plugins
+### Step 2: Install Optional WordPress Plugins
+
+No plugins are required — the classic theme (front page, blog, SEO layer,
+built-in email subscriptions) works standalone, and each integration below
+activates automatically when its plugin is detected. Install these only if
+you're running the simulation subscription platform.
 
 Log into your WordPress admin (elliottelford.com/wp-admin) and install these plugins:
 
-1. **WooCommerce** (required for subscriptions)
+1. **WooCommerce** (for e-commerce subscriptions)
    - Go to Plugins → Add New
    - Search for "WooCommerce"
    - Install and Activate
 
-2. **WooCommerce Subscriptions** (required for recurring payments)
+2. **WooCommerce Subscriptions** (for recurring payments via WooCommerce)
    - Purchase from WooCommerce.com (or use alternative like "Subscriptions for WooCommerce")
    - Upload and activate
 
-3. **WPGraphQL** (required for headless API)
+3. **WPGraphQL** (for the headless API used by the React frontend)
    - Search for "WPGraphQL"
    - Install and Activate
 
@@ -62,7 +67,8 @@ Log into your WordPress admin (elliottelford.com/wp-admin) and install these plu
 1. Connect to your server via FTP (FileZilla, Cyberduck, etc.)
 2. Navigate to `/wp-content/themes/`
 3. Create a new folder called `infinity`
-4. Upload all files from the `wordpress-theme/` directory to `/wp-content/themes/infinity/`
+4. Upload all files from the repo root to `/wp-content/themes/infinity/`
+   (you can skip `frontend/node_modules/` and `tools/`)
 
 **Option B: Via SSH**
 
