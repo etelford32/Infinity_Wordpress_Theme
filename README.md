@@ -1,512 +1,232 @@
 # 🌌 Infinity WordPress Theme
 
-**Version:** 1.0.0
+**Version:** 3.0.0
 **Author:** Elliot Telford
 **License:** GPL v2 or later
+**Live site:** [elliottelford.com](https://elliottelford.com)
 
-A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
+Infinity is the custom WordPress theme powering elliottelford.com. It started
+as a distributable theme for interactive astrophysical simulations and has
+grown into a full site experience: a cinematic Three.js/WebGL front page, a
+cross-promotion hub for the Telford properties, a fast classic-PHP blog with a
+hand-rolled SEO layer, built-in email subscriptions, and an optional headless
+React frontend for running physics simulations.
 
-## ✨ Features
+## ✨ What the theme does today
 
-- 🎮 **Interactive 3D Simulations** - Solar systems, galaxies, black holes, and more
-- ⚙️ **Multiple Physics Engines** - Cannon.js, Ammo.js, and GPU compute shaders
-- 🎨 **Three Visual Themes** - Dark Cosmic, Light Playful, and Science Mode (light/dark)
-- 💎 **Premium Subscriptions** - Built-in Stripe/WooCommerce integration
-- 🛠️ **Blueprint Creator** - Users can create and share simulation configurations
-- 🏆 **Gamification** - Achievements, challenges, leaderboards
-- 👥 **Community Features** - Gallery, forums, voting system
-- 📱 **Mobile-First Design** - WebGPU for desktop, WebGL fallback for mobile
-- ♿ **Accessibility** - WCAG 2.1 AA compliant, screen reader support
-- 🔌 **Headless Architecture** - WPGraphQL API + React frontend
+### Front page experience
+- 🕳️ **Black hole hero** — WebGL accretion-disk shader with occlusion
+  compositing and GPU spark particles (`assets/js/blackhole.js`), a beveled
+  SVG wordmark with neon edge tracers, and a 3D logo orbit swarm
+  (`assets/js/logo-orbits.js`)
+- 🛰️ **Property strip** — live preview cards for the three external
+  properties: *Explore the Universe 2175* (Steam game), *Parker's Physics*,
+  and *Telford Landscaping*, with logos, key art, and an ETU teaser video
+  (CDN cascade with bundled fallback art in `assets/img/`)
+- 📰 **Editorial bands** — featured article, rotating deduplicated content
+  pillars, latest posts
+- 🎮 **Steam integration** — hero Steam store widget (auto-fit via
+  `assets/js/steam-fit.js`), header CTA, and UTM-tagged outbound links
+- 🌐 **3D category tag globe** — rotating globe of site categories
+  (`assets/js/tag-globe.js`)
+
+### Site-wide
+- 🌗 **Four visual modes** — Dark Cosmic (default), Light Playful, Science
+  Mode light/dark — plus automatic light/dark switching by local clock with a
+  manual toggle in the header (`assets/js/theme-toggle.js`)
+- ✒️ **Custom icon set** — hand-drawn 24×24 stroke icons with a cyan→violet
+  gradient and soft glow, replacing stock emoji (`inc/icons.php`,
+  `infinity_icon('earth')`)
+- 📧 **Built-in blog subscriptions** — no plugin needed. Subscribers are a
+  private CPT, signups go through a rate-limited REST endpoint with a
+  honeypot, publishing a post emails every active subscriber, and a subscribe
+  band renders in the footer (`inc/subscribe.php`)
+- 🧭 **Navigation options** — sticky header, breadcrumbs, back-to-top button
+  (all toggleable in the Customizer)
+
+### SEO layer (no SEO plugin required)
+- Meta description + Open Graph tags, JSON-LD structured data (WebSite,
+  Article, BreadcrumbList), and canonical URLs for archive views — all of
+  which stand down automatically if Yoast, RankMath, or AIOSEO is active
+- `noindex, follow` on thin views: date/author/search/attachment pages, tag
+  and post-format archives
+- Attachment pages disabled entirely; legacy attachment URLs 301 to the file
+- Slimmed XML sitemap (`inc/seo-cleanup.php`): tag/post-format taxonomies and
+  the users provider removed, utility pages (checkout, account, sign-up, …)
+  excluded and noindexed
+- `X-Robots-Tag: noindex, follow` on all feeds
+- 301 redirects for known duplicate pages
+  (`/subjects/nutrition/ → /nutrition/`, `/subjects/patanjali-2/ → /patanjali/`)
+- robots.txt hygiene: single `Sitemap:` line, stray `Crawl-delay` stripped
+- `tools/audit-links.py` — stdlib Python crawler that checks every sitemap
+  URL and internal link, reporting non-200s with their source pages:
+
+  ```bash
+  python3 tools/audit-links.py https://elliottelford.com --out audit-report
+  ```
+
+### Simulations platform (optional)
+The original headless simulation stack is still here and activates
+progressively:
+- 🎮 **Custom post types** — Simulations, Blueprints, Challenges, with
+  difficulty/category/engine taxonomies and JSON config meta
+- 🔌 **REST API** — `/wp-json/infinity/v1/` endpoints for access checks, run
+  tracking, user stats, blueprint voting and forking
+- 💎 **Subscriptions** — free tier with daily simulation limits, premium via
+  Stripe (keys in the Customizer, webhook handlers in `inc/stripe-api.php`);
+  WooCommerce integration loads automatically if WooCommerce is active
+- 📊 **Analytics dashboard** — simulation sessions, user activity, and
+  admin reporting (`inc/analytics-dashboard.php`)
+- ⚛️ **React frontend** — Vite + React 18 + TypeScript + React Three Fiber
+  app in `frontend/`, with Cannon.js/Ammo.js physics; WPGraphQL extensions
+  load automatically if WPGraphQL is active
 
 ## 📋 Requirements
 
 - **WordPress:** 6.0 or higher
 - **PHP:** 8.0 or higher
-- **Node.js:** 18+ (for building frontend assets)
-- **Plugins (Required):**
-  - WPGraphQL
-  - Advanced Custom Fields Pro
-  - WooCommerce (for subscriptions)
-  - WooCommerce Subscriptions
+- **Plugins:** none required. Optional integrations light up automatically:
+  - **WooCommerce** (+ Subscriptions) — e-commerce subscription flow
+  - **WPGraphQL** — headless GraphQL API for the React frontend
+  - **Yoast / RankMath / AIOSEO** — if present, the theme's canonical,
+    breadcrumb, and JSON-LD output defers to them
+- **Node.js 18+** — only if you build the optional React frontend
 
 ## 🚀 Installation
 
-### 1. Install WordPress Theme
-
 ```bash
-# Clone or download the theme
 git clone https://github.com/etelford32/Infinity_Wordpress_Theme.git
-
-# Move to WordPress themes directory
 mv Infinity_Wordpress_Theme /path/to/wordpress/wp-content/themes/infinity
-
-# Or upload via WordPress admin: Appearance > Themes > Add New > Upload Theme
 ```
 
-### 2. Install Required Plugins
-
-1. Go to **Plugins > Add New**
-2. Install and activate:
-   - WPGraphQL
-   - Advanced Custom Fields Pro
-   - WooCommerce
-   - WooCommerce Subscriptions
-
-### 3. Build Frontend Assets
-
-```bash
-cd /path/to/wordpress/wp-content/themes/infinity/frontend
-
-# Install dependencies
-npm install
-
-# Build for production
-npm run build
-
-# Or run development server
-npm run dev
-```
-
-### 4. Activate Theme
-
-1. Go to **Appearance > Themes**
-2. Activate **Infinity**
-3. The theme will automatically:
-   - Create custom post types (Simulations, Blueprints, Challenges)
-   - Set up user roles (Premium Subscriber)
-   - Create database tables for analytics
-   - Configure WooCommerce subscription products
-
-## ⚙️ Configuration
-
-### Theme Customizer
-
-Go to **Appearance > Customize** to configure:
-
-#### Visual Theme
-- **Dark Cosmic** - Deep space aesthetic with nebula colors
-- **Light Playful** - Bright, friendly UI with pastel accents
-- **Science Mode (Light)** - Professional academic styling, light variant
-- **Science Mode (Dark)** - Professional academic styling, dark variant
-
-#### Subscription Settings
-- **Stripe Publishable Key** - Your Stripe public API key
-- **Premium Monthly Price** - Set subscription price (default: $20/month)
-
-### Menu Setup
-
-1. Go to **Appearance > Menus**
-2. Create menus for:
-   - **Primary Menu** - Main navigation
-   - **Footer Menu** - Footer links
-
-### Widget Areas
-
-- **Sidebar** - Blog and page sidebar
-- **Footer** - Footer widget area
-
-## 📦 Custom Post Types
-
-### Simulations
-
-Main content type for interactive simulations.
-
-**Custom Fields:**
-- `simulation_config` (JSON) - Simulation configuration
-- `physics_engine` (string) - cannon, ammo, or gpu
-- `is_premium` (boolean) - Requires subscription
-- `allow_parameter_control` (boolean) - Users can modify parameters
-- `min_fps` (integer) - Target minimum frame rate
-- `particle_count` (integer) - Number of objects
-- `play_count` (integer) - Times simulation has been run
-- `avg_session_duration` (integer) - Average time spent (seconds)
-
-**Taxonomies:**
-- `simulation_category` - Solar System, Galaxy, Black Hole, etc.
-- `difficulty_level` - Beginner, Intermediate, Advanced
-- `physics_engine` - Cannon.js, Ammo.js, GPU Compute
-
-### Blueprints
-
-User-created simulation configurations.
-
-**Custom Fields:**
-- `blueprint_config` (JSON) - User's configuration
-- `base_simulation_id` (integer) - Source simulation
-- `visibility` (string) - public, private, unlisted
-- `vote_count` (integer) - Community upvotes
-- `fork_count` (integer) - Times forked
-- `forked_from` (integer) - Parent blueprint ID
-
-### Challenges
-
-Weekly/monthly simulation challenges.
-
-**Custom Fields:**
-- `challenge_config` (JSON) - Challenge setup
-- `success_criteria` (JSON) - Completion requirements
-- `start_date` / `end_date` (datetime) - Challenge period
-- `completion_count` (integer) - Users who completed
-- `attempt_count` (integer) - Total attempts
-
-## 🔌 REST API Endpoints
-
-Base URL: `/wp-json/infinity/v1/`
-
-### Check Simulation Access
-```
-GET /simulation/{id}/access
-Response: {
-  "can_access": true,
-  "reason": "",
-  "is_premium": false,
-  "is_user_premium": false,
-  "remaining_simulations": 2
-}
-```
-
-### Track Simulation Run
-```
-POST /simulation/{id}/track
-Body: { "duration": 300 }
-Response: {
-  "success": true,
-  "remaining_simulations": 1
-}
-```
-
-### Get User Stats
-```
-GET /user/stats
-Response: {
-  "user_id": 123,
-  "is_premium": true,
-  "blueprints_created": 5,
-  "challenges_completed": 3,
-  "simulations_today": 0,
-  "remaining_today": -1
-}
-```
-
-### Vote on Blueprint
-```
-POST /blueprint/{id}/vote
-Body: { "vote": "up" }
-Response: {
-  "success": true,
-  "vote_count": 42,
-  "user_vote": "up"
-}
-```
-
-### Fork Blueprint
-```
-POST /blueprint/{id}/fork
-Response: {
-  "success": true,
-  "forked_id": 456,
-  "edit_url": "..."
-}
-```
-
-## 🎨 Frontend Development
-
-### Technology Stack
-
-- **React 18+** - UI framework
-- **TypeScript** - Type safety
-- **Three.js + React Three Fiber** - 3D rendering
-- **Next.js / Vite** - Build system
-- **TailwindCSS** - Styling
-- **Zustand / Jotai** - State management
-- **Cannon.js / Ammo.js** - Physics engines
-
-### Project Structure
-
-```
-frontend/
-├── src/
-│   ├── components/       # React components
-│   │   ├── Layout/
-│   │   ├── Simulation/
-│   │   ├── Blueprint/
-│   │   └── UI/
-│   ├── simulations/      # Simulation implementations
-│   │   ├── SolarSystem/
-│   │   ├── Galaxy/
-│   │   └── BlackHole/
-│   ├── lib/             # Utilities
-│   │   ├── physics/
-│   │   ├── api/
-│   │   └── utils/
-│   ├── hooks/           # Custom React hooks
-│   ├── types/           # TypeScript types
-│   └── styles/          # Global styles
-├── public/              # Static assets
-└── package.json
-```
-
-### Development
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Type checking
-npm run type-check
-
-# Linting
-npm run lint
-```
-
-### Creating a New Simulation
-
-1. Create simulation component in `src/simulations/YourSimulation/`
-2. Implement physics using chosen engine
-3. Register in simulation registry
-4. Create WordPress post with matching configuration
-
-Example simulation structure:
-
-```typescript
-// src/simulations/SolarSystem/index.tsx
-import { Canvas } from '@react-three/fiber';
-import { Physics } from '@react-three/cannon';
-
-export const SolarSystem = ({ config }) => {
-  return (
-    <Canvas>
-      <Physics>
-        <Sun />
-        <Planet name="Earth" {...config.earth} />
-        <Planet name="Mars" {...config.mars} />
-      </Physics>
-    </Canvas>
-  );
-};
-```
-
-## 👥 User Roles & Capabilities
-
-### Free User (Subscriber)
-- 2 simulation runs per day
-- View-only parameter controls
-- Read-only forum access
-- View community gallery
-
-### Premium Subscriber ($20/month)
-- Unlimited simulation runs
-- Full parameter control
-- Blueprint creator access
-- Code tutorials & walkthroughs
-- Download simulation configs (JSON)
-- Forum posting & DMs
-- Upload to community gallery
-- Participate in challenges
-
-### Administrator
-- All premium features
-- Manage simulations, blueprints, challenges
-- Moderate user content
-- View analytics dashboard
-- Configure subscription settings
-
-## 🎯 Simulation Configuration Format
-
-Simulations are configured using JSON stored in post meta.
-
-Example configuration:
-
-```json
-{
-  "version": "1.0",
-  "engine": "cannon",
-  "scene": {
-    "background": "space",
-    "cameraPosition": [0, 10, 20]
-  },
-  "bodies": [
-    {
-      "id": "sun",
-      "type": "sphere",
-      "radius": 5,
-      "mass": 1000000,
-      "position": [0, 0, 0],
-      "material": {
-        "color": "#FDB813",
-        "emissive": "#FF9500"
-      }
-    },
-    {
-      "id": "earth",
-      "type": "sphere",
-      "radius": 1,
-      "mass": 100,
-      "position": [15, 0, 0],
-      "velocity": [0, 0, 5],
-      "material": {
-        "texture": "/textures/earth.jpg"
-      }
-    }
-  ],
-  "controls": {
-    "allowMassChange": true,
-    "allowVelocityChange": true,
-    "allowAddRemove": false
-  },
-  "tutorial": {
-    "enabled": true,
-    "steps": [
-      "Use mouse to rotate camera",
-      "Scroll to zoom in/out",
-      "Click planet to see information"
-    ]
-  }
-}
-```
-
-## 📊 Analytics & Tracking
-
-The theme tracks:
-
-- Simulation play counts
-- Average session duration
-- User engagement metrics
-- Subscription conversions
-- Challenge completion rates
-- Blueprint popularity (votes, forks)
-
-Access analytics via WordPress admin or GraphQL API.
-
-## 🔐 Security Best Practices
-
-- All user input is sanitized and validated
-- Nonce verification on form submissions
-- Capability checks for restricted actions
-- Rate limiting on API endpoints
-- CORS configured for headless setup
-- Stripe handles all payment data (PCI compliant)
-
-## 🌐 Deployment
-
-### Frontend (Vercel)
+Or zip the repo and upload via **Appearance → Themes → Add New → Upload
+Theme**, then activate **Infinity**. Activation registers the custom post
+types, user roles, and analytics tables.
+
+The classic theme is fully functional with no build step. To build the
+optional React frontend:
 
 ```bash
 cd frontend
-
-# Connect to Vercel
-vercel
-
-# Set environment variables
-vercel env add WORDPRESS_API_URL
-vercel env add NEXT_PUBLIC_STRIPE_KEY
-
-# Deploy
-vercel --prod
+npm install
+npm run build   # outputs to frontend/dist/, auto-enqueued when present
 ```
 
-### Backend (WP Engine)
+Detailed walkthroughs: [INSTALLATION.md](INSTALLATION.md) (full guide),
+[QUICKSTART.md](QUICKSTART.md) (30-minute path).
 
-1. Push WordPress files to WP Engine Git
-2. Install plugins via WP Engine dashboard
-3. Configure Stripe keys in Customizer
-4. Set up SSL certificate
-5. Configure headless CORS settings
+## ⚙️ Configuration (Appearance → Customize)
 
-### Environment Variables
+| Section | Settings |
+|---|---|
+| Theme Mode | Dark Cosmic / Light Playful / Science light / Science dark |
+| Steam & Properties | Steam store URL + label, ETU site URL, Parker's Physics URL, live-preview embed toggle, ETU band art override, ETU teaser video URL |
+| Stripe | Publishable/secret/webhook keys, monthly & yearly price IDs, premium price |
+| Navigation | Sticky header, breadcrumbs, back-to-top |
+| Front Page | Band content sources (category slugs, counts, rotation) |
+
+Menus: **Primary** (header) and **Footer**. Widget areas: Sidebar and Footer,
+plus property-promo widgets (`inc/property-promos.php`) you can drop anywhere.
+
+## 📁 Structure
+
+```
+Infinity_Wordpress_Theme/
+├── style.css                  # Theme header + all classic CSS (4 visual modes)
+├── functions.php              # Setup, enqueues, CPTs, Customizer, SEO layer
+├── front-page.php             # The cinematic homepage (hero → bands → globe)
+├── header.php / footer.php    # Animated logo, theme toggle, subscribe band
+├── single.php, archive.php, page.php, search.php, 404.php, …
+├── single-{simulation,blueprint,challenge}.php
+├── template-app.php           # Full-screen React app template
+├── inc/
+│   ├── seo-cleanup.php        # Sitemap slimming, noindex rules, 301s
+│   ├── subscribe.php          # Built-in email subscriptions
+│   ├── property-promos.php    # Property cards + widgets
+│   ├── icons.php              # Custom icon set
+│   ├── analytics-dashboard.php
+│   ├── api-endpoints.php      # /wp-json/infinity/v1/*
+│   ├── stripe-api.php         # Checkout sessions + webhooks
+│   ├── subscription-functions.php
+│   ├── simulation-meta.php    # Simulation CPT meta boxes (no ACF needed)
+│   ├── user-roles.php
+│   ├── woocommerce-integration.php  # loaded only if WooCommerce active
+│   └── graphql-extensions.php       # loaded only if WPGraphQL active
+├── assets/
+│   ├── js/                    # blackhole, logo-orbits, tag-globe, theme-toggle,
+│   │                          # property-previews, steam-fit, subscribe, navigation
+│   └── img/                   # bundled key art fallbacks
+├── frontend/                  # Optional Vite + React + R3F simulation app
+└── tools/
+    └── audit-links.py         # Sitemap + internal-link audit crawler
+```
+
+## 🔌 REST API
+
+Base URL: `/wp-json/infinity/v1/`
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/simulation/{id}/access` | GET | Can the current user run this simulation? |
+| `/simulation/{id}/track` | POST | Record a run + duration |
+| `/user/stats` | GET | Premium status, usage, remaining runs |
+| `/blueprint/{id}/vote` | POST | Upvote/downvote a blueprint |
+| `/blueprint/{id}/fork` | POST | Fork a blueprint config |
+
+The subscribe endpoint (`inc/subscribe.php`) accepts public signups with
+honeypot and rate limiting.
+
+## 🌐 Deployment (elliottelford.com)
+
+The live site runs on **WP Engine** behind **Cloudflare** with a minification
+plugin. Deploy flow:
+
+1. Merge to the default branch, deploy the theme to WP Engine.
+2. **Purge all three cache layers** — minification plugin, WP Engine, and
+   Cloudflare. Meta/robots changes are invisible until all three are purged.
+3. Verify with the checks in `tools/audit-links.py` and spot-check curls
+   (tag archives noindexed, feeds carry `X-Robots-Tag`, redirects fire,
+   robots.txt has one `Sitemap:` line).
+
+The React frontend (if used standalone) deploys to Vercel — see
+[INSTALLATION.md](INSTALLATION.md).
+
+## 🛠️ Development
 
 ```bash
-# .env.local (frontend)
-WORDPRESS_API_URL=https://your-site.com/graphql
-NEXT_PUBLIC_STRIPE_KEY=pk_live_...
-NEXT_PUBLIC_SITE_URL=https://your-frontend.vercel.app
+# PHP: lint before committing
+php -l functions.php && for f in inc/*.php; do php -l "$f"; done
+
+# Frontend
+cd frontend
+npm run dev         # hot-reload dev server
+npm run type-check  # TypeScript
+npm run lint        # ESLint
+npm run build       # production build
 ```
-
-## 🛠️ Troubleshooting
-
-### Simulations Not Loading
-
-1. Check browser console for errors
-2. Verify `frontend/dist/` files exist
-3. Rebuild frontend: `npm run build`
-4. Clear WordPress cache
-
-### GraphQL Errors
-
-1. Ensure WPGraphQL plugin is active
-2. Flush permalinks: Settings > Permalinks > Save
-3. Check `/graphql` endpoint is accessible
-
-### Subscription Issues
-
-1. Verify Stripe keys are set
-2. Check WooCommerce Subscriptions is active
-3. Test webhook endpoints
-
-### Performance Issues
-
-1. Enable WordPress object caching
-2. Use CDN for assets
-3. Optimize 3D models (< 10MB)
-4. Reduce particle counts for mobile
 
 ## 📖 Documentation
 
-Full documentation available at:
-- [User Guide](docs/user-guide.md) - For theme users
-- [Developer Guide](docs/developer-guide.md) - For developers
-- [API Reference](docs/api-reference.md) - REST & GraphQL APIs
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
+| File | What it covers |
+|---|---|
+| [QUICKSTART.md](QUICKSTART.md) | Fastest path to a running install |
+| [INSTALLATION.md](INSTALLATION.md) | Full backend + frontend install guide |
+| [STYLING_GUIDE.md](STYLING_GUIDE.md) | Colors, fonts, CSS variables, per-band styling |
+| [CHANGELOG.md](CHANGELOG.md) | Version-by-version history |
+| [PRODUCT_OUTLINE.md](PRODUCT_OUTLINE.md) | Original product vision (historical) |
 
 ## 📝 License
 
-This theme is licensed under the GNU General Public License v2 or later.
+GNU General Public License v2 or later. Use it to make something cool, have
+fun, and share what you've learned with others.
 
 ## 🙏 Credits
 
-- **Three.js** - 3D graphics library
-- **React Three Fiber** - React renderer for Three.js
-- **Cannon.js** - Physics engine
-- **Ammo.js** - Physics engine
-- **WordPress** - CMS platform
-- **WPGraphQL** - GraphQL API
-
-## 🚀 Roadmap
-
-### Version 1.1 (Q2 2026)
-- [ ] VR/AR support (WebXR)
-- [ ] Real-time multiplayer simulations
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics dashboard
-
-### Version 1.2 (Q3 2026)
-- [ ] AI-assisted simulation creation
-- [ ] Educational curriculum integration
-- [ ] LMS plugins (Canvas, Moodle)
-- [ ] Multi-language support
+- **Three.js / React Three Fiber** — 3D rendering
+- **Cannon.js / Ammo.js** — physics engines
+- **WordPress** — CMS platform
+- Built by Elliot Telford with Claude (Anthropic)
 
 ## 💬 Support
 
 - **Issues:** [GitHub Issues](https://github.com/etelford32/Infinity_Wordpress_Theme/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/etelford32/Infinity_Wordpress_Theme/discussions)
-- **Email:** support@example.com
-
----
-
-Made with ❤️ and ☕ by the Infinity team

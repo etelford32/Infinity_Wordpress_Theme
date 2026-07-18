@@ -2,6 +2,10 @@
 
 The fastest path to get Infinity running on elliottelford.com.
 
+> **Note:** Steps 2–4 (React frontend, Stripe, pricing) only apply if you're
+> running the optional simulation platform. For the classic theme — front
+> page, blog, SEO layer, subscriptions — Step 1 is the whole install.
+
 ## Before You Start
 
 Make sure you have:
@@ -11,13 +15,18 @@ Make sure you have:
 
 ## Step 1: WordPress Setup (10 minutes)
 
-### Install Required Plugins
+### Install Optional Plugins
 
-Log into `elliottelford.com/wp-admin` and install these:
+No plugins are required — the theme (blog, front page, SEO layer,
+subscriptions band) works standalone. Install these only if you want the
+simulation subscription platform:
 
 1. **WooCommerce** - Search "WooCommerce" → Install & Activate
-2. **WPGraphQL** - Search "WPGraphQL" → Install & Activate
+2. **WPGraphQL** - Search "WPGraphQL" → Install & Activate (needed for the React frontend)
 3. **Stripe Gateway** - Search "WooCommerce Stripe Gateway" → Install & Activate
+
+The theme detects each of these and lights up the matching integration
+automatically.
 
 ### Upload Theme
 
@@ -27,16 +36,9 @@ Log into `elliottelford.com/wp-admin` and install these:
 # On your computer, in the repo folder:
 cd /path/to/Infinity_Wordpress_Theme
 
-# Create a zip of WordPress files
-zip -r infinity-theme.zip \
-  style.css \
-  functions.php \
-  header.php \
-  footer.php \
-  index.php \
-  single-simulation.php \
-  inc/ \
-  README.md
+# Zip the whole theme (excludes git internals and node_modules)
+zip -r infinity-theme.zip . \
+  -x '.git/*' 'frontend/node_modules/*' 'tools/*'
 ```
 
 Then:
@@ -142,7 +144,7 @@ Edit `frontend/src/components/Subscription/PricingPage.tsx`:
 **Add Your Logo:**
 
 1. Put your logo in `frontend/public/logo.svg`
-2. Edit `frontend/src/components/Layout/Header.tsx`
+2. Edit `frontend/src/components/Layout/Layout.tsx`
 3. Rebuild and redeploy
 
 ## Common Issues
@@ -193,27 +195,29 @@ Infinity_Wordpress_Theme/
 ├── STYLING_GUIDE.md     ← How to customize appearance
 ├── QUICKSTART.md        ← You are here!
 │
-├── frontend/            ← React app
+├── frontend/            ← React app (optional)
 │   ├── src/
 │   │   ├── components/  ← UI components
-│   │   ├── pages/       ← Page components
+│   │   ├── routes.tsx   ← Page routing
 │   │   └── lib/         ← Simulations, API
 │   └── package.json
 │
 └── (WordPress theme files in root)
     ├── style.css        ← Theme CSS & colors
     ├── functions.php    ← WordPress functionality
-    └── inc/             ← Backend features
+    ├── front-page.php   ← Homepage bands
+    ├── assets/js/       ← Hero shader, tag globe, theme toggle, …
+    └── inc/             ← Backend features (SEO, subscribe, promos, …)
 ```
 
 ## Key Files to Customize
 
 For your brand:
-- `style.css` - Colors and theme variables
-- `frontend/src/components/Subscription/PricingPage.tsx` - Pricing
-- `frontend/src/components/Layout/Header.tsx` - Logo/nav
-- `frontend/src/pages/Home.tsx` - Home page
-- `frontend/.env` - Configuration
+- `style.css` - Colors and theme variables (the live site's styling)
+- `front-page.php` - Homepage bands (hero, properties, pillars, tag globe)
+- `frontend/src/components/Subscription/PricingPage.tsx` - Pricing (React app)
+- `frontend/src/components/Layout/Layout.tsx` - Logo/nav (React app)
+- `frontend/.env` - Frontend configuration
 
 ## Help Resources
 
@@ -224,6 +228,7 @@ For your brand:
 
 ---
 
-**Stuck?** Open an issue on GitHub or check the documentation in the `/docs` folder.
+**Stuck?** Open an issue on GitHub or check the other guides in the repo root
+(`README.md`, `INSTALLATION.md`, `STYLING_GUIDE.md`, `CHANGELOG.md`).
 
 **Ready to go?** Start with Step 1 above! 🚀

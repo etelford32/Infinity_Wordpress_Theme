@@ -2,6 +2,13 @@
 
 Quick guide to customize the Infinity theme's appearance to match your personal brand.
 
+> **Scope note:** the classic WordPress theme's styling lives in `style.css`
+> (CSS variables for all four visual modes) and applies to the live site —
+> sections 1, 2, and 8–10 are the ones you want for elliottelford.com.
+> Sections referencing `frontend/src/...` apply only to the optional React
+> simulation app, and some file paths there predate the current `routes.tsx`
+> layout — treat those snippets as patterns, not exact paths.
+
 ## Quick Customization Checklist
 
 - [ ] Choose/create your color theme
@@ -55,7 +62,7 @@ Edit `style.css` in your WordPress theme:
 }
 ```
 
-Then activate it in `frontend/src/context/ThemeContext.tsx`:
+Then activate it in the frontend theme state (see `frontend/src/hooks/`):
 
 ```tsx
 // Set default theme to your custom theme
@@ -175,7 +182,7 @@ Replace `frontend/public/favicon.ico` with your own:
 ### Create a Personal Hero Section
 
 ```tsx
-// frontend/src/pages/Home.tsx
+// home route component (see frontend/src/routes.tsx)
 
 export function Home() {
   return (

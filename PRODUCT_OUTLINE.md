@@ -1,5 +1,11 @@
 # 🌌 Infinity WordPress Theme - Product Outline
 
+> **Historical document.** This is the original product vision from the
+> theme's inception as a distributable simulations platform. The theme has
+> since evolved into the live custom theme for elliottelford.com — see
+> [README.md](README.md) for what it does today and
+> [CHANGELOG.md](CHANGELOG.md) for how it got there. Kept for reference.
+
 ## Vision Statement
 
 **Infinity** is a cutting-edge **distributable WordPress theme** that brings astrophysical simulations to the web through interactive, gamified experiences. By combining Three.js, TypeScript, React, and modern physics engines, we create an immersive platform where students, researchers, hobbyists, and gaming enthusiasts can explore the cosmos, learn through play, and share their discoveries with a global community.
