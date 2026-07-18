@@ -85,6 +85,7 @@ function infinity_handle_subscribe(WP_REST_Request $request) {
     if ($existing) {
         if ('publish' !== $existing->post_status) {
             wp_update_post(array('ID' => $existing->ID, 'post_status' => 'publish'));
+            infinity_send_welcome_email($email); // welcome back
         }
         return new WP_REST_Response(array('ok' => true, 'message' => __('You\'re on the list!', 'infinity')), 200);
     }
@@ -95,7 +96,84 @@ function infinity_handle_subscribe(WP_REST_Request $request) {
         'post_status' => 'publish',
     ));
 
+    infinity_send_welcome_email($email);
+
     return new WP_REST_Response(array('ok' => true, 'message' => __('You\'re on the list — see you at the next article!', 'infinity')), 200);
+}
+
+/**
+ * Welcome email — sent once on signup (and again on resubscribe).
+ * Subject and body are filterable via infinity_welcome_email_subject /
+ * infinity_welcome_email_body.
+ */
+function infinity_send_welcome_email($email) {
+    $site  = get_bloginfo('name');
+    $unsub = add_query_arg(array(
+        'e' => rawurlencode($email),
+        't' => infinity_subscribe_token($email),
+    ), rest_url('infinity/v1/unsubscribe'));
+
+    // Three recent posts as a "start here" list
+    $recent      = get_posts(array('numberposts' => 3, 'post_status' => 'publish'));
+    $recent_html = '';
+    foreach ($recent as $r) {
+        $recent_html .= sprintf(
+            '<li style="margin:0 0 10px;"><a href="%1$s" style="color:#6366f1;text-decoration:none;font-weight:600;">%2$s</a></li>',
+            esc_url(get_permalink($r)),
+            esc_html(get_the_title($r))
+        );
+    }
+
+    $steam_url   = get_option('infinity_steam_url', '');
+    $parkers_url = get_option('infinity_parkers_url', '');
+    $links_html  = '';
+    if ($steam_url) {
+        $links_html .= sprintf(
+            '<li style="margin:0 0 10px;"><a href="%s" style="color:#6366f1;text-decoration:none;">Explore the Universe 2175 — the game, on Steam</a></li>',
+            esc_url($steam_url)
+        );
+    }
+    if ($parkers_url) {
+        $links_html .= sprintf(
+            '<li style="margin:0 0 10px;"><a href="%s" style="color:#6366f1;text-decoration:none;">Parker&#8217;s Physics — interactive physics playground</a></li>',
+            esc_url($parkers_url)
+        );
+    }
+
+    $subject = apply_filters(
+        'infinity_welcome_email_subject',
+        sprintf(__('Welcome aboard — you\'re in orbit around %s', 'infinity'), $site),
+        $email
+    );
+
+    $body = sprintf(
+        '<div style="max-width:560px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#1f2430;">
+            <p style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6366f1;margin:24px 0 6px;">Stay in orbit</p>
+            <h1 style="font-size:26px;margin:0 0 14px;">Welcome aboard 🌌</h1>
+            <p style="font-size:15px;line-height:1.6;color:#444;margin:0 0 14px;">
+                Thanks for subscribing to <strong>%1$s</strong>. Whenever a new article
+                lands — anatomy, space, simulations, and the occasional world-eating
+                fungus — you&#8217;ll get it straight to this inbox. No spam, no schedule
+                pressure, and every email has a one-click unsubscribe.
+            </p>
+            %2$s
+            %3$s
+            <p style="font-size:15px;line-height:1.6;color:#444;margin:18px 0 24px;">
+                See you at the next article,<br>Elliot
+            </p>
+            <p style="font-size:12px;color:#999;border-top:1px solid #eee;padding-top:14px;">
+                You subscribed to updates from %1$s.
+                <a href="%4$s" style="color:#999;">Unsubscribe</a>
+            </p>
+        </div>',
+        esc_html($site),
+        $recent_html ? '<p style="font-size:15px;color:#444;margin:18px 0 8px;"><strong>Start here — recent favorites:</strong></p><ul style="font-size:15px;line-height:1.5;padding-left:20px;margin:0;">' . $recent_html . '</ul>' : '',
+        $links_html ? '<p style="font-size:15px;color:#444;margin:18px 0 8px;"><strong>Elsewhere in this universe:</strong></p><ul style="font-size:15px;line-height:1.5;padding-left:20px;margin:0;">' . $links_html . '</ul>' : '',
+        esc_url($unsub)
+    );
+    $body = apply_filters('infinity_welcome_email_body', $body, $email);
+
+    wp_mail($email, $subject, $body, array('Content-Type: text/html; charset=UTF-8'));
 }
 
 /**
@@ -169,20 +247,24 @@ function infinity_notify_subscribers($new_status, $old_status, $post) {
 add_action('transition_post_status', 'infinity_notify_subscribers', 10, 3);
 
 /**
- * Render the footer subscribe band.
+ * Render the subscribe band. The footer instance carries the
+ * #subscribe anchor so any "Sign up" link can point to /#subscribe
+ * (the band is on every page); the shortcode instance identifies
+ * itself as source "signup-page" in the analytics funnel.
  */
-function infinity_subscribe_band() {
+function infinity_subscribe_band($source = 'footer-band') {
+    $is_footer = ('footer-band' === $source);
     ?>
-    <div class="subscribe-band">
+    <div class="subscribe-band"<?php echo $is_footer ? ' id="subscribe"' : ''; ?> data-source="<?php echo esc_attr($source); ?>">
         <div class="container subscribe-band-inner">
             <div class="subscribe-band-copy">
                 <p class="fp-kicker"><?php esc_html_e('Stay in orbit', 'infinity'); ?></p>
                 <h2 class="subscribe-band-title"><?php esc_html_e('New articles, straight to your inbox', 'infinity'); ?></h2>
                 <p class="subscribe-band-sub"><?php esc_html_e('Anatomy, space, simulations, and the occasional world-eating fungus. No spam, unsubscribe in one click.', 'infinity'); ?></p>
             </div>
-            <form class="subscribe-form" data-endpoint="<?php echo esc_url(rest_url('infinity/v1/subscribe')); ?>">
-                <label class="screen-reader-text" for="subscribe-email"><?php esc_html_e('Email address', 'infinity'); ?></label>
-                <input id="subscribe-email" class="subscribe-input" type="email" name="email" placeholder="<?php esc_attr_e('you@example.com', 'infinity'); ?>" required>
+            <form class="subscribe-form" data-endpoint="<?php echo esc_url(rest_url('infinity/v1/subscribe')); ?>" data-source="<?php echo esc_attr($source); ?>">
+                <label class="screen-reader-text" for="subscribe-email-<?php echo esc_attr($source); ?>"><?php esc_html_e('Email address', 'infinity'); ?></label>
+                <input id="subscribe-email-<?php echo esc_attr($source); ?>" class="subscribe-input" type="email" name="email" placeholder="<?php esc_attr_e('you@example.com', 'infinity'); ?>" required>
                 <input class="subscribe-hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
                 <button class="subscribe-btn" type="submit"><?php esc_html_e('Subscribe', 'infinity'); ?></button>
                 <p class="subscribe-note" role="status" aria-live="polite"></p>
@@ -191,3 +273,14 @@ function infinity_subscribe_band() {
     </div>
     <?php
 }
+
+/**
+ * [infinity_subscribe] — embed the subscribe form in any page or post
+ * (use it on the /sign-up/ page so sign-up links have a real target).
+ */
+function infinity_subscribe_shortcode() {
+    ob_start();
+    infinity_subscribe_band('signup-page');
+    return ob_get_clean();
+}
+add_shortcode('infinity_subscribe', 'infinity_subscribe_shortcode');

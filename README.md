@@ -39,8 +39,16 @@ React frontend for running physics simulations.
   `infinity_icon('earth')`)
 - 📧 **Built-in blog subscriptions** — no plugin needed. Subscribers are a
   private CPT, signups go through a rate-limited REST endpoint with a
-  honeypot, publishing a post emails every active subscriber, and a subscribe
-  band renders in the footer (`inc/subscribe.php`)
+  honeypot, new subscribers get a branded welcome email, publishing a post
+  emails every active subscriber, and the subscribe band renders in the
+  footer (`#subscribe` anchor) or anywhere via the `[infinity_subscribe]`
+  shortcode (`inc/subscribe.php`)
+- 📈 **Site & Speed analytics (RUM)** — anonymous, cookieless real-user
+  monitoring: pageviews, sessions, Core Web Vitals (LCP/CLS/INP/TTFB/FCP),
+  scroll depth, engaged time, exit/drop-off rates per page, referrers,
+  device split, outbound clicks, and a subscribe funnel — all first-party,
+  no external service, with a dashboard under **Analytics → Site & Speed**
+  and 90-day retention (`inc/analytics-rum.php`, `assets/js/rum.js`)
 - 🧭 **Navigation options** — sticky header, breadcrumbs, back-to-top button
   (all toggleable in the Customizer)
 
@@ -140,6 +148,7 @@ Infinity_Wordpress_Theme/
 ├── single-{simulation,blueprint,challenge}.php
 ├── template-app.php           # Full-screen React app template
 ├── inc/
+│   ├── analytics-rum.php      # Site & Speed dashboard + RUM ingest
 │   ├── seo-cleanup.php        # Sitemap slimming, noindex rules, 301s
 │   ├── subscribe.php          # Built-in email subscriptions
 │   ├── property-promos.php    # Property cards + widgets
@@ -154,7 +163,7 @@ Infinity_Wordpress_Theme/
 │   └── graphql-extensions.php       # loaded only if WPGraphQL active
 ├── assets/
 │   ├── js/                    # blackhole, logo-orbits, tag-globe, theme-toggle,
-│   │                          # property-previews, steam-fit, subscribe, navigation
+│   │                          # property-previews, steam-fit, subscribe, rum, navigation
 │   └── img/                   # bundled key art fallbacks
 ├── frontend/                  # Optional Vite + React + R3F simulation app
 └── tools/
@@ -174,7 +183,8 @@ Base URL: `/wp-json/infinity/v1/`
 | `/blueprint/{id}/fork` | POST | Fork a blueprint config |
 
 The subscribe endpoint (`inc/subscribe.php`) accepts public signups with
-honeypot and rate limiting.
+honeypot and rate limiting; `/rum` (`inc/analytics-rum.php`) ingests
+anonymous performance/engagement beacons from `assets/js/rum.js`.
 
 ## 🌐 Deployment (elliottelford.com)
 

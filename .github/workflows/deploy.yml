@@ -1,0 +1,39 @@
+# Auto-deploy the theme to WP Engine on every merge to the default branch.
+#
+# One-time setup (in this order):
+#   1. Generate a deploy key locally:
+#        ssh-keygen -t ed25519 -f wpe_deploy -N "" -C "github-deploy"
+#   2. WP Engine portal -> your profile -> SSH Keys -> add the PUBLIC key
+#      (contents of wpe_deploy.pub).
+#   3. GitHub repo -> Settings -> Secrets and variables -> Actions ->
+#      New repository secret, name WPE_SSHG_KEY_PRIVATE, value = the
+#      PRIVATE key (contents of wpe_deploy).
+#   4. Verify REMOTE_PATH below matches the live theme folder name under
+#      wp-content/themes/ (check via SFTP or Appearance -> Themes).
+#
+# CACHE_CLEAR purges WP Engine's cache after deploy; Cloudflare and the
+# minification plugin still need their own purge for meta/HTML changes.
+
+name: Deploy theme to WP Engine
+
+on:
+  push:
+    branches:
+      - claude/wordpress-threejs-theme-s3PrM # default branch
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to WP Engine
+        uses: wpengine/github-action-wpe-site-deploy@v3
+        with:
+          WPE_SSHG_KEY_PRIVATE: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
+          WPE_ENV: etelford
+          # IMPORTANT: must match the live theme folder name exactly.
+          REMOTE_PATH: "wp-content/themes/infinity/"
+          FLAGS: -azvr --inc-recursive --exclude='.git*' --exclude='node_modules' --exclude='tools'
+          CACHE_CLEAR: TRUE

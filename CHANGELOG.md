@@ -5,6 +5,20 @@ entries are in release order, newest first.
 
 ## Unreleased
 
+- **Site & Speed analytics (RUM)** (`inc/analytics-rum.php`,
+  `assets/js/rum.js`): first-party, anonymous, cookieless real-user
+  monitoring — pageviews, sessions, Core Web Vitals (LCP/CLS/INP/TTFB/FCP),
+  scroll depth, engaged time, per-page exit/drop-off rates, referrers,
+  device split, outbound clicks, subscribe funnel. New admin dashboard at
+  **Analytics → Site & Speed**; 90-day retention, logged-in users excluded
+- **Welcome email** for new (and returning) subscribers — branded HTML with
+  recent-post "start here" links and property links; filterable via
+  `infinity_welcome_email_subject` / `infinity_welcome_email_body`
+- **Sign-up linking**: footer subscribe band now carries the `#subscribe`
+  anchor (link any "Sign up" CTA to `/#subscribe`), new
+  `[infinity_subscribe]` shortcode embeds the form on any page (e.g.
+  `/sign-up/`), subscribe JS handles multiple forms and focuses the email
+  field on arrival via anchor
 - **SEO cleanup** (from the 2026-07-18 Search Console audit): noindex tag and
   post-format archives; remove tag/format taxonomies and the users provider
   from the XML sitemap; noindex utility pages and drop them from the page
