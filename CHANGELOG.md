@@ -3,7 +3,18 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
-## Unreleased
+## 3.1.0
+
+- **Hero light mode restored** (`style.css`, `assets/js/blackhole.js`,
+  `front-page.php`): the front-page black-hole hero was pinned to the dark
+  palette in both modes, so the light/dark toggle appeared to do nothing at
+  the top of the page. Only the tag globe stays deliberately dark now. The
+  hero restages for daylight rather than inverting — the event horizon stays
+  black, the shader re-casts the accretion disk as pigment (`u_light`), the
+  starfield drops out, sparks composite over the page instead of adding
+  light to it, and the wordmark swaps polished chrome for dark metal. The
+  Parker's Physics disk sits on its own dark backdrop art and keeps the
+  night palette in both modes
 
 - **Site & Speed analytics (RUM)** (`inc/analytics-rum.php`,
   `assets/js/rum.js`): first-party, anonymous, cookieless real-user

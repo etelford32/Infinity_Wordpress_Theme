@@ -77,6 +77,17 @@ $infinity_etu_video   = infinity_etu_video_url();
                                     <stop offset="0.72" stop-color="#9aa2d6"/>
                                     <stop offset="1" stop-color="#4a5288"/>
                                 </linearGradient>
+                                <!-- Same brushed metal re-lit for paper: a dark face
+                                     with a bright top bevel instead of a white one, so
+                                     the wordmark still reads as engraved in light mode
+                                     (swapped in by CSS under [data-mode="light"]) -->
+                                <linearGradient id="wm-face-grad-light" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#8f9ac4"/>
+                                    <stop offset="0.26" stop-color="#5b6699"/>
+                                    <stop offset="0.5" stop-color="#39426f"/>
+                                    <stop offset="0.72" stop-color="#232a4d"/>
+                                    <stop offset="1" stop-color="#121732"/>
+                                </linearGradient>
                                 <filter id="wm-blur-huge" x="-20%" y="-40%" width="140%" height="200%">
                                     <feGaussianBlur stdDeviation="11"/>
                                 </filter>

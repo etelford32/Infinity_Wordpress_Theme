@@ -12,7 +12,22 @@
  *
  * ~30fps cap, DPR cap, pauses off-screen, static frame under
  * prefers-reduced-motion, CSS fallback when WebGL is missing.
+ *
+ * With cfg.followTheme the scene tracks the site's light/dark toggle:
+ * u_light crossfades the whole palette from incandescent-on-black to
+ * ink-on-paper — deep ember disk, gold photon ring, no starfield, and
+ * sparks that composite over the page instead of adding light to it.
+ * Instances sitting on their own dark backdrop (Parker's stage) leave
+ * followTheme off and stay in the night palette.
  */
+
+/* The pre-paint boot script in <head> owns data-mode; the toggle keeps
+   it in sync and announces changes on the infinity:theme event. */
+function infinityThemeIsLight() {
+  'use strict';
+  return document.documentElement.getAttribute('data-mode') === 'light';
+}
+
 function infinityBlackhole(canvas, cfg) {
   'use strict';
 
@@ -36,6 +51,7 @@ function infinityBlackhole(canvas, cfg) {
     'uniform vec2 u_center;',
     'uniform float u_zoom;',
     'uniform float u_variant;',
+    'uniform float u_light;', /* 0 = night sky, 1 = ink on paper */
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -107,11 +123,13 @@ function infinityBlackhole(canvas, cfg) {
     '  float nearMask = smoothstep(0.06, -0.06, uv.y);',
     '  float farMask = 1.0 - nearMask;',
     '',
-    '  /* Incandescent color ramp */',
-    '  vec3 hot   = vec3(1.0, 0.98, 0.93);',
-    '  vec3 gold  = vec3(1.0, 0.78, 0.40);',
-    '  vec3 ember = vec3(0.98, 0.42, 0.14);',
-    '  vec3 viol  = vec3(0.55, 0.32, 0.85);',
+    '  /* Incandescent color ramp. In light mode the same ramp is',
+    '     re-cast as pigment: darker and more saturated, so the disk',
+    '     prints against a pale page instead of washing out. */',
+    '  vec3 hot   = mix(vec3(1.0, 0.98, 0.93), vec3(1.0, 0.86, 0.52), u_light);',
+    '  vec3 gold  = mix(vec3(1.0, 0.78, 0.40), vec3(0.93, 0.52, 0.10), u_light);',
+    '  vec3 ember = mix(vec3(0.98, 0.42, 0.14), vec3(0.68, 0.18, 0.04), u_light);',
+    '  vec3 viol  = mix(vec3(0.55, 0.32, 0.85), vec3(0.26, 0.14, 0.45), u_light);',
     '  vec3 col = mix(hot, gold, smoothstep(0.17, 0.34, rr));',
     '  col = mix(col, ember, smoothstep(0.34, 0.60, rr));',
     '  col = mix(col, viol, smoothstep(0.62, 0.95, rr));',
@@ -139,6 +157,7 @@ function infinityBlackhole(canvas, cfg) {
     '  vec2 cell = floor(gl_FragCoord.xy / 2.0);',
     '  float star = pow(hash(cell), 220.0) * smoothstep(0.45, 0.85, rc);',
     '  star *= 0.55 + 0.45 * sin(u_time * 2.2 + hash(cell + 7.0) * 44.0);',
+    '  star *= 1.0 - u_light; /* white pinpricks have nothing to show on white */',
     '  c += vec3(0.75, 0.82, 1.0) * star * 1.4 * (1.0 - horizon);',
     '  alpha += star * 1.2 * (1.0 - horizon);',
     '',
@@ -150,18 +169,25 @@ function infinityBlackhole(canvas, cfg) {
     '  alpha += horizon * 0.92;',
     '',
     '  /* Photon ring, lensed arc, bloom (outside the silhouette) */',
-    '  c += vec3(1.0, 0.94, 0.82) * photon * 0.9 * (1.0 - horizon);',
-    '  c += mix(vec3(1.0, 0.85, 0.55), vec3(1.0, 0.97, 0.9), 0.5) * arc * 0.75 * (1.0 - horizon);',
-    '  c += vec3(1.0, 0.8, 0.5) * exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.16;',
+    '  c += mix(vec3(1.0, 0.94, 0.82), vec3(1.0, 0.72, 0.18), u_light) * photon * 0.9 * (1.0 - horizon);',
+    '  c += mix(vec3(1.0, 0.91, 0.725), vec3(0.98, 0.60, 0.12), u_light) * arc * 0.75 * (1.0 - horizon);',
+    '  c += mix(vec3(1.0, 0.8, 0.5), vec3(0.95, 0.55, 0.12), u_light) * exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.16;',
     '  alpha += (photon * 0.8 + arc * 0.6) * (1.0 - horizon) + exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.12;',
     '',
     '  /* Near side of the disk: drawn OVER the hole — the depth cue */',
     '  c += col * bright * nearMask;',
     '  alpha += bright * 1.5 * nearMask;',
     '',
-    '  /* Faint warm halo */',
-    '  c += ember * 0.045 * (1.0 - smoothstep(0.0, 0.9, rc));',
-    '  alpha += 0.04 * (1.0 - smoothstep(0.0, 0.9, rc));',
+    '  /* Coverage gain for paper: the canvas composites over a pale',
+    '     section, so the disk needs to be near-opaque to read at all. */',
+    '  alpha *= mix(1.0, 3.0, u_light);',
+    '',
+    '  /* Faint warm halo at night; on paper a soft slate shade so the',
+    '     scene sits in the page rather than floating on it. Added after',
+    '     the gain — tripled, it would smear a grey blob over the hero. */',
+    '  float halo = 1.0 - smoothstep(0.0, mix(0.9, 0.6, u_light), rc);',
+    '  c += mix(ember * 0.045, vec3(0.30, 0.34, 0.50) * 0.05, u_light) * halo;',
+    '  alpha += mix(0.04, 0.13, u_light) * halo;',
     '',
     '  gl_FragColor = vec4(c, clamp(alpha, 0.0, 1.0));',
     '}'
@@ -225,6 +251,7 @@ function infinityBlackhole(canvas, cfg) {
 
   var PART_FRAG = [
     'precision mediump float;',
+    'uniform float u_light;',
     'varying float v_heat;',
     'varying float v_fade;',
     '',
@@ -232,10 +259,13 @@ function infinityBlackhole(canvas, cfg) {
     '  float d = length(gl_PointCoord - 0.5);',
     '  float a = smoothstep(0.5, 0.0, d);',
     '  a *= a * v_fade;',
-    '  vec3 cool = vec3(1.0, 0.58, 0.24);',
-    '  vec3 hotc = vec3(1.0, 0.97, 0.9);',
+    '  vec3 cool = mix(vec3(1.0, 0.58, 0.24), vec3(0.72, 0.24, 0.04), u_light);',
+    '  vec3 hotc = mix(vec3(1.0, 0.97, 0.9), vec3(0.95, 0.62, 0.12), u_light);',
     '  vec3 col = mix(cool, hotc, v_heat);',
-    '  gl_FragColor = vec4(col * a, a * 0.9);',
+    '  /* Night: premultiplied, drawn additively. Paper: straight color',
+    '     under source-over, so a spark darkens the page instead of',
+    '     brightening it (adding light to white does nothing). */',
+    '  gl_FragColor = vec4(mix(col * a, col, u_light), a * mix(0.9, 1.0, u_light));',
     '}'
   ].join('\n');
 
@@ -279,6 +309,7 @@ function infinityBlackhole(canvas, cfg) {
   var dCenter = gl.getUniformLocation(diskProg, 'u_center');
   var dZoom = gl.getUniformLocation(diskProg, 'u_zoom');
   var dVariant = gl.getUniformLocation(diskProg, 'u_variant');
+  var dLight = gl.getUniformLocation(diskProg, 'u_light');
 
   /* Particles: each has a head + tail segments along its orbit */
   var PART_N = cfg.particles.n;
@@ -300,6 +331,7 @@ function infinityBlackhole(canvas, cfg) {
   var pTime = partProg ? gl.getUniformLocation(partProg, 'u_time') : null;
   var pCenter = partProg ? gl.getUniformLocation(partProg, 'u_center') : null;
   var pZoom = partProg ? gl.getUniformLocation(partProg, 'u_zoom') : null;
+  var pLight = partProg ? gl.getUniformLocation(partProg, 'u_light') : null;
 
   gl.enable(gl.BLEND);
 
@@ -317,6 +349,12 @@ function infinityBlackhole(canvas, cfg) {
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var visible = true;
   var raf = null;
+
+  /* Palette crossfade: 0 = night, 1 = paper. Instances that do not
+     follow the theme are pinned to night for the life of the page. */
+  var follow = !!cfg.followTheme;
+  var lightTarget = (follow && infinityThemeIsLight()) ? 1 : 0;
+  var lightCur = lightTarget;
   var start = performance.now();
   var last = 0;
   var FRAME_MS = 33;
@@ -329,6 +367,13 @@ function infinityBlackhole(canvas, cfg) {
     }
     last = now || 0;
     resize();
+
+    /* Ease toward the new palette; snap once it is close enough that
+       the remaining difference cannot be seen, so the loop can stop. */
+    lightCur += (lightTarget - lightCur) * 0.18;
+    if (Math.abs(lightTarget - lightCur) < 0.004) {
+      lightCur = lightTarget;
+    }
 
     var t = (performance.now() - start) / 1000;
     var c = cfg.center(canvas.clientWidth);
@@ -349,11 +394,12 @@ function infinityBlackhole(canvas, cfg) {
     gl.uniform2f(dCenter, cx, cy);
     gl.uniform1f(dZoom, cfg.zoom);
     gl.uniform1f(dVariant, cfg.variant);
+    gl.uniform1f(dLight, lightCur);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
-    /* Particle pass: additive sparks */
+    /* Particle pass: sparks add light at night, ink on paper */
     if (partProg) {
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+      gl.blendFunc(gl.SRC_ALPHA, lightCur > 0.5 ? gl.ONE_MINUS_SRC_ALPHA : gl.ONE);
       gl.useProgram(partProg);
       gl.bindBuffer(gl.ARRAY_BUFFER, partBuf);
       gl.enableVertexAttribArray(partSeed);
@@ -362,10 +408,11 @@ function infinityBlackhole(canvas, cfg) {
       gl.uniform1f(pTime, t);
       gl.uniform2f(pCenter, cx, cy);
       gl.uniform1f(pZoom, cfg.zoom);
+      gl.uniform1f(pLight, lightCur);
       gl.drawArrays(gl.POINTS, 0, PART_COUNT);
     }
 
-    if (!reduced && visible) {
+    if ((!reduced && visible) || lightCur !== lightTarget) {
       raf = requestAnimationFrame(frame);
     }
   }
@@ -383,6 +430,20 @@ function infinityBlackhole(canvas, cfg) {
     if (reduced && !raf) raf = requestAnimationFrame(frame);
   });
 
+  if (follow) {
+    window.addEventListener('infinity:theme', function () {
+      lightTarget = infinityThemeIsLight() ? 1 : 0;
+      /* No crossfade to ride when motion is reduced: land on the new
+         palette and let the next frame paint it once. */
+      if (reduced) {
+        lightCur = lightTarget;
+      }
+      if (!raf) {
+        raf = requestAnimationFrame(frame);
+      }
+    });
+  }
+
   raf = requestAnimationFrame(frame);
 }
 
@@ -393,12 +454,15 @@ function infinityBlackhole(canvas, cfg) {
     infinityBlackhole(hero, {
       zoom: 1.55,
       variant: 0,
+      followTheme: true,
       particles: { n: 90, tail: 8 },
       center: function (w) { return [w > 900 ? 0.195 : 0.5, 0.42]; }
     });
   }
 
-  /* Parker's band: centered binary-palette disk behind the logo */
+  /* Parker's band: centered binary-palette disk behind the logo. It is
+     screened over its own dark backdrop art, not the page, so it keeps
+     the night palette in both modes. */
   var pp = document.getElementById('pp-blackhole');
   if (pp) {
     infinityBlackhole(pp, {
