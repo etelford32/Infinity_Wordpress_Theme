@@ -18,7 +18,9 @@ React frontend for running physics simulations.
 - 🕳️ **Black hole hero** — WebGL accretion-disk shader with occlusion
   compositing and GPU spark particles (`assets/js/blackhole.js`), a beveled
   SVG wordmark with neon edge tracers, and a 3D logo orbit swarm
-  (`assets/js/logo-orbits.js`)
+  (`assets/js/logo-orbits.js`). Follows the light/dark toggle, and answers
+  the pointer: hovering stirs the disc, clicking triggers a feeding event
+  that fires relativistic jets from both poles
 - 🛰️ **Property strip** — live preview cards for the three external
   properties: *Explore the Universe 2175* (Steam game), *Parker's Physics*,
   and *Telford Landscaping*, with logos, key art, and an ETU teaser video

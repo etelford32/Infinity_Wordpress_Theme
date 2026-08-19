@@ -19,6 +19,17 @@
  * sparks that composite over the page instead of adding light to it.
  * Instances sitting on their own dark backdrop (Parker's stage) leave
  * followTheme off and stay in the night palette.
+ *
+ * With cfg.interactive the scene answers the pointer. Hovering stirs
+ * the plasma — finer turbulence, a thicker disk, harder doppler
+ * beaming and faster differential rotation, ramping with proximity to
+ * the hole. Clicking anywhere in the section triggers a feeding event:
+ * the disk flares white-hot, most of the swarm drops onto inspiral
+ * orbits, a shock ring runs outward and relativistic jets fire from
+ * both poles, all decaying over ~4s. Rotation runs off u_spin, an
+ * accumulated clock, so those rate changes never teleport the phase.
+ * Interaction is skipped under prefers-reduced-motion, where the scene
+ * is a single static frame.
  */
 
 /* The pre-paint boot script in <head> owns data-mode; the toggle keeps
@@ -52,6 +63,9 @@ function infinityBlackhole(canvas, cfg) {
     'uniform float u_zoom;',
     'uniform float u_variant;',
     'uniform float u_light;', /* 0 = night sky, 1 = ink on paper */
+    'uniform float u_spin;',  /* warped rotation clock, not wall time */
+    'uniform float u_hover;', /* 0..1 pointer proximity to the hole */
+    'uniform float u_feed;',  /* 1 on a feeding event, decaying to 0 */
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -76,35 +90,70 @@ function infinityBlackhole(canvas, cfg) {
     '  return v;',
     '}',
     '',
+    '/* Relativistic jets. One beam per pole, mirrored through the disk',
+    '   plane: a narrow throat opening into a cone, internal shocks',
+    '   riding outward, and a slow helical wobble from the twisted',
+    '   field lines. Returns emission, not color. */',
+    'float jetBeam(vec2 uv, float spin, float feed, float wide) {',
+    '  float along = abs(uv.y);',
+    '  float wob = 0.02 * sin(along * 9.0 - spin * 2.6) * smoothstep(0.12, 0.8, along);',
+    '  float across = abs(uv.x - wob);',
+    '  float w = (0.011 + 0.016 * along + 0.05 * along * along) * wide;',
+    '  float q = across / w;',
+    '  float core = exp(-q * q);',
+    '  float sheath = exp(-q * q * 0.28) * 0.18;',
+    '  /* clears the horizon before it lights up, and punches further',
+    '     out the harder the hole is feeding */',
+    '  float launch = smoothstep(0.10, 0.26, along);',
+    '  float reach = 1.0 - smoothstep(0.30 + 0.55 * feed, 0.55 + 0.85 * feed, along);',
+    '  /* internal shocks: beads along the beam, not blobs — shallow',
+    '     modulation at a high enough rate to read as structure */',
+    '  float knots = 0.74 + 0.26 * sin(along * 27.0 - spin * 5.5);',
+    '  return (core * knots + sheath) * launch * reach;',
+    '}',
+    '',
     'void main() {',
     '  vec2 uv = (gl_FragCoord.xy - u_center * u_res) / u_res.y;',
     '  uv *= u_zoom;',
     '  float tilt = -0.10 + 0.03 * sin(u_time * 0.09);',
     '  uv = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * uv;',
     '',
-    '  /* Disk plane: strong inclination, breathing slightly */',
-    '  vec2 p = vec2(uv.x, uv.y * (3.4 + 0.35 * sin(u_time * 0.07)));',
+    '  /* Disk plane: strong inclination, breathing slightly. Stirring',
+    '     it puffs the disk up — a smaller squash is a thicker disk. */',
+    '  vec2 p = vec2(uv.x, uv.y * (3.4 - 0.5 * u_hover - 0.55 * u_feed + 0.35 * sin(u_time * 0.07)));',
     '  float r = length(p);',
     '  float ang = atan(p.y, p.x);',
     '',
     '  float rc = length(uv * vec2(1.0, 1.12));',
     '  float rr = r - 0.05 / max(r, 0.06);',
     '',
-    '  /* Differential rotation */',
-    '  float swirl = ang - u_time * 0.55 - 1.4 / (0.25 + rr * rr);',
+    '  /* Differential rotation. Driven by u_spin, an accumulated clock',
+    '     the JS warps on hover — scaling wall time here instead would',
+    '     teleport the phase every time the rate changed. */',
+    '  float swirl = ang - u_spin * 0.55 - 1.4 / (0.25 + rr * rr);',
     '',
     '  /* Seam-free filaments: blend across the atan wrap at +-PI */',
     '  float wSeam = smoothstep(2.4, 3.14159, abs(ang)) * 0.5;',
-    '  float sA = fbm(vec2(swirl * 2.3, rr * 10.0 - u_time * 0.1));',
-    '  float sB = fbm(vec2((swirl - sign(ang) * 6.2831853) * 2.3, rr * 10.0 - u_time * 0.1));',
+    '  float sA = fbm(vec2(swirl * 2.3, rr * 10.0 - u_spin * 0.1));',
+    '  float sB = fbm(vec2((swirl - sign(ang) * 6.2831853) * 2.3, rr * 10.0 - u_spin * 0.1));',
     '  float streaks = pow(mix(sA, sB, wSeam), 1.6);',
+    '',
+    '  /* Hover churns the plasma: a finer turbulence layer rides on the',
+    '     filaments and the contrast between them sharpens. One noise()',
+    '     rather than a fourth fbm, and behind a uniform branch, so an',
+    '     untouched hero costs exactly what it did before. */',
+    '  if (u_hover > 0.002) {',
+    '    float fine = noise(vec2(swirl * 7.5, rr * 26.0 - u_spin * 0.7));',
+    '    streaks = mix(streaks, streaks * (0.5 + 1.05 * fine), u_hover * 0.9);',
+    '  }',
     '',
     '  /* Radial profile */',
     '  float disk = smoothstep(0.155, 0.26, rr) * (1.0 - smoothstep(0.5, 0.95, rr));',
     '',
-    '  /* Doppler beaming */',
-    '  float doppler = 1.0 + 0.55 * (-uv.x / max(r, 0.001));',
+    '  /* Doppler beaming, harder when the disk is spun up */',
+    '  float doppler = 1.0 + (0.55 + 0.3 * u_hover) * (-uv.x / max(r, 0.001));',
     '  float bright = disk * (0.24 + 1.3 * streaks) * doppler;',
+    '  bright *= 1.0 + 0.5 * u_hover + 0.85 * u_feed;',
     '',
     '  /* 3D shading: lit from above, near (lower) side in shadow */',
     '  float vshade = 0.78 + 0.5 * smoothstep(-0.3, 0.35, uv.y);',
@@ -112,9 +161,9 @@ function infinityBlackhole(canvas, cfg) {
     '  bright *= 1.0 + 0.35 * u_variant;',
     '',
     '  /* Photon ring + lensed far-side arc (soft lower boundary) */',
-    '  float photon = exp(-pow((rc - 0.148) * 95.0, 2.0));',
+    '  float photon = exp(-pow((rc - 0.148) * 95.0, 2.0)) * (1.0 + 1.4 * u_feed);',
     '  float arc = exp(-pow((rc - 0.185) * 34.0, 2.0)) * smoothstep(-0.3, 0.55, uv.y / max(rc, 0.001));',
-    '  arc *= 0.55 + 0.45 * fbm(vec2(atan(uv.y, uv.x) * 2.5 - u_time * 0.35, rc * 18.0));',
+    '  arc *= 0.55 + 0.45 * fbm(vec2(atan(uv.y, uv.x) * 2.5 - u_spin * 0.35, rc * 18.0));',
     '',
     '  /* Event horizon silhouette */',
     '  float horizon = 1.0 - smoothstep(0.118, 0.138, rc);',
@@ -145,9 +194,12 @@ function infinityBlackhole(canvas, cfg) {
     '    col = mix(col, col * vec3(1.6, 0.7, 0.3), clamp(-dop, 0.0, 1.0) * 0.45);',
     '  }',
     '',
+    '  /* Feeding drives the whole ramp toward the white-hot end */',
+    '  col = mix(col, hot, u_feed * 0.28);',
+    '',
     '  /* Hot inner rim facing the viewer on the near side */',
     '  float rim = smoothstep(0.30, 0.17, rr) * smoothstep(0.14, 0.20, rr) * nearMask * disk;',
-    '  col += hot * rim * 0.6;',
+    '  col += hot * rim * (0.6 + 0.6 * u_feed);',
     '',
     '  /* ---- composite back-to-front ---- */',
     '  vec3 c = vec3(0.0);',
@@ -173,6 +225,26 @@ function infinityBlackhole(canvas, cfg) {
     '  c += mix(vec3(1.0, 0.91, 0.725), vec3(0.98, 0.60, 0.12), u_light) * arc * 0.75 * (1.0 - horizon);',
     '  c += mix(vec3(1.0, 0.8, 0.5), vec3(0.95, 0.55, 0.12), u_light) * exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.16;',
     '  alpha += (photon * 0.8 + arc * 0.6) * (1.0 - horizon) + exp(-pow((rc - 0.148) * 13.0, 2.0)) * 0.12;',
+    '',
+    '  /* Jets and shock ring, drawn after the horizon so they emerge',
+    '     from behind it and the near disk still crosses in front. The',
+    '     branch is on a uniform, so every fragment takes it together',
+    '     and idle frames never pay for the jet math. */',
+    '  if (u_feed > 0.002) {',
+    '    float jet = jetBeam(uv, u_spin, u_feed, mix(1.0, 1.5, u_light)) * u_feed;',
+    '    c += mix(vec3(0.62, 0.82, 1.0), vec3(0.16, 0.28, 0.76), u_light) * jet * 1.15 * (1.0 - horizon);',
+    '    /* pre-divided by the paper coverage gain below, which would',
+    '       otherwise paint the beams on as flat opaque columns */',
+    '    alpha += jet * mix(1.0, 0.5, u_light) * 1.05 * (1.0 - horizon);',
+    '',
+    '    /* The event throws a shock outward. Radius tracks the decay of',
+    '       u_feed, so it leaves the horizon, slows and fades — and a',
+    '       fresh click restarts it from the hole. */',
+    '    float sr = 0.16 + (1.0 - u_feed) * 0.85;',
+    '    float shock = exp(-pow((rc - sr) * mix(7.0, 20.0, u_feed), 2.0)) * pow(u_feed, 0.55);',
+    '    c += mix(vec3(1.0, 0.86, 0.62), vec3(0.95, 0.55, 0.10), u_light) * shock * 1.2;',
+    '    alpha += shock * mix(1.0, 0.55, u_light) * 0.9;',
+    '  }',
     '',
     '  /* Near side of the disk: drawn OVER the hole — the depth cue */',
     '  c += col * bright * nearMask;',
@@ -202,6 +274,8 @@ function infinityBlackhole(canvas, cfg) {
     'uniform float u_time;',
     'uniform vec2 u_center;',
     'uniform float u_zoom;',
+    'uniform float u_spin;',
+    'uniform float u_feed;',
     'varying float v_heat;',
     'varying float v_fade;',
     '',
@@ -215,12 +289,14 @@ function infinityBlackhole(canvas, cfg) {
     '  float peri  = seed * 6.2831853;',
     '  float n     = 0.5 / pow(aAxis, 1.5); /* mean motion: inner = faster */',
     '',
-    '  /* A fifth of the swarm is on doomed inspiral orbits */',
-    '  float doomed = step(0.8, fract(seed * 0.293));',
-    '  float cycle = fract(u_time * 0.05 / aAxis + fract(seed * 3.137));',
+    '  /* A fifth of the swarm is on doomed inspiral orbits — most of it',
+    '     once the hole starts feeding */',
+    '  float doomed = step(0.8 - 0.5 * u_feed, fract(seed * 0.293));',
+    '  float cycle = fract(u_spin * 0.05 / aAxis + fract(seed * 3.137));',
     '',
-    '  /* Tail: sample the SAME orbit at earlier phase */',
-    '  float theta = peri + u_time * n - seg * 0.085;',
+    '  /* Tail: sample the SAME orbit at earlier phase. On the warped',
+    '     clock, so the swarm speeds up with the disk. */',
+    '  float theta = peri + u_spin * n - seg * 0.085;',
     '',
     '  /* Conic section radius; inspiral shrinks the whole orbit */',
     '  float shrink = mix(1.0, mix(1.0, 0.16 / aAxis, pow(cycle, 1.6)), doomed);',
@@ -238,14 +314,14 @@ function infinityBlackhole(canvas, cfg) {
     '  gl_Position = vec4(clip, 0.0, 1.0);',
     '',
     '  /* Heat rises as radius falls; head hotter than tail */',
-    '  v_heat = clamp(0.22 / r - 0.15, 0.0, 1.0) * (1.0 - seg * 0.08);',
+    '  v_heat = clamp((0.22 + 0.12 * u_feed) / r - 0.15, 0.0, 1.0) * (1.0 - seg * 0.08);',
     '',
     '  /* Tail fades along its length; doomed ones flare then vanish */',
     '  float tailFade = 1.0 - seg / 8.0;',
     '  float doomFade = mix(1.0, sin(cycle * 3.14159), doomed);',
     '  v_fade = tailFade * tailFade * doomFade;',
     '',
-    '  gl_PointSize = max(u_res.y * (0.011 - seg * 0.0011), 1.0);',
+    '  gl_PointSize = max(u_res.y * (0.011 + 0.004 * u_feed - seg * 0.0011), 1.0);',
     '}'
   ].join('\n');
 
@@ -310,6 +386,9 @@ function infinityBlackhole(canvas, cfg) {
   var dZoom = gl.getUniformLocation(diskProg, 'u_zoom');
   var dVariant = gl.getUniformLocation(diskProg, 'u_variant');
   var dLight = gl.getUniformLocation(diskProg, 'u_light');
+  var dSpin = gl.getUniformLocation(diskProg, 'u_spin');
+  var dHover = gl.getUniformLocation(diskProg, 'u_hover');
+  var dFeed = gl.getUniformLocation(diskProg, 'u_feed');
 
   /* Particles: each has a head + tail segments along its orbit */
   var PART_N = cfg.particles.n;
@@ -332,6 +411,8 @@ function infinityBlackhole(canvas, cfg) {
   var pCenter = partProg ? gl.getUniformLocation(partProg, 'u_center') : null;
   var pZoom = partProg ? gl.getUniformLocation(partProg, 'u_zoom') : null;
   var pLight = partProg ? gl.getUniformLocation(partProg, 'u_light') : null;
+  var pSpin = partProg ? gl.getUniformLocation(partProg, 'u_spin') : null;
+  var pFeed = partProg ? gl.getUniformLocation(partProg, 'u_feed') : null;
 
   gl.enable(gl.BLEND);
 
@@ -355,6 +436,22 @@ function infinityBlackhole(canvas, cfg) {
   var follow = !!cfg.followTheme;
   var lightTarget = (follow && infinityThemeIsLight()) ? 1 : 0;
   var lightCur = lightTarget;
+
+  /* Interaction. hoverCur eases toward pointer proximity; feedCur
+     spikes to 1 on a click and decays. spin is an accumulated rotation
+     clock — scaling wall time instead would teleport the disk's phase
+     every time the rate changed. */
+  var interactive = !!cfg.interactive && !reduced;
+  var hoverTarget = 0;
+  var hoverCur = 0;
+  var feedCur = 0;
+  var spin = 0;
+  var prevT = 0;
+
+  function settling() {
+    return lightCur !== lightTarget || hoverCur !== hoverTarget || feedCur > 0;
+  }
+
   var start = performance.now();
   var last = 0;
   var FRAME_MS = 33;
@@ -368,6 +465,10 @@ function infinityBlackhole(canvas, cfg) {
     last = now || 0;
     resize();
 
+    var t = (performance.now() - start) / 1000;
+    var dt = Math.min(Math.max(t - prevT, 0), 0.1);
+    prevT = t;
+
     /* Ease toward the new palette; snap once it is close enough that
        the remaining difference cannot be seen, so the loop can stop. */
     lightCur += (lightTarget - lightCur) * 0.18;
@@ -375,7 +476,22 @@ function infinityBlackhole(canvas, cfg) {
       lightCur = lightTarget;
     }
 
-    var t = (performance.now() - start) / 1000;
+    /* Hover eases both ways; a feeding event spikes and decays over
+       roughly four seconds, then snaps off so the loop can idle. */
+    hoverCur += (hoverTarget - hoverCur) * Math.min(1, dt * 6.0);
+    if (Math.abs(hoverTarget - hoverCur) < 0.004) {
+      hoverCur = hoverTarget;
+    }
+    if (feedCur > 0) {
+      feedCur *= Math.exp(-dt * 1.15);
+      if (feedCur < 0.004) {
+        feedCur = 0;
+      }
+    }
+
+    /* Stirring spins the disk up; feeding makes it race */
+    spin += dt * (1.0 + 0.9 * hoverCur + 2.4 * feedCur);
+
     var c = cfg.center(canvas.clientWidth);
     var cx = c[0];
     var cy = c[1];
@@ -395,6 +511,9 @@ function infinityBlackhole(canvas, cfg) {
     gl.uniform1f(dZoom, cfg.zoom);
     gl.uniform1f(dVariant, cfg.variant);
     gl.uniform1f(dLight, lightCur);
+    gl.uniform1f(dSpin, spin);
+    gl.uniform1f(dHover, hoverCur);
+    gl.uniform1f(dFeed, feedCur);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     /* Particle pass: sparks add light at night, ink on paper */
@@ -409,10 +528,12 @@ function infinityBlackhole(canvas, cfg) {
       gl.uniform2f(pCenter, cx, cy);
       gl.uniform1f(pZoom, cfg.zoom);
       gl.uniform1f(pLight, lightCur);
+      gl.uniform1f(pSpin, spin);
+      gl.uniform1f(pFeed, feedCur);
       gl.drawArrays(gl.POINTS, 0, PART_COUNT);
     }
 
-    if ((!reduced && visible) || lightCur !== lightTarget) {
+    if ((!reduced && visible) || settling()) {
       raf = requestAnimationFrame(frame);
     }
   }
@@ -444,6 +565,70 @@ function infinityBlackhole(canvas, cfg) {
     });
   }
 
+  /* ---------- pointer: stir the disk, feed the hole ---------- */
+
+  var hostRect = null;
+
+  function dropRect() {
+    hostRect = null;
+  }
+
+  function smooth(a, b, x) {
+    var k = Math.min(1, Math.max(0, (x - a) / (b - a)));
+    return k * k * (3.0 - 2.0 * k);
+  }
+
+  /* Proximity is measured in the shader's own uv units, so the falloff
+     tracks the hole itself rather than the pixel size of the section.
+     The rect is cached because pointermove fires far more often than
+     the layout actually moves. */
+  function onPointerMove(ev) {
+    if (!hostRect) {
+      hostRect = canvas.getBoundingClientRect();
+    }
+    var rc = hostRect;
+    if (!rc.width || !rc.height ||
+        ev.clientX < rc.left || ev.clientX > rc.right ||
+        ev.clientY < rc.top || ev.clientY > rc.bottom) {
+      hoverTarget = 0;
+      return;
+    }
+    /* cfg.center is in the shader's bottom-up normalized space */
+    var ctr = cfg.center(rc.width);
+    var dx = (ev.clientX - (rc.left + ctr[0] * rc.width)) / rc.height * cfg.zoom;
+    var dy = (ev.clientY - (rc.top + (1 - ctr[1]) * rc.height)) / rc.height * cfg.zoom;
+    /* full response over the hole, easing down to a floor across the
+       rest of the section so the disk stays alive to the pointer */
+    hoverTarget = Math.max(0.18, 1 - smooth(0.22, 1.25, Math.sqrt(dx * dx + dy * dy)));
+    if (!raf) {
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
+  function onFeed() {
+    feedCur = 1;
+    if (!raf) {
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
+  function onPointerGone() {
+    hoverTarget = 0;
+  }
+
+  if (interactive) {
+    window.addEventListener('scroll', dropRect, { passive: true });
+    window.addEventListener('resize', dropRect);
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    document.addEventListener('pointerleave', onPointerGone);
+    window.addEventListener('blur', onPointerGone);
+    if (canvas.parentNode) {
+      /* on the section, not the canvas: the canvas is pointer-events:
+         none so the hero's own links keep working untouched */
+      canvas.parentNode.addEventListener('pointerdown', onFeed);
+    }
+  }
+
   raf = requestAnimationFrame(frame);
 }
 
@@ -455,6 +640,7 @@ function infinityBlackhole(canvas, cfg) {
       zoom: 1.55,
       variant: 0,
       followTheme: true,
+      interactive: true,
       particles: { n: 90, tail: 8 },
       center: function (w) { return [w > 900 ? 0.195 : 0.5, 0.42]; }
     });

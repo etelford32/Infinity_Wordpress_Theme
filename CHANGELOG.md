@@ -5,6 +5,17 @@ entries are in release order, newest first.
 
 ## 3.1.0
 
+- **Interactive black hole** (`assets/js/blackhole.js`): the hero scene now
+  answers the pointer. Hovering stirs the plasma — a finer turbulence layer
+  rides the filaments, the disc puffs up, doppler beaming hardens and
+  differential rotation spins up, all ramping with proximity to the hole.
+  Clicking anywhere in the hero triggers a feeding event: the disc flares,
+  most of the spark swarm drops onto inspiral orbits, a shock ring runs
+  outward and collimated relativistic jets fire from both poles, decaying
+  over ~4s. Rotation runs off an accumulated `u_spin` clock so rate changes
+  never teleport the disc's phase; the hover and jet passes sit behind
+  uniform branches so an untouched hero costs what it always did.
+  Interaction is skipped under `prefers-reduced-motion`
 - **Hero light mode restored** (`style.css`, `assets/js/blackhole.js`,
   `front-page.php`): the front-page black-hole hero was pinned to the dark
   palette in both modes, so the light/dark toggle appeared to do nothing at
