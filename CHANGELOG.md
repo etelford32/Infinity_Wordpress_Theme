@@ -3,6 +3,26 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## Unreleased
+
+- **Deploy pipeline gated and verified** (`.github/workflows/deploy.yml`):
+  the WP Engine deploy is now three stages — validate, deploy, verify. Nothing
+  reaches the server until the tree parses: `php -l` over every PHP file,
+  `node --check` over every script, a brace-balance check on `style.css`, and
+  a check that `Version:` and `INFINITY_VERSION` agree, since rsync will
+  happily ship a parse error and a parse error on a live WordPress install is
+  a white screen for every visitor. Changing an asset without bumping the
+  version now warns, because assets are enqueued with `?ver=` and returning
+  visitors would otherwise keep their cached copies. After deploying, the
+  homepage is polled until it actually serves the new version, so a deploy
+  that quietly changed nothing can no longer report success. A failed run
+  writes a summary naming the fix — the two runs before this both died on
+  `Permission denied (publickey)` and said nothing about why. Also adds an
+  optional Cloudflare purge when its secrets are present, a `wpe-deploy`
+  concurrency group so two deploys can never overlap on the live theme
+  directory, an install-name input for `workflow_dispatch`, and
+  `actions/checkout@v5` to clear the Node 20 deprecation
+
 ## 3.1.0
 
 - **Mobile and touch pass** (`style.css`, `assets/js/blackhole.js`): four

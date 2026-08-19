@@ -1,18 +1,40 @@
-# Auto-deploy the theme to WP Engine on every merge to the default branch.
+# Deploy the theme to WP Engine on every merge to the default branch.
 #
+# Three stages, in order, each gating the next:
+#
+#   validate  syntax and version checks. A PHP parse error rsynced onto a
+#             live WordPress install is a white screen for every visitor,
+#             and rsync will happily ship one — so nothing reaches the
+#             server until the tree parses.
+#   deploy    rsync over SSH, then purge WP Engine's cache.
+#   verify    fetch the live site and prove the new version is actually
+#             being served, so a deploy that quietly changed nothing
+#             cannot report success.
+#
+# ---------------------------------------------------------------------
 # One-time setup (in this order):
-#   1. Generate a deploy key locally:
+#   1. Generate a deploy key:
 #        ssh-keygen -t ed25519 -f wpe_deploy -N "" -C "github-deploy"
 #   2. WP Engine portal -> your profile -> SSH Keys -> add the PUBLIC key
-#      (contents of wpe_deploy.pub).
+#      (contents of wpe_deploy.pub). Keys take a few minutes to
+#      propagate to the servers.
 #   3. GitHub repo -> Settings -> Secrets and variables -> Actions ->
 #      New repository secret, name WPE_SSHG_KEY_PRIVATE, value = the
-#      PRIVATE key (contents of wpe_deploy).
-#   4. Verify REMOTE_PATH below matches the live theme folder name under
-#      wp-content/themes/ (check via SFTP or Appearance -> Themes).
+#      PRIVATE key (contents of wpe_deploy, including the BEGIN/END
+#      lines).
+#   4. Confirm REMOTE_PATH below matches the live theme folder name
+#      under wp-content/themes/ (check via SFTP or Appearance -> Themes).
 #
-# CACHE_CLEAR purges WP Engine's cache after deploy; Cloudflare and the
-# minification plugin still need their own purge for meta/HTML changes.
+# If step 2 is skipped or the keys do not match, every run fails with
+# "Permission denied (publickey)" — the key is offered and refused. The
+# fingerprint in the run log tells you which key was offered.
+#
+# Optional secrets:
+#   CLOUDFLARE_API_TOKEN + CLOUDFLARE_ZONE_ID
+#     Purges Cloudflare after deploy. Assets are versioned by
+#     INFINITY_VERSION so they cache-bust on their own; this is for the
+#     HTML, which is not versioned and which Cloudflare may be holding.
+# ---------------------------------------------------------------------
 
 name: Deploy theme to WP Engine
 
@@ -20,20 +42,210 @@ on:
   push:
     branches:
       - claude/wordpress-threejs-theme-s3PrM # default branch
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "WP Engine install name to deploy to"
+        required: false
+        default: etelford
+        type: string
+
+# One deploy at a time, and never cancel one midway: a half-finished
+# rsync over a live theme directory is the worst possible outcome.
+concurrency:
+  group: wpe-deploy
+  cancel-in-progress: false
+
+env:
+  REMOTE_PATH: "wp-content/themes/infinity/"
+  SITE_URL: "https://elliottelford.com"
 
 jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # HEAD^ is needed to see what this deploy actually changes
+          fetch-depth: 2
+
+      - name: Lint PHP
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r f; do
+            if ! out=$(php -l "$f" 2>&1); then
+              echo "::error file=$f::$out"
+              fail=1
+            fi
+          done < <(find . -name '*.php' -not -path './frontend/*' -not -path './.git/*')
+          [ "$fail" -eq 0 ] || { echo "PHP did not parse — refusing to deploy"; exit 1; }
+          echo "PHP OK"
+
+      - name: Check JavaScript syntax
+        run: |
+          set -euo pipefail
+          fail=0
+          for f in assets/js/*.js; do
+            if ! out=$(node --check "$f" 2>&1); then
+              echo "::error file=$f::$out"
+              fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] || exit 1
+          echo "JS OK"
+
+      - name: Check stylesheet is balanced
+        run: |
+          set -euo pipefail
+          open=$(tr -cd '{' < style.css | wc -c)
+          close=$(tr -cd '}' < style.css | wc -c)
+          if [ "$open" -ne "$close" ]; then
+            echo "::error file=style.css::Unbalanced braces: $open '{' vs $close '}'"
+            exit 1
+          fi
+          echo "CSS OK ($open blocks)"
+
+      - name: Check the theme version
+        id: version
+        run: |
+          set -euo pipefail
+          css=$(sed -n 's/^Version:[[:space:]]*//p' style.css | head -1 | tr -d '[:space:]')
+          php=$(sed -n "s/.*define('INFINITY_VERSION',[[:space:]]*'\([^']*\)').*/\1/p" functions.php | head -1)
+
+          if [ -z "$css" ] || [ -z "$php" ]; then
+            echo "::error::Could not read the version from style.css ($css) or functions.php ($php)"
+            exit 1
+          fi
+
+          # These two drive different things — the theme screen and the
+          # asset query strings — and a mismatch means one of them is
+          # lying about what is deployed.
+          if [ "$css" != "$php" ]; then
+            echo "::error::Version mismatch: style.css says $css, INFINITY_VERSION says $php"
+            exit 1
+          fi
+
+          echo "version=$css" >> "$GITHUB_OUTPUT"
+          echo "Version $css"
+
+      - name: Warn if assets changed without a version bump
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD^ >/dev/null 2>&1 || { echo "No parent commit; skipping"; exit 0; }
+
+          changed=$(git diff --name-only HEAD^ HEAD -- style.css assets/ | wc -l)
+          [ "$changed" -gt 0 ] || { echo "No asset changes in this deploy"; exit 0; }
+
+          now="${{ steps.version.outputs.version }}"
+          was=$(git show HEAD^:style.css 2>/dev/null | sed -n 's/^Version:[[:space:]]*//p' | head -1 | tr -d '[:space:]')
+
+          # Assets are enqueued with ?ver=INFINITY_VERSION, so an
+          # unchanged version means returning visitors keep the copies
+          # they already have and never see this deploy.
+          if [ "$now" = "$was" ]; then
+            echo "::warning::$changed asset file(s) changed but the version is still $now — returning visitors will keep their cached CSS/JS. Bump Version: in style.css and INFINITY_VERSION in functions.php."
+            {
+              echo "### Cache warning"
+              echo ""
+              echo "\`$changed\` asset file(s) changed while the version stayed at \`$now\`."
+              echo "Returning visitors will keep their cached copies."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Version bumped $was -> $now"
+          fi
+
   deploy:
+    name: Deploy
+    needs: validate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      - name: Check the deploy key is present
+        env:
+          KEY: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
+        run: |
+          if [ -z "${KEY:-}" ]; then
+            echo "::error::WPE_SSHG_KEY_PRIVATE is not set. Add the PRIVATE half of the deploy key under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          echo "Deploy key present"
 
       - name: Deploy to WP Engine
         uses: wpengine/github-action-wpe-site-deploy@v3
         with:
           WPE_SSHG_KEY_PRIVATE: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
-          WPE_ENV: etelford
-          # IMPORTANT: must match the live theme folder name exactly.
-          REMOTE_PATH: "wp-content/themes/infinity/"
-          FLAGS: -azvr --inc-recursive --exclude='.git*' --exclude='node_modules' --exclude='tools'
+          WPE_ENV: ${{ inputs.environment || 'etelford' }}
+          REMOTE_PATH: ${{ env.REMOTE_PATH }}
+          FLAGS: -azvr --inc-recursive --exclude='.git*' --exclude='node_modules' --exclude='tools' --exclude='frontend'
           CACHE_CLEAR: TRUE
+
+      - name: Explain a failed deploy
+        if: failure()
+        run: |
+          {
+            echo "### Deploy failed"
+            echo ""
+            echo "If the log ends in \`Permission denied (publickey)\`, the key in"
+            echo "\`WPE_SSHG_KEY_PRIVATE\` was offered and WP Engine refused it — the"
+            echo "matching PUBLIC key is not registered on the account, or is not"
+            echo "attached to this install."
+            echo ""
+            echo "Fix: WP Engine portal → profile → SSH Keys → add the public key"
+            echo "whose fingerprint the log prints. Keys take a few minutes to"
+            echo "propagate; re-run this workflow afterwards."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  verify:
+    name: Verify
+    needs: [validate, deploy]
+    runs-on: ubuntu-latest
+    # Job level, not step level: a step's `if` is evaluated before that
+    # step's own env exists, so a secret declared beside the step it
+    # guards would always read as empty and the step would never run.
+    env:
+      CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+    steps:
+      - name: Confirm the new version is being served
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -uo pipefail
+          # WP Engine's purge is not instant, and Cloudflare may still be
+          # holding the HTML, so give it a few tries before calling it.
+          for attempt in 1 2 3 4 5 6; do
+            code=$(curl -sS -o page.html -w '%{http_code}' -A 'github-actions deploy-verify' "$SITE_URL" || echo 000)
+            if [ "$code" = "200" ] && grep -q "ver=$VERSION" page.html; then
+              echo "Live and serving $VERSION"
+              echo "### Deployed \`$VERSION\` ✅" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "attempt $attempt: HTTP $code, version $VERSION not visible yet"
+            sleep 20
+          done
+
+          {
+            echo "### Deployed, but could not confirm \`$VERSION\` is live"
+            echo ""
+            echo "Last response was HTTP \`$code\`. The files went up — this check"
+            echo "only says the homepage is not yet serving \`?ver=$VERSION\`."
+            echo "Usually that is a cache in front of the site (Cloudflare, or a"
+            echo "minification plugin) still holding the old HTML."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning::Could not confirm $VERSION is live (last HTTP $code)"
+
+      - name: Purge Cloudflare
+        if: env.CF_TOKEN != '' && env.CF_ZONE != ''
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/$CF_ZONE/purge_cache" \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' | tee cf.json
+          grep -q '"success":true' cf.json && echo "Cloudflare purged"
