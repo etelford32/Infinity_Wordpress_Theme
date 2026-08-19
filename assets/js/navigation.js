@@ -16,6 +16,12 @@
     const navigation = document.getElementById('site-navigation');
     const backToTopBtn = document.getElementById('back-to-top');
 
+    // Measured by initStickyHeader; the collapsed height is what anchor
+    // jumps need to clear, because the header is always collapsed by
+    // the time the page has scrolled anywhere.
+    let expandedHeight = 0;
+    let collapsedHeight = 0;
+
     /**
      * Mobile Menu Toggle
      */
@@ -62,7 +68,8 @@
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
-                if (window.innerWidth > 768 && navigation.classList.contains('is-open')) {
+                // matches the drawer breakpoint in style.css section 12.0
+                if (window.innerWidth >= 1024 && navigation.classList.contains('is-open')) {
                     closeMenu();
                 }
             }, 250);
@@ -145,16 +152,86 @@
 
     /**
      * Sticky Header
+     *
+     * Past the first inch of scroll the header collapses (see the
+     * "Collapse on scroll" block in style.css), and sustained downward
+     * scrolling tucks it away entirely until the reader heads back up.
      */
     function initStickyHeader() {
         if (!header || !header.classList.contains('sticky-header')) return;
 
-        let lastScrollTop = 0;
-        let ticking = false;
-        const headerHeight = header.offsetHeight;
+        // Scroll needed before the header compacts, and the travel in
+        // each direction before it tucks away or comes back. Working in
+        // accumulated travel rather than per-frame deltas is what stops
+        // it flickering when a trackpad wobbles.
+        const COLLAPSE_AT = 28;
+        const HIDE_TRAVEL = 90;
+        const SHOW_TRAVEL = 60;
 
-        // Add padding to body to prevent content jump
-        document.body.style.paddingTop = headerHeight + 'px';
+        let lastScrollTop = 0;
+        let travel = 0;
+        let ticking = false;
+
+        function measure() {
+            // The header overlays the page, so the body needs padding
+            // equal to its EXPANDED height — measuring while collapsed
+            // would let the top of the page slide underneath it. Drop
+            // the state classes for the read, with transitions off so
+            // we do not catch a half-finished animation.
+            const wasScrolled = header.classList.contains('is-scrolled');
+            const wasHidden = header.classList.contains('is-hidden');
+
+            header.classList.add('is-measuring');
+            header.classList.remove('is-scrolled', 'is-hidden');
+            expandedHeight = header.offsetHeight;
+
+            // The collapsed height is what anchor jumps have to clear,
+            // since the header is always collapsed once you have
+            // scrolled far enough for an anchor to matter.
+            header.classList.add('is-scrolled');
+            collapsedHeight = header.offsetHeight;
+
+            if (!wasScrolled) {
+                header.classList.remove('is-scrolled');
+            }
+            if (wasHidden) {
+                header.classList.add('is-hidden');
+            }
+            // force a reflow so the restored state is not transitioned
+            void header.offsetHeight;
+            header.classList.remove('is-measuring');
+
+            document.body.style.paddingTop = expandedHeight + 'px';
+        }
+
+        function handleScroll() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const delta = scrollTop - lastScrollTop;
+
+            if (scrollTop > COLLAPSE_AT) {
+                header.classList.add('is-scrolled');
+            } else {
+                header.classList.remove('is-scrolled');
+            }
+
+            // Accumulate travel per direction, resetting on a turn
+            travel = (delta > 0) ? Math.max(0, travel) + delta : Math.min(0, travel) + delta;
+
+            // Never pull the header out from under an open menu, away
+            // from whatever the keyboard is focused on inside it, or
+            // while the reader is still near the top of the page.
+            const pinned = document.body.classList.contains('mobile-menu-open')
+                || header.contains(document.activeElement)
+                || scrollTop <= expandedHeight;
+
+            if (pinned || travel < -SHOW_TRAVEL) {
+                header.classList.remove('is-hidden');
+            } else if (travel > HIDE_TRAVEL) {
+                header.classList.add('is-hidden');
+            }
+
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        }
 
         window.addEventListener('scroll', function() {
             if (!ticking) {
@@ -164,29 +241,25 @@
                 });
                 ticking = true;
             }
+        }, { passive: true });
+
+        // Re-measure whenever the header's own box can change: a resize
+        // can cross the 1024px line where the header goes from one row
+        // to two, and a late webfont changes its height without any
+        // resize event at all.
+        let resizeTimer = null;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(measure, 150);
         });
 
-        function handleScroll() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-            // Add scrolled class when past header height
-            if (scrollTop > headerHeight) {
-                header.classList.add('is-scrolled');
-            } else {
-                header.classList.remove('is-scrolled');
-            }
-
-            // Hide/show header on scroll direction (optional enhancement)
-            if (scrollTop > lastScrollTop && scrollTop > headerHeight * 2) {
-                // Scrolling down
-                header.classList.add('is-hidden');
-            } else {
-                // Scrolling up
-                header.classList.remove('is-hidden');
-            }
-
-            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(measure);
         }
+
+        measure();
+        lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        handleScroll();
     }
 
     /**
@@ -247,9 +320,12 @@
 
                 e.preventDefault();
 
-                // Account for sticky header height
+                // Clear the COLLAPSED header: by the time the smooth
+                // scroll lands, the header has compacted, so offsetting
+                // by its current expanded height would overshoot and
+                // leave a gap above the target.
                 const headerOffset = header && header.classList.contains('sticky-header')
-                    ? header.offsetHeight
+                    ? (collapsedHeight || header.offsetHeight)
                     : 0;
 
                 const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerOffset;
@@ -259,11 +335,14 @@
                     behavior: 'smooth'
                 });
 
-                // Set focus for accessibility
-                targetElement.focus();
+                // Set focus for accessibility. preventScroll matters:
+                // a plain focus() scrolls the target into view on its
+                // own terms, which drags it back up under the fixed
+                // header and undoes the offset we just applied.
+                targetElement.focus({ preventScroll: true });
                 if (document.activeElement !== targetElement) {
                     targetElement.setAttribute('tabindex', '-1');
-                    targetElement.focus();
+                    targetElement.focus({ preventScroll: true });
                 }
             });
         });

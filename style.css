@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.0.0
+Version: 3.1.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -373,12 +373,52 @@ code {
 .site-header .container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  column-gap: var(--spacing-lg);
+  row-gap: 0;
   max-width: 1440px;
   min-height: 72px;
   padding-top: 6px;
   padding-bottom: 6px;
+}
+
+/* Visual order lives here, not in the markup: the DOM keeps the menu
+   toggle ahead of the nav drawer so keyboard users reach the toggle
+   before the links it controls. */
+.site-branding { order: 0; }
+.header-actions { order: 1; margin-left: auto; }
+.main-navigation { order: 2; }
+.mobile-menu-toggle { order: 3; }
+
+/* Nav gets its own row on desktop.
+
+   Measured, not guessed: five pillar labels carrying an icon, a word
+   or three and a caret come to ~900px. Branding is ~430 and the two
+   labelled CTAs ~400. That is ~1750px of content, so on a 1440 laptop
+   a single row cannot hold all three — something has to be cut, and
+   the icons and labels are the things that were asked for. A full
+   row for the nav fits it at 1024 with room to spare. */
+@media (min-width: 1024px) {
+  .main-navigation {
+    flex-basis: 100%;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--color-bg-tertiary) 75%, transparent);
+  }
+
+  /* a longer menu than this one wraps to a second line rather than
+     pushing the header off the side of the screen */
+  .nav-menu {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
 @media (min-width: 1024px) {
@@ -389,6 +429,7 @@ code {
 
 .site-branding {
   flex-shrink: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -406,6 +447,7 @@ code {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
+  min-width: 0;
 }
 
 .site-title {
@@ -427,6 +469,9 @@ code {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .custom-logo-link {
@@ -553,37 +598,111 @@ code {
   50%      { opacity: 1; transform: scale(1.15); }
 }
 
-/* Steam CTA in the classic (PHP) header */
+/* Property CTAs — physical buttons.
+
+   Each skin only sets four custom properties; the shape, the raise and
+   the press below are shared. The raise is a solid lip under the
+   button (an offset box-shadow with no blur) plus a soft cast shadow,
+   so hover lifts the button off its lip and :active drops it back down
+   onto it. .header-steam-cta is the older single-purpose class, still
+   used in the front page's Steam band — it gets the same treatment. */
+.header-cta,
 .header-steam-cta {
+  --cta-face: linear-gradient(135deg, #1b2838 0%, #2a475e 55%, #1b6ec2 100%);
+  --cta-edge: rgba(102, 192, 244, 0.5);
+  --cta-lip: #0c3a6b;
+  --cta-glow: rgba(27, 110, 194, 0.55);
+
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 10px;
+  gap: 9px;
+  padding: 9px 16px;
+  border-radius: 12px;
   font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
   text-decoration: none;
   white-space: nowrap;
-  background: linear-gradient(135deg, #1b2838 0%, #2a475e 55%, #1b6ec2 100%);
-  border: 1px solid rgba(102, 192, 244, 0.45);
-  box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  background: var(--cta-face);
+  border: 1px solid var(--cta-edge);
+  box-shadow:
+    0 4px 0 var(--cta-lip),
+    0 9px 18px -7px var(--cta-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transform: translateY(0);
+  transition:
+    transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    filter 150ms ease;
 }
 
-.header-steam-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(27, 110, 194, 0.55);
-  filter: brightness(1.12);
+.header-cta:hover,
+.header-cta:focus-visible,
+.header-steam-cta:hover,
+.header-steam-cta:focus-visible {
+  /* the global a:hover out-specifies the .header-cta colour, which
+     turned the label accent-purple mid-hover — pin it back to white */
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 var(--cta-lip),
+    0 16px 26px -9px var(--cta-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  filter: brightness(1.1);
 }
 
-@media (max-width: 640px) {
+/* The click: the button travels down onto its own lip and the inner
+   shadow flips, so it reads as pressed rather than merely moved. */
+.header-cta:active,
+.header-steam-cta:active {
+  color: #fff;
+  transform: translateY(4px);
+  box-shadow:
+    0 0 0 var(--cta-lip),
+    0 2px 6px -3px var(--cta-glow),
+    inset 0 2px 7px rgba(0, 0, 0, 0.38);
+  filter: brightness(0.96);
+  transition-duration: 70ms;
+}
+
+.header-cta:focus-visible,
+.header-steam-cta:focus-visible {
+  outline: 2px solid var(--cta-edge);
+  outline-offset: 3px;
+}
+
+.header-cta-parkers {
+  /* Parker's binary palette: blue primary, orange companion */
+  --cta-face: linear-gradient(135deg, #12233f 0%, #1e4173 48%, #c2571a 100%);
+  --cta-edge: rgba(255, 160, 84, 0.5);
+  --cta-lip: #7c3410;
+  --cta-glow: rgba(249, 115, 22, 0.5);
+}
+
+.header-cta .inf-brand-mark,
+.header-steam-cta > svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+.inf-brand-mark-img {
+  border-radius: 5px;
+  object-fit: contain;
+}
+
+/* In the single-row mobile bar the CTAs keep their marks and drop
+   their words; on desktop the nav has its own row, so both buttons
+   stay labelled all the way down to the drawer breakpoint */
+@media (max-width: 1023.98px) {
+  .header-cta-label,
   .header-steam-cta-label {
     display: none;
   }
 
+  .header-cta,
   .header-steam-cta {
-    padding: 8px 10px;
+    padding: 9px 11px;
   }
 }
 
@@ -596,7 +715,7 @@ code {
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -606,56 +725,278 @@ code {
   position: relative;
 }
 
+/* Nav items are pressable too, just quieter than the property CTAs:
+   a resting surface and a 2px lip so they read as raised, without
+   competing with the two loud buttons beside them. */
 .nav-menu a {
-  display: block;
-  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
   color: var(--color-text-secondary);
   text-decoration: none;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  transition: color var(--transition-fast), background-color var(--transition-fast);
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--color-text-tertiary) 24%, transparent);
+  background: color-mix(in srgb, var(--color-bg-tertiary) 50%, transparent);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  transform: translateY(0);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
 .nav-menu a:hover,
+.nav-menu a:focus-visible,
 .nav-menu .current-menu-item > a,
 .nav-menu .current_page_item > a {
   color: var(--color-text-primary);
   background-color: var(--color-bg-tertiary);
+  border-color: color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent),
+    0 10px 18px -10px color-mix(in srgb, var(--color-accent-primary) 70%, transparent);
 }
 
-/* Dropdown Menus */
+.nav-menu a:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent),
+    inset 0 2px 6px rgba(0, 0, 0, 0.28);
+  transition-duration: 70ms;
+}
+
+/* Icon and caret inside a nav item */
+.nav-item-icon {
+  display: inline-flex;
+  line-height: 0;
+  opacity: 0.85;
+  transition: opacity var(--transition-fast), transform 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.nav-menu a:hover .nav-item-icon,
+.nav-menu a:focus-visible .nav-item-icon {
+  opacity: 1;
+  transform: scale(1.14) rotate(-8deg);
+}
+
+.nav-item-label {
+  white-space: nowrap;
+}
+
+.nav-caret {
+  display: inline-flex;
+  line-height: 0;
+  margin-left: -1px;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast), transform 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.nav-menu > li:hover > a .nav-caret,
+.nav-menu > li:focus-within > a .nav-caret,
+.nav-menu > li.submenu-open > a .nav-caret {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+/* ---- Dropdown panels ----
+
+   The trigger is a chip that keeps its lip until it opens a panel;
+   then it sits down flat and squares off its bottom corners so chip
+   and panel read as one surface. The panel springs down from the
+   trigger, its rows stagger in behind it, and a highlight sweeps the
+   face once on open. The pointer never crosses dead space on the way
+   down: the gap between chip and panel is the panel's own padding, so
+   it stays inside the hovered <li>. */
+
+.nav-menu > li.menu-item-has-children:hover > a,
+.nav-menu > li.menu-item-has-children:focus-within > a,
+.nav-menu > li.menu-item-has-children.submenu-open > a {
+  transform: translateY(0);
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  box-shadow: 0 0 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+}
+
 .nav-menu .sub-menu {
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 200px;
-  padding: var(--spacing-sm) 0;
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-bg-tertiary);
+  min-width: 232px;
+  /* padding, not margin: a margin here would be dead space between the
+     chip and the panel and the hover would drop on the way down */
+  padding: 14px 8px 8px;
+  background-color: color-mix(in srgb, var(--color-bg-secondary) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 34px -12px color-mix(in srgb, var(--color-accent-primary) 75%, transparent);
+  backdrop-filter: blur(10px);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px);
-  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
+  transform: translateY(-10px) scale(0.97);
+  transform-origin: top left;
+  filter: blur(5px);
   list-style: none;
   z-index: var(--z-dropdown);
+  transition:
+    opacity 190ms ease,
+    filter 190ms ease,
+    transform 280ms cubic-bezier(0.16, 1.1, 0.3, 1.12),
+    visibility 0s linear 280ms;
 }
 
-.nav-menu li:hover > .sub-menu,
-.nav-menu li:focus-within > .sub-menu {
+/* The notch that ties the panel to the chip above it */
+.nav-menu .sub-menu::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 22px;
+  width: 11px;
+  height: 11px;
+  background-color: inherit;
+  border-left: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  transform: rotate(45deg);
+  border-top-left-radius: 3px;
+}
+
+/* One-shot highlight sweep, started by the open state matching */
+.nav-menu .sub-menu::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(115deg, transparent 34%, color-mix(in srgb, var(--color-accent-primary) 24%, transparent) 50%, transparent 66%);
+  background-size: 260% 100%;
+  background-position: 130% 0;
+}
+
+.nav-menu > li:hover > .sub-menu,
+.nav-menu > li:focus-within > .sub-menu,
+.nav-menu > li.submenu-open > .sub-menu {
   opacity: 1;
   visibility: visible;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition-delay: 0s;
+}
+
+.nav-menu > li:hover > .sub-menu::after,
+.nav-menu > li:focus-within > .sub-menu::after,
+.nav-menu > li.submenu-open > .sub-menu::after {
+  animation: nav-panel-sweep 720ms ease-out;
+}
+
+@keyframes nav-panel-sweep {
+  0%   { opacity: 0; background-position: 130% 0; }
+  22%  { opacity: 1; }
+  100% { opacity: 0; background-position: -40% 0; }
+}
+
+/* Rows arrive behind the panel, one after another */
+.nav-menu .sub-menu > li {
+  opacity: 0;
+  transform: translateY(-7px);
+  transition:
+    opacity 200ms ease,
+    transform 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.nav-menu > li:hover > .sub-menu > li,
+.nav-menu > li:focus-within > .sub-menu > li,
+.nav-menu > li.submenu-open > .sub-menu > li {
+  opacity: 1;
   transform: translateY(0);
 }
 
-.nav-menu .sub-menu a {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: 0;
+.nav-menu > li:hover > .sub-menu > li:nth-child(1),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(1),
+.nav-menu > li.submenu-open > .sub-menu > li:nth-child(1) { transition-delay: 70ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(2),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(2),
+.nav-menu > li.submenu-open > .sub-menu > li:nth-child(2) { transition-delay: 110ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(3),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(3),
+.nav-menu > li.submenu-open > .sub-menu > li:nth-child(3) { transition-delay: 150ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(4),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(4),
+.nav-menu > li.submenu-open > .sub-menu > li:nth-child(4) { transition-delay: 190ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(5),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(5),
+.nav-menu > li.submenu-open > .sub-menu > li:nth-child(5) { transition-delay: 230ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(6),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(6),
+.nav-menu > li.submenu-open > .sub-menu > li:nth-child(6) { transition-delay: 265ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(n + 7),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(n + 7),
+.nav-menu > li.submenu-open > .sub-menu > li:nth-child(n + 7) { transition-delay: 300ms; }
+
+/* The last item's panel would hang off the right edge */
+.nav-menu > li:last-child > .sub-menu {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
 }
 
-.nav-menu .sub-menu a:hover {
-  background-color: var(--color-bg-tertiary);
+.nav-menu > li:last-child > .sub-menu::before {
+  left: auto;
+  right: 22px;
+}
+
+.nav-menu .sub-menu a {
+  position: relative;
+  padding: 9px 12px 9px 17px;
+  border-radius: 8px;
+  font-weight: 500;
+  /* inside a dropdown the raise would fight the panel it sits in */
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform 200ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* A bar that grows out of the row's left edge on hover */
+.nav-menu .sub-menu a::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 2px;
+  background: var(--color-accent-primary);
+  transform: translateY(-50%);
+  transition: height 200ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.nav-menu .sub-menu a:hover,
+.nav-menu .sub-menu a:focus-visible {
+  color: var(--color-text-primary);
+  background-color: color-mix(in srgb, var(--color-accent-primary) 13%, transparent);
+  transform: translateX(3px);
+  box-shadow: none;
+}
+
+.nav-menu .sub-menu a:hover::before,
+.nav-menu .sub-menu a:focus-visible::before {
+  height: 56%;
+}
+
+.nav-menu .sub-menu a:active {
+  transform: translateX(3px) scale(0.985);
+  box-shadow: none;
 }
 
 /* Mobile Menu Toggle */
@@ -747,6 +1088,133 @@ code {
 
 .sticky-header.is-hidden {
   transform: translateY(-100%);
+}
+
+/* A fixed header with a z-index makes a stacking context, so the nav
+   drawer nested inside it is capped at the header's own level no
+   matter what z-index the drawer asks for. The mobile overlay sits
+   just under --z-modal, which is above that cap — so with Sticky
+   Header on, the overlay covered the menu it is supposed to sit
+   behind and every tap in the drawer landed on the scrim instead.
+   Lift the whole header for as long as the menu is open. */
+body.mobile-menu-open .sticky-header {
+  z-index: var(--z-modal);
+}
+
+/* ---- Collapse on scroll ----
+
+   Two rows is a lot of screen to keep pinned, so past the first inch
+   the header compacts: the tagline folds away, the logo steps down and
+   every row tightens. It stays two rows — going single-row would mean
+   dropping the nav's icons or the buttons' labels, which is the thing
+   the layout is built to avoid.
+
+   navigation.js keeps the body's top padding at the EXPANDED height,
+   so collapsing never moves the page under the reader. */
+
+.site-header .container,
+.site-header .site-tagline,
+.site-header .site-title,
+.site-header .cosmic-logo,
+.site-header .bh-logo,
+.site-header .main-navigation,
+.site-header .nav-menu a,
+.site-header .header-cta {
+  transition:
+    max-height var(--transition-base),
+    opacity var(--transition-base),
+    padding var(--transition-base),
+    margin var(--transition-base),
+    min-height var(--transition-base),
+    width var(--transition-base),
+    height var(--transition-base),
+    font-size var(--transition-base);
+}
+
+/* the nav chip owns its own lift/press transition — re-declaring it
+   above would have clobbered that, so give the padding its own line */
+.site-header .nav-menu a,
+.site-header .header-cta {
+  transition:
+    padding var(--transition-base),
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    filter 150ms ease;
+}
+
+.site-tagline {
+  max-height: 2.4em;
+}
+
+.sticky-header.is-scrolled .site-tagline {
+  max-height: 0;
+  opacity: 0;
+}
+
+.sticky-header.is-scrolled .site-title {
+  font-size: var(--font-size-lg);
+}
+
+.sticky-header.is-scrolled .cosmic-logo {
+  --logo-size: 38px;
+}
+
+.sticky-header.is-scrolled .bh-logo {
+  width: 38px;
+  height: 38px;
+}
+
+.sticky-header.is-scrolled .container {
+  min-height: 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+/* The theme toggle sits under the wordmark at rest, which is 23px of
+   the collapsed header's height — more than the logo saves by shrinking.
+   Collapsed, it moves alongside instead. flex-direction cannot be
+   transitioned, so it lands at once while the heights ease around it;
+   with the whole header in motion the swap does not read as a jump. */
+.sticky-header.is-scrolled .site-branding {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.sticky-header.is-scrolled .header-cta {
+  padding: 7px 14px;
+}
+
+@media (min-width: 1024px) {
+  .sticky-header.is-scrolled .main-navigation {
+    margin-top: 0;
+    padding-top: 4px;
+  }
+
+  .sticky-header.is-scrolled .nav-menu a {
+    padding: 6px 12px;
+  }
+}
+
+/* navigation.js briefly expands the header to measure it; without this
+   the measurement would catch a half-finished transition */
+.sticky-header.is-measuring,
+.sticky-header.is-measuring * {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header .container,
+  .site-header .site-tagline,
+  .site-header .site-title,
+  .site-header .cosmic-logo,
+  .site-header .bh-logo,
+  .site-header .main-navigation {
+    transition: none;
+  }
 }
 
 /* ==========================================================================
@@ -907,11 +1375,46 @@ code {
 
 /* ==========================================================================
    12.0 Mobile Responsive Navigation
+
+   The drawer takes over below 1024px. It used to switch at 768px, but
+   a spaced-out nav next to two property CTAs genuinely does not fit a
+   tablet — between those widths the header overflowed the viewport and
+   pushed the menu button off it. navigation.js closes the drawer at
+   the same 1024px line.
    ========================================================================== */
 
-@media (max-width: 768px) {
+@media (max-width: 1023.98px) {
   .mobile-menu-toggle {
     display: flex;
+  }
+
+  /* The drawer is out of flow here, so its auto margin no longer
+     pushes anything — the actions group takes over, leaving
+     brand | actions | menu across the bar. */
+  .site-header .container {
+    gap: var(--spacing-sm);
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  /* The tagline is what made the branding wider than the phone, which
+     pushed the CTAs and the menu button clean off the viewport. The
+     site description is still in the document head and the footer. */
+  .site-branding {
+    flex-shrink: 1;
+  }
+
+  .site-tagline {
+    display: none;
+  }
+
+  .site-title {
+    font-size: var(--font-size-lg, 1.125rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .main-navigation {
@@ -919,6 +1422,10 @@ code {
     top: 0;
     right: 0;
     bottom: 0;
+    /* the base header rule lays this out as a row; in the drawer that
+       sizes the menu to its widest label rather than to the panel */
+    flex-direction: column;
+    align-items: stretch;
     width: 100%;
     max-width: 320px;
     padding: 80px var(--spacing-lg) var(--spacing-lg);
@@ -946,7 +1453,17 @@ code {
     font-size: var(--font-size-lg);
   }
 
-  /* Mobile dropdowns */
+  .nav-menu a:hover,
+  .nav-menu a:focus-visible,
+  .nav-menu .current-menu-item > a,
+  .nav-menu .current_page_item > a {
+    /* in a vertical drawer a lift just nudges rows around */
+    transform: none;
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  }
+
+  /* Mobile dropdowns: the drawer opens them by class, so none of the
+     desktop panel choreography applies here */
   .nav-menu .sub-menu {
     position: static;
     min-width: 0;
@@ -956,10 +1473,35 @@ code {
     border: none;
     border-radius: 0;
     box-shadow: none;
+    backdrop-filter: none;
     opacity: 1;
     visibility: visible;
     transform: none;
+    filter: none;
+    transition: none;
     display: none;
+  }
+
+  .nav-menu .sub-menu::before,
+  .nav-menu .sub-menu::after {
+    display: none;
+  }
+
+  .nav-menu .sub-menu > li {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* navigation.js puts a real toggle button beside the link in the
+     drawer — the in-link caret would be a second chevron */
+  .nav-caret {
+    display: none;
+  }
+
+  .nav-menu .sub-menu a:hover,
+  .nav-menu .sub-menu a:focus-visible {
+    transform: none;
   }
 
   .nav-menu .submenu-open > .sub-menu {
@@ -980,12 +1522,12 @@ code {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     background: var(--color-bg-tertiary);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: transform var(--transition-fast), background-color var(--transition-fast);
@@ -1005,7 +1547,7 @@ code {
   }
 
   .menu-item-has-children > a {
-    padding-right: 48px;
+    padding-right: 60px;
   }
 
   /* Mobile menu overlay */
@@ -1060,11 +1602,169 @@ code {
   }
 }
 
-/* Desktop: hide dropdown toggle */
-@media (min-width: 769px) {
+/* The drawer's submenu toggle belongs wherever the drawer does, plus
+   anywhere hovering is not a thing. On a touch tablet the panels are
+   otherwise unreachable: tapping the parent link just navigates, and
+   the fake hover a tap produces is gone by the time the page changes. */
+@media (min-width: 1024px) and (hover: hover) {
   .dropdown-toggle {
     display: none;
   }
+}
+
+/* Above the drawer breakpoint the toggle becomes an invisible hit area
+   laid over the chip's caret — navigation.js inserts it as a sibling of
+   the link, so it cannot live inside the chip. Tapping the caret opens
+   the panel; tapping the label still follows the link. The caret the
+   chip already draws is the visual; this is only the target. */
+@media (min-width: 1024px) {
+  .dropdown-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    transform: none;
+    width: 30px;
+    height: auto;
+    background: transparent;
+    border-radius: 0 10px 10px 0;
+    color: transparent;
+  }
+
+  .dropdown-toggle:hover,
+  .dropdown-toggle[aria-expanded="true"] {
+    background: transparent;
+    transform: none;
+  }
+
+  .dropdown-toggle > svg {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Touch and coarse pointers
+
+   A tap on a touch screen synthesises a :hover that sticks until you
+   tap somewhere else, so every hover state here is a state the finger
+   leaves behind: buttons stay floating, chips stay lit, panels stay
+   open over the content below them. Motion answers :active instead,
+   which ends when the finger lifts.
+   ========================================================================== */
+
+/* Backdrop blur is cheap to write and expensive to composite: it
+   re-samples everything behind the element on every frame it moves.
+   On a phone that is the sticky header and any open panel, on every
+   scrolled frame. The translucency stays; only the blur goes. */
+@media (max-width: 640px) {
+  .sticky-header.is-scrolled,
+  .nav-menu .sub-menu,
+  .fp-hero-blackhole .fp-pillar-nav a,
+  .fp-hero-latest-pill {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .sticky-header.is-scrolled {
+    background-color: var(--color-bg-secondary);
+  }
+
+  .nav-menu .sub-menu {
+    background-color: var(--color-bg-secondary);
+  }
+}
+
+@media (pointer: coarse) {
+  /* Targets a thumb can actually hit. The visuals stay as drawn — the
+     toggle is a 46x20 pill by design — so the extra area comes from a
+     pseudo-element rather than from making the control bigger. It
+     reaches further down than up, because what sits above it is the
+     logo link and stealing taps from that would be worse. */
+  .theme-toggle::before {
+    content: '';
+    position: absolute;
+    inset: -6px -6px -18px;
+  }
+
+  .header-cta,
+  .header-steam-cta {
+    min-height: 44px;
+  }
+
+  .nav-menu a {
+    min-height: 44px;
+  }
+
+  /* The caret hit area over a nav chip needs to be worth aiming at */
+  .dropdown-toggle {
+    min-width: 44px;
+  }
+}
+
+@media (hover: none) {
+  /* The fake hover must not open a panel: the toggle button owns that
+     on touch, and a tap on the label is meant to follow the link. */
+  .nav-menu > li:hover:not(.submenu-open):not(:focus-within) > .sub-menu {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.97);
+    filter: blur(5px);
+  }
+
+  /* Nothing lifts or slides on a hover the finger did not ask for */
+  .nav-menu a:hover,
+  .nav-menu .sub-menu a:hover,
+  .header-cta:hover,
+  .header-steam-cta:hover,
+  .fp-hero-latest-pill:hover,
+  .site-logo-link:hover .bh-logo-img {
+    transform: none;
+  }
+
+  .nav-menu a:hover {
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  }
+
+  .header-cta:hover,
+  .header-steam-cta:hover {
+    box-shadow:
+      0 4px 0 var(--cta-lip),
+      0 9px 18px -7px var(--cta-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    filter: none;
+  }
+
+  .nav-menu a:hover .nav-item-icon {
+    transform: none;
+  }
+
+  /* :active is the honest touch feedback — it tracks the finger and
+     releases with it */
+  .nav-menu a:active,
+  .header-cta:active,
+  .header-steam-cta:active {
+    transform: translateY(2px);
+  }
+
+  .nav-menu .sub-menu a:active {
+    transform: translateX(3px);
+  }
+
+  /* Tapping should not paint a grey flash over a button that already
+     has its own pressed state */
+  a,
+  button,
+  .nav-menu a,
+  .header-cta {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Tap-opened panels flip the caret the same way hovering does */
+.nav-menu > li.submenu-open > a .nav-caret {
+  opacity: 1;
+  transform: rotate(180deg);
 }
 
 /* ==========================================================================
@@ -2024,22 +2724,47 @@ code {
    16.0 Mega CTA — the Explore the Universe button screams
    ========================================================================== */
 
+/* The primary CTA also pulses. The keyframes have to restate the lip
+   and cast shadow, since an animated box-shadow replaces the whole
+   property — and the animation is dropped on hover and press so those
+   states can own the shadow instead. */
+.header-cta-etu,
 .header-steam-cta {
-  position: relative;
   overflow: hidden;
-  padding: 10px 20px;
+  padding: 10px 18px;
   font-size: 0.95rem;
   animation: cta-beacon 2.6s ease-out infinite;
 }
 
-/* Radar pulse ring */
+.header-cta-etu:hover,
+.header-cta-etu:focus-visible,
+.header-cta-etu:active,
+.header-steam-cta:hover,
+.header-steam-cta:focus-visible,
+.header-steam-cta:active {
+  animation: none;
+}
+
 @keyframes cta-beacon {
-  0%   { box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35), 0 0 0 0 rgba(102, 192, 244, 0.65); }
-  60%  { box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35), 0 0 0 12px rgba(102, 192, 244, 0); }
-  100% { box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35), 0 0 0 0 rgba(102, 192, 244, 0); }
+  0% {
+    box-shadow:
+      0 4px 0 var(--cta-lip), 0 9px 18px -7px var(--cta-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 0 rgba(102, 192, 244, 0.6);
+  }
+  60% {
+    box-shadow:
+      0 4px 0 var(--cta-lip), 0 9px 18px -7px var(--cta-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 12px rgba(102, 192, 244, 0);
+  }
+  100% {
+    box-shadow:
+      0 4px 0 var(--cta-lip), 0 9px 18px -7px var(--cta-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 0 rgba(102, 192, 244, 0);
+  }
 }
 
 /* Sheen sweep across the face */
+.header-cta::after,
 .header-steam-cta::after {
   content: '';
   position: absolute;
@@ -2057,7 +2782,9 @@ code {
   85%, 100% { background-position: -50% 0; }
 }
 
-/* Periodic attention wiggle */
+/* Periodic attention wiggle, on the loud button only */
+.header-cta-etu > svg,
+.header-cta-etu > span,
 .header-steam-cta > svg,
 .header-steam-cta > span {
   animation: cta-wiggle 5.2s ease-in-out infinite;
@@ -2070,10 +2797,41 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .header-cta,
+  .header-cta::after,
+  .header-cta > svg,
+  .header-cta > span,
   .header-steam-cta,
   .header-steam-cta::after,
   .header-steam-cta > svg,
   .header-steam-cta > span {
+    animation: none !important;
+  }
+
+  /* the lift and press stay — they answer a deliberate action — but
+     they stop being animated */
+  .header-cta,
+  .header-steam-cta,
+  .nav-menu a {
+    transition: none;
+  }
+
+  /* dropdowns still open and close, without the spring, the stagger
+     or the sweep */
+  .nav-menu .sub-menu,
+  .nav-menu .sub-menu > li,
+  .nav-menu .sub-menu a,
+  .nav-item-icon,
+  .nav-caret {
+    transition: none !important;
+    transition-delay: 0s !important;
+  }
+
+  .nav-menu .sub-menu {
+    filter: none;
+  }
+
+  .nav-menu .sub-menu::after {
     animation: none !important;
   }
 }
@@ -2966,12 +3724,10 @@ html[data-mode="light"] .theme-toggle-knob {
   }
 }
 
-/* In light mode the cosmic set-pieces stay deliberately dark: the hero
-   black-hole scene and the tag globe are space — space stays black.
-   Re-pinning the palette vars on those sections means every chip, pill
-   and note inside them keeps its dark-mode styling. */
-[data-theme="science-light"] .fp-hero-blackhole,
-[data-theme="light-playful"] .fp-hero-blackhole,
+/* The tag globe stays deliberately dark in both modes: it is a star
+   map, and space stays black. Re-pinning the palette vars on the
+   section means every chip, pill and note inside it keeps its
+   dark-mode styling. */
 [data-theme="science-light"] .fp-tagverse,
 [data-theme="light-playful"] .fp-tagverse {
   --color-bg-primary: #0a0e1a;
@@ -2986,13 +3742,154 @@ html[data-mode="light"] .theme-toggle-knob {
   color-scheme: dark;
 }
 
-/* Explicit deep-space backdrop so the dark set-pieces read as panels
-   once the body behind them goes light */
-.fp-hero-blackhole,
+/* Explicit deep-space backdrop so the dark set-piece reads as a panel
+   once the body behind it goes light */
 .fp-tagverse {
   background-color: #0a0e1a;
 }
 
+/* ==========================================================================
+   21.1 Hero black hole: a genuine daylight mode
+
+   The hero used to be pinned dark alongside the tag globe, which left
+   it stuck in night while the rest of the page followed the toggle.
+   It now restages instead of inverting: the event horizon stays black
+   (a hole is black on any paper), blackhole.js re-casts the disk as
+   pigment, and the wordmark trades polished chrome for dark metal so
+   it still reads as engraved.
+
+   [data-mode="light"] is written to <html> by the pre-paint boot
+   script and kept in sync by the toggle, so one selector covers both
+   light skins — the same idiom the toggle knob above already uses.
+   ========================================================================== */
+
 .fp-hero-blackhole {
+  background-color: #0a0e1a;
   color: #f0f2ff;
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+[data-mode="light"] .fp-hero-blackhole {
+  background-color: #eef2fb;
+  background-image:
+    radial-gradient(120% 95% at 18% 0%, #ffffff 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(85% 75% at 86% 100%, color-mix(in srgb, var(--color-accent-secondary) 18%, transparent) 0%, transparent 72%);
+  color: #10162e;
+}
+
+/* Wordmark: dark polished metal on paper. The extrusion lightens too,
+   so the letters read as raised rather than punched through the page. */
+[data-mode="light"] .wm-shadow { fill: #94a3c4; opacity: 0.5; }
+[data-mode="light"] .wm-depth  { fill: #2b3566; }
+
+[data-mode="light"] .wm-face {
+  /* paint fallback: a page cached before the new <defs> shipped still
+     gets solid letters instead of an unresolved reference */
+  fill: url(#wm-face-grad-light) #2b3566;
+  stroke: rgba(15, 23, 42, 0.3);
+}
+
+/* Screen blending adds nothing to white, and the near-white "ball"
+   colors would disappear outright — on paper the tracers composite
+   straight, in saturated ink. */
+[data-mode="light"] .wm-trail,
+[data-mode="light"] .wm-ball {
+  mix-blend-mode: normal;
+}
+
+[data-mode="light"] .wm-trail-c { stroke: #0e7490; filter: drop-shadow(0 0 3px rgba(14, 116, 144, 0.5)); }
+[data-mode="light"] .wm-ball-c  { stroke: #06b6d4; filter: drop-shadow(0 0 5px rgba(6, 182, 212, 0.75)); }
+[data-mode="light"] .wm-trail-m { stroke: #a21caf; filter: drop-shadow(0 0 3px rgba(162, 28, 175, 0.5)); }
+[data-mode="light"] .wm-ball-m  { stroke: #e879f9; filter: drop-shadow(0 0 5px rgba(232, 121, 249, 0.75)); }
+[data-mode="light"] .wm-trail-a { stroke: #b45309; filter: drop-shadow(0 0 3px rgba(180, 83, 9, 0.5)); }
+[data-mode="light"] .wm-ball-a  { stroke: #f59e0b; filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.75)); }
+
+/* Hero text furniture: every glow below was a dark drop-shadow tuned
+   to sit on black. On paper they become a pale lift instead. */
+[data-mode="light"] .fp-hero-blackhole .fp-hero-title {
+  filter: drop-shadow(0 2px 16px rgba(148, 163, 200, 0.6));
+}
+
+[data-mode="light"] .fp-hero-blackhole .fp-hero-tagline {
+  background-image: linear-gradient(95deg, #b45309 0%, #ea580c 25%, #1e293b 52%, #0e7490 78%, #b45309 100%);
+  /* the tagline crosses the disk on wide screens — a white halo keeps
+     it legible where it passes over the bright inner ring */
+  filter:
+    drop-shadow(0 1px 2px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.8));
+}
+
+[data-mode="light"] .fp-hero-latest-label {
+  color: #b45309;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+[data-mode="light"] .fp-hero-latest-pill {
+  border-color: color-mix(in srgb, #b45309 40%, transparent);
+}
+
+[data-mode="light"] .fp-hero-latest-pill:hover {
+  color: #b45309;
+  border-color: #b45309;
+}
+
+[data-mode="light"] .fp-hero-link {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+[data-mode="light"] .fp-hero-link:hover {
+  color: #b45309;
+}
+
+/* The Steam card keeps its Valve-blue identity but needs a body that
+   sits on paper instead of a pane of night */
+[data-mode="light"] .hero-steam-card {
+  background: linear-gradient(165deg, #ffffff, #e6effb);
+  border-color: rgba(27, 110, 194, 0.45);
+  box-shadow:
+    0 18px 40px rgba(30, 58, 95, 0.18),
+    0 0 24px rgba(102, 192, 244, 0.22);
+}
+
+[data-mode="light"] .hero-steam-card-kicker {
+  color: #1b6ec2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-hero-blackhole {
+    transition: none;
+  }
+}
+
+/* blackhole.js adds .bh-armed to the section while the pointer is
+   close enough to the hole for a click to visibly do something, so the
+   backdrop advertises itself without the whole hero looking clickable.
+   Everything stacked above the canvas keeps its own cursor, so reading
+   and selecting the hero copy is unaffected. */
+.bh-armed {
+  cursor: crosshair;
+}
+
+/* Text and controls layered over the canvas keep their own cursors, so
+   reading and selecting the hero copy is unaffected. Scoping this to
+   the elements themselves rather than their container leaves the
+   crosshair on the bare backdrop between them — which is exactly where
+   a click does nothing but feed the hole. */
+.bh-armed h1,
+.bh-armed h2,
+.bh-armed p,
+.bh-armed span,
+.bh-armed svg,
+.bh-armed img,
+.bh-armed iframe,
+.bh-armed .hero-steam-card {
+  cursor: auto;
+}
+
+/* links and buttons — and whatever they wrap — still read as clickable */
+.bh-armed a,
+.bh-armed a *,
+.bh-armed button,
+.bh-armed button * {
+  cursor: pointer;
 }

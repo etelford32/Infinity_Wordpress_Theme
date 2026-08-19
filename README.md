@@ -18,7 +18,9 @@ React frontend for running physics simulations.
 - 🕳️ **Black hole hero** — WebGL accretion-disk shader with occlusion
   compositing and GPU spark particles (`assets/js/blackhole.js`), a beveled
   SVG wordmark with neon edge tracers, and a 3D logo orbit swarm
-  (`assets/js/logo-orbits.js`)
+  (`assets/js/logo-orbits.js`). Follows the light/dark toggle, and answers
+  the pointer: hovering stirs the disc, clicking triggers a feeding event
+  that fires relativistic jets from both poles
 - 🛰️ **Property strip** — live preview cards for the three external
   properties: *Explore the Universe 2175* (Steam game), *Parker's Physics*,
   and *Telford Landscaping*, with logos, key art, and an ETU teaser video
@@ -34,6 +36,18 @@ React frontend for running physics simulations.
 - 🌗 **Four visual modes** — Dark Cosmic (default), Light Playful, Science
   Mode light/dark — plus automatic light/dark switching by local clock with a
   manual toggle in the header (`assets/js/theme-toggle.js`)
+- 📌 **Collapsing sticky header** — enable *Sticky Header* in the Customizer
+  and the header compacts to ~60% height past the first inch of scroll, then
+  tucks away on sustained downward scrolling and returns on the way back up
+- 🧭 **Dropdown navigation** — every primary-menu item carries a matched
+  icon and, where it has children, a caret; panels spring down with a
+  notch, staggered rows and a sweep highlight. Icon matching is filterable
+  via `infinity_nav_icon_map` / `infinity_nav_icon`
+- 🎛️ **Property CTAs in the header** — Parker's Physics and Explore the
+  Universe 2175 as raised buttons with their own brand marks, lifting on
+  hover and pressing down on click (`infinity_brand_mark()` in
+  `inc/icons.php`; set `infinity_parkers_logo` / `infinity_etu_logo` to use
+  real artwork instead of the drawn marks)
 - ✒️ **Custom icon set** — hand-drawn 24×24 stroke icons with a cyan→violet
   gradient and soft glow, replacing stock emoji (`inc/icons.php`,
   `infinity_icon('earth')`)

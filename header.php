@@ -91,17 +91,29 @@
                 ?>
             </nav>
 
-            <?php $infinity_steam_url = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/'); ?>
-            <?php if ($infinity_steam_url) : ?>
-                <a class="header-steam-cta" href="<?php echo esc_url($infinity_steam_url); ?>" target="_blank" rel="noopener noreferrer">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/>
-                        <circle cx="15.5" cy="8.5" r="3.1" fill="currentColor"/>
-                        <circle cx="7.5" cy="16.5" r="2.1" fill="currentColor"/>
-                        <path d="M9.2 15.1l4.1-4.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                    </svg>
-                    <span class="header-steam-cta-label"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
-                </a>
+            <?php
+            // Property CTAs. Grouped so the header reads brand | nav |
+            // actions on desktop and brand | actions | menu on mobile —
+            // the flex order is set in CSS, so DOM order can keep the
+            // menu toggle ahead of the nav drawer for keyboard users.
+            $infinity_steam_url   = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
+            $infinity_parkers_url = get_option('infinity_parkers_url', 'https://parkersphysics.com');
+            ?>
+            <?php if ($infinity_steam_url || $infinity_parkers_url) : ?>
+                <div class="header-actions">
+                    <?php if ($infinity_parkers_url) : ?>
+                        <a class="header-cta header-cta-parkers" href="<?php echo esc_url($infinity_parkers_url); ?>" target="_blank" rel="noopener noreferrer">
+                            <?php infinity_brand_mark('parkers', 20); ?>
+                            <span class="header-cta-label"><?php echo esc_html(get_option('infinity_parkers_label', "Parker's Physics")); ?></span>
+                        </a>
+                    <?php endif; ?>
+                    <?php if ($infinity_steam_url) : ?>
+                        <a class="header-cta header-cta-etu" href="<?php echo esc_url($infinity_steam_url); ?>" target="_blank" rel="noopener noreferrer">
+                            <?php infinity_brand_mark('etu', 20); ?>
+                            <span class="header-cta-label"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
+                        </a>
+                    <?php endif; ?>
+                </div>
             <?php endif; ?>
         </div>
     </header>
