@@ -5,6 +5,21 @@ entries are in release order, newest first.
 
 ## 3.1.0
 
+- **Sticky header collapses on scroll** (`style.css`,
+  `assets/js/navigation.js`): with Sticky Header enabled, the two-row header
+  compacts from 149px to 90px past the first inch — the tagline folds away,
+  the logo steps down, the theme toggle moves alongside the wordmark and
+  every row tightens. It stays two rows; going single-row would mean
+  dropping the nav's icons or the buttons' labels. Sustained downward
+  scrolling tucks it away entirely and scrolling back up returns it, now
+  driven by accumulated travel rather than per-frame deltas so a trackpad
+  wobble no longer makes it flicker. It stays pinned while the mobile drawer
+  is open or the keyboard is focused inside it. Three stale-measurement bugs
+  fixed alongside: the body's top padding was measured once at load, so it
+  went wrong on any resize across the 1024px line and after a late webfont;
+  anchor jumps offset by the expanded height and so overshot, leaving a gap;
+  and the focus call after a smooth scroll dragged the target back under the
+  header, because a plain `focus()` scrolls on its own terms
 - **Nav items are dropdown triggers** (`functions.php`, `inc/icons.php`,
   `style.css`): every primary-menu item now carries an icon matched to its
   label, and items with children carry a caret. Panels spring down from

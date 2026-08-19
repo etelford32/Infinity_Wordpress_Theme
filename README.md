@@ -36,6 +36,9 @@ React frontend for running physics simulations.
 - 🌗 **Four visual modes** — Dark Cosmic (default), Light Playful, Science
   Mode light/dark — plus automatic light/dark switching by local clock with a
   manual toggle in the header (`assets/js/theme-toggle.js`)
+- 📌 **Collapsing sticky header** — enable *Sticky Header* in the Customizer
+  and the header compacts to ~60% height past the first inch of scroll, then
+  tucks away on sustained downward scrolling and returns on the way back up
 - 🧭 **Dropdown navigation** — every primary-menu item carries a matched
   icon and, where it has children, a caret; panels spring down with a
   notch, staggered rows and a sweep highlight. Icon matching is filterable
