@@ -66,3 +66,81 @@ function infinity_icon($name, $size = 22) {
 function infinity_is_icon_token($token) {
     return (bool) preg_match('/^[a-z][a-z0-9-]*$/', $token) && array_key_exists($token, infinity_icon_paths());
 }
+
+/**
+ * Marketing brand marks for the sibling properties.
+ *
+ * These are full-colour marks, not members of the stroke icon set
+ * above: each property owns its palette, so they carry their own
+ * gradients rather than the shared cyan→violet one.
+ *
+ * They are theme-drawn stand-ins built from each property's existing
+ * palette in this repo — Parker's Physics as the blue/orange binary
+ * (the same split the `#pp-blackhole` variant shader uses), Explore
+ * the Universe 2175 as a ringed world under a plotted transfer. To
+ * use the real artwork instead, set the matching logo option
+ * (`infinity_parkers_logo` / `infinity_etu_logo`) to an image URL and
+ * infinity_brand_mark() will render that image in its place.
+ *
+ * @since 3.1.0
+ */
+function infinity_brand_mark_svg($key, $size = 20) {
+    static $instance = 0;
+    $instance++;
+    $gid = 'infbm-' . $instance;
+
+    $size = (int) $size;
+    $open = sprintf(
+        '<svg class="inf-brand-mark inf-brand-mark-%1$s" width="%2$d" height="%2$d" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">',
+        esc_attr($key),
+        $size
+    );
+
+    if ('parkers' === $key) {
+        // Binary system: two bodies sharing one inclined orbit around a
+        // common barycentre — blue primary, orange companion.
+        return $open
+            . '<defs>'
+            . '<linearGradient id="' . esc_attr($gid) . '-a" x1="2" y1="4" x2="22" y2="20" gradientUnits="userSpaceOnUse">'
+            . '<stop offset="0" stop-color="#7cc4ff"/><stop offset="1" stop-color="#3b82f6"/></linearGradient>'
+            . '<linearGradient id="' . esc_attr($gid) . '-b" x1="4" y1="20" x2="20" y2="6" gradientUnits="userSpaceOnUse">'
+            . '<stop offset="0" stop-color="#ffb765"/><stop offset="1" stop-color="#f97316"/></linearGradient>'
+            . '</defs>'
+            . '<ellipse cx="12" cy="12" rx="10" ry="5.6" transform="rotate(-24 12 12)" stroke="url(#' . esc_attr($gid) . '-a)" stroke-width="1.5" opacity="0.75"/>'
+            . '<circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.55"/>'
+            . '<circle cx="4.6" cy="15.6" r="3.1" fill="url(#' . esc_attr($gid) . '-a)"/>'
+            . '<circle cx="19.4" cy="8.4" r="2.2" fill="url(#' . esc_attr($gid) . '-b)"/>'
+            . '</svg>';
+    }
+
+    // Explore the Universe 2175: a ringed world with a plotted transfer
+    // arc climbing off it, and the star it is departing.
+    return $open
+        . '<defs>'
+        . '<linearGradient id="' . esc_attr($gid) . '-a" x1="4" y1="6" x2="18" y2="21" gradientUnits="userSpaceOnUse">'
+        . '<stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#1b6ec2"/></linearGradient>'
+        . '</defs>'
+        . '<circle cx="10.4" cy="13.6" r="5.6" fill="url(#' . esc_attr($gid) . '-a)"/>'
+        . '<ellipse cx="10.4" cy="13.6" rx="9.4" ry="3.2" transform="rotate(-21 10.4 13.6)" stroke="#66c0f4" stroke-width="1.4" opacity="0.85"/>'
+        . '<path d="M3.4 9.2C7 3.6 14.4 2 20.6 4.4" stroke="#ffd7a1" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3.4 2.6" opacity="0.95"/>'
+        . '<circle cx="20.6" cy="4.4" r="1.9" fill="#ffd166"/>'
+        . '</svg>';
+}
+
+/**
+ * Echo a property's brand mark, preferring a real uploaded logo when
+ * the site owner has set one.
+ */
+function infinity_brand_mark($key, $size = 20) {
+    $logo = get_option('infinity_' . $key . '_logo', '');
+    if ($logo) {
+        printf(
+            '<img class="inf-brand-mark inf-brand-mark-img" src="%1$s" width="%2$d" height="%2$d" alt="" loading="lazy" decoding="async">',
+            esc_url($logo),
+            (int) $size
+        );
+        return;
+    }
+
+    echo infinity_brand_mark_svg($key, $size); // phpcs:ignore WordPress.Security.EscapeOutput -- static markup built above
+}

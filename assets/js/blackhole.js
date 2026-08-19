@@ -567,10 +567,22 @@ function infinityBlackhole(canvas, cfg) {
 
   /* ---------- pointer: stir the disk, feed the hole ---------- */
 
+  var host = canvas.parentNode;
   var hostRect = null;
+  var armed = false;
 
   function dropRect() {
     hostRect = null;
+  }
+
+  /* The backdrop only advertises itself as clickable once the pointer
+     is close enough for a click to visibly do something. */
+  function arm(on) {
+    if (on === armed || !host || !host.classList) {
+      return;
+    }
+    armed = on;
+    host.classList.toggle('bh-armed', on);
   }
 
   function smooth(a, b, x) {
@@ -591,6 +603,7 @@ function infinityBlackhole(canvas, cfg) {
         ev.clientX < rc.left || ev.clientX > rc.right ||
         ev.clientY < rc.top || ev.clientY > rc.bottom) {
       hoverTarget = 0;
+      arm(false);
       return;
     }
     /* cfg.center is in the shader's bottom-up normalized space */
@@ -599,7 +612,9 @@ function infinityBlackhole(canvas, cfg) {
     var dy = (ev.clientY - (rc.top + (1 - ctr[1]) * rc.height)) / rc.height * cfg.zoom;
     /* full response over the hole, easing down to a floor across the
        rest of the section so the disk stays alive to the pointer */
-    hoverTarget = Math.max(0.18, 1 - smooth(0.22, 1.25, Math.sqrt(dx * dx + dy * dy)));
+    var near = 1 - smooth(0.22, 1.25, Math.sqrt(dx * dx + dy * dy));
+    hoverTarget = Math.max(0.18, near);
+    arm(near > 0.5);
     if (!raf) {
       raf = requestAnimationFrame(frame);
     }
@@ -614,6 +629,7 @@ function infinityBlackhole(canvas, cfg) {
 
   function onPointerGone() {
     hoverTarget = 0;
+    arm(false);
   }
 
   if (interactive) {
@@ -622,10 +638,10 @@ function infinityBlackhole(canvas, cfg) {
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     document.addEventListener('pointerleave', onPointerGone);
     window.addEventListener('blur', onPointerGone);
-    if (canvas.parentNode) {
+    if (host) {
       /* on the section, not the canvas: the canvas is pointer-events:
          none so the hero's own links keep working untouched */
-      canvas.parentNode.addEventListener('pointerdown', onFeed);
+      host.addEventListener('pointerdown', onFeed);
     }
   }
 

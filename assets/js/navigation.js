@@ -62,7 +62,8 @@
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
-                if (window.innerWidth > 768 && navigation.classList.contains('is-open')) {
+                // matches the drawer breakpoint in style.css section 12.0
+                if (window.innerWidth >= 1024 && navigation.classList.contains('is-open')) {
                     closeMenu();
                 }
             }, 250);

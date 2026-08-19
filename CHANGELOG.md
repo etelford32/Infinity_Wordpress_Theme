@@ -5,6 +5,21 @@ entries are in release order, newest first.
 
 ## 3.1.0
 
+- **Navigation rebuilt around the property CTAs** (`header.php`, `style.css`,
+  `inc/icons.php`, `assets/js/navigation.js`): the header now reads
+  brand | nav | actions, with the CTAs grouped and a Parker's Physics button
+  added beside the Explore the Universe one. Both carry a marketing brand
+  mark, both are physical buttons — a solid lip under the face, a lift on
+  hover and a press down onto the lip on click — and the nav items get a
+  quieter version of the same so they read as pressable without competing.
+  Two overflow bugs fixed on the way: the header spilled past the viewport
+  between 768px and 1024px (the drawer now takes over below 1024px, in step
+  with `navigation.js`), and on phones the site tagline made the branding
+  wider than the screen, pushing the menu button off it entirely
+- **Black hole cursor affordance**: the hero backdrop switches to a
+  crosshair once the pointer is close enough for a click to do something.
+  Scoped to the bare backdrop, so hero copy stays readable and selectable
+  and links still read as links
 - **Interactive black hole** (`assets/js/blackhole.js`): the hero scene now
   answers the pointer. Hovering stirs the plasma — a finer turbulence layer
   rides the filaments, the disc puffs up, doppler beaming hardens and

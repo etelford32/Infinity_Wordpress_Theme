@@ -36,6 +36,11 @@ React frontend for running physics simulations.
 - 🌗 **Four visual modes** — Dark Cosmic (default), Light Playful, Science
   Mode light/dark — plus automatic light/dark switching by local clock with a
   manual toggle in the header (`assets/js/theme-toggle.js`)
+- 🎛️ **Property CTAs in the header** — Parker's Physics and Explore the
+  Universe 2175 as raised buttons with their own brand marks, lifting on
+  hover and pressing down on click (`infinity_brand_mark()` in
+  `inc/icons.php`; set `infinity_parkers_logo` / `infinity_etu_logo` to use
+  real artwork instead of the drawn marks)
 - ✒️ **Custom icon set** — hand-drawn 24×24 stroke icons with a cyan→violet
   gradient and soft glow, replacing stock emoji (`inc/icons.php`,
   `infinity_icon('earth')`)

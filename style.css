@@ -373,12 +373,29 @@ code {
 .site-header .container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   max-width: 1440px;
   min-height: 72px;
   padding-top: 6px;
   padding-bottom: 6px;
+}
+
+/* Visual order lives here, not in the markup: the DOM keeps the menu
+   toggle ahead of the nav drawer so keyboard users reach the toggle
+   before the links it controls. Desktop reads brand | nav | actions;
+   on mobile the drawer leaves the flow, so it reads
+   brand | actions | menu. The nav's auto margin does the pushing that
+   space-between used to, but without stranding the nav mid-header. */
+.site-branding { order: 0; }
+.main-navigation { order: 1; margin-left: auto; }
+.header-actions { order: 2; }
+.mobile-menu-toggle { order: 3; }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
 @media (min-width: 1024px) {
@@ -389,6 +406,7 @@ code {
 
 .site-branding {
   flex-shrink: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -406,6 +424,7 @@ code {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
+  min-width: 0;
 }
 
 .site-title {
@@ -427,6 +446,9 @@ code {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .custom-logo-link {
@@ -553,37 +575,128 @@ code {
   50%      { opacity: 1; transform: scale(1.15); }
 }
 
-/* Steam CTA in the classic (PHP) header */
+/* Property CTAs — physical buttons.
+
+   Each skin only sets four custom properties; the shape, the raise and
+   the press below are shared. The raise is a solid lip under the
+   button (an offset box-shadow with no blur) plus a soft cast shadow,
+   so hover lifts the button off its lip and :active drops it back down
+   onto it. .header-steam-cta is the older single-purpose class, still
+   used in the front page's Steam band — it gets the same treatment. */
+.header-cta,
 .header-steam-cta {
+  --cta-face: linear-gradient(135deg, #1b2838 0%, #2a475e 55%, #1b6ec2 100%);
+  --cta-edge: rgba(102, 192, 244, 0.5);
+  --cta-lip: #0c3a6b;
+  --cta-glow: rgba(27, 110, 194, 0.55);
+
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 10px;
+  gap: 9px;
+  padding: 9px 16px;
+  border-radius: 12px;
   font-size: var(--font-size-sm, 0.875rem);
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
   text-decoration: none;
   white-space: nowrap;
-  background: linear-gradient(135deg, #1b2838 0%, #2a475e 55%, #1b6ec2 100%);
-  border: 1px solid rgba(102, 192, 244, 0.45);
-  box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), filter var(--transition-fast);
+  background: var(--cta-face);
+  border: 1px solid var(--cta-edge);
+  box-shadow:
+    0 4px 0 var(--cta-lip),
+    0 9px 18px -7px var(--cta-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transform: translateY(0);
+  transition:
+    transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    filter 150ms ease;
 }
 
-.header-steam-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(27, 110, 194, 0.55);
-  filter: brightness(1.12);
+.header-cta:hover,
+.header-cta:focus-visible,
+.header-steam-cta:hover,
+.header-steam-cta:focus-visible {
+  /* the global a:hover out-specifies the .header-cta colour, which
+     turned the label accent-purple mid-hover — pin it back to white */
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 var(--cta-lip),
+    0 16px 26px -9px var(--cta-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  filter: brightness(1.1);
 }
 
-@media (max-width: 640px) {
+/* The click: the button travels down onto its own lip and the inner
+   shadow flips, so it reads as pressed rather than merely moved. */
+.header-cta:active,
+.header-steam-cta:active {
+  color: #fff;
+  transform: translateY(4px);
+  box-shadow:
+    0 0 0 var(--cta-lip),
+    0 2px 6px -3px var(--cta-glow),
+    inset 0 2px 7px rgba(0, 0, 0, 0.38);
+  filter: brightness(0.96);
+  transition-duration: 70ms;
+}
+
+.header-cta:focus-visible,
+.header-steam-cta:focus-visible {
+  outline: 2px solid var(--cta-edge);
+  outline-offset: 3px;
+}
+
+.header-cta-parkers {
+  /* Parker's binary palette: blue primary, orange companion */
+  --cta-face: linear-gradient(135deg, #12233f 0%, #1e4173 48%, #c2571a 100%);
+  --cta-edge: rgba(255, 160, 84, 0.5);
+  --cta-lip: #7c3410;
+  --cta-glow: rgba(249, 115, 22, 0.5);
+}
+
+.header-cta .inf-brand-mark,
+.header-steam-cta > svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+.inf-brand-mark-img {
+  border-radius: 5px;
+  object-fit: contain;
+}
+
+/* Just above the drawer breakpoint the horizontal nav is a tight fit:
+   pull the gaps and item padding in so the bar still lands inside the
+   viewport at exactly 1024px. */
+@media (min-width: 1024px) and (max-width: 1200px) {
+  .site-header .container {
+    gap: var(--spacing-md);
+  }
+
+  .nav-menu {
+    gap: 4px;
+  }
+
+  .nav-menu a {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Below the point where nav plus two labelled buttons stop fitting,
+   the CTAs keep their marks and drop their words */
+@media (max-width: 1360px) {
+  .header-cta-label,
   .header-steam-cta-label {
     display: none;
   }
 
+  .header-cta,
   .header-steam-cta {
-    padding: 8px 10px;
+    padding: 9px 11px;
   }
 }
 
@@ -596,7 +709,7 @@ code {
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -606,21 +719,47 @@ code {
   position: relative;
 }
 
+/* Nav items are pressable too, just quieter than the property CTAs:
+   a resting surface and a 2px lip so they read as raised, without
+   competing with the two loud buttons beside them. */
 .nav-menu a {
   display: block;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 9px 15px;
   color: var(--color-text-secondary);
   text-decoration: none;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  transition: color var(--transition-fast), background-color var(--transition-fast);
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--color-text-tertiary) 24%, transparent);
+  background: color-mix(in srgb, var(--color-bg-tertiary) 50%, transparent);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  transform: translateY(0);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
 .nav-menu a:hover,
+.nav-menu a:focus-visible,
 .nav-menu .current-menu-item > a,
 .nav-menu .current_page_item > a {
   color: var(--color-text-primary);
   background-color: var(--color-bg-tertiary);
+  border-color: color-mix(in srgb, var(--color-accent-primary) 55%, transparent);
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent),
+    0 10px 18px -10px color-mix(in srgb, var(--color-accent-primary) 70%, transparent);
+}
+
+.nav-menu a:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent),
+    inset 0 2px 6px rgba(0, 0, 0, 0.28);
+  transition-duration: 70ms;
 }
 
 /* Dropdown Menus */
@@ -652,6 +791,17 @@ code {
 .nav-menu .sub-menu a {
   padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: 0;
+  /* inside a dropdown the raise would fight the panel it sits in */
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.nav-menu .sub-menu a:hover,
+.nav-menu .sub-menu a:active {
+  transform: none;
+  box-shadow: none;
 }
 
 .nav-menu .sub-menu a:hover {
@@ -907,11 +1057,46 @@ code {
 
 /* ==========================================================================
    12.0 Mobile Responsive Navigation
+
+   The drawer takes over below 1024px. It used to switch at 768px, but
+   a spaced-out nav next to two property CTAs genuinely does not fit a
+   tablet — between those widths the header overflowed the viewport and
+   pushed the menu button off it. navigation.js closes the drawer at
+   the same 1024px line.
    ========================================================================== */
 
-@media (max-width: 768px) {
+@media (max-width: 1023.98px) {
   .mobile-menu-toggle {
     display: flex;
+  }
+
+  /* The drawer is out of flow here, so its auto margin no longer
+     pushes anything — the actions group takes over, leaving
+     brand | actions | menu across the bar. */
+  .site-header .container {
+    gap: var(--spacing-sm);
+  }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  /* The tagline is what made the branding wider than the phone, which
+     pushed the CTAs and the menu button clean off the viewport. The
+     site description is still in the document head and the footer. */
+  .site-branding {
+    flex-shrink: 1;
+  }
+
+  .site-tagline {
+    display: none;
+  }
+
+  .site-title {
+    font-size: var(--font-size-lg, 1.125rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .main-navigation {
@@ -944,6 +1129,15 @@ code {
   .nav-menu a {
     padding: var(--spacing-md);
     font-size: var(--font-size-lg);
+  }
+
+  .nav-menu a:hover,
+  .nav-menu a:focus-visible,
+  .nav-menu .current-menu-item > a,
+  .nav-menu .current_page_item > a {
+    /* in a vertical drawer a lift just nudges rows around */
+    transform: none;
+    box-shadow: 0 2px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
   }
 
   /* Mobile dropdowns */
@@ -2024,22 +2218,47 @@ code {
    16.0 Mega CTA — the Explore the Universe button screams
    ========================================================================== */
 
+/* The primary CTA also pulses. The keyframes have to restate the lip
+   and cast shadow, since an animated box-shadow replaces the whole
+   property — and the animation is dropped on hover and press so those
+   states can own the shadow instead. */
+.header-cta-etu,
 .header-steam-cta {
-  position: relative;
   overflow: hidden;
-  padding: 10px 20px;
+  padding: 10px 18px;
   font-size: 0.95rem;
   animation: cta-beacon 2.6s ease-out infinite;
 }
 
-/* Radar pulse ring */
+.header-cta-etu:hover,
+.header-cta-etu:focus-visible,
+.header-cta-etu:active,
+.header-steam-cta:hover,
+.header-steam-cta:focus-visible,
+.header-steam-cta:active {
+  animation: none;
+}
+
 @keyframes cta-beacon {
-  0%   { box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35), 0 0 0 0 rgba(102, 192, 244, 0.65); }
-  60%  { box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35), 0 0 0 12px rgba(102, 192, 244, 0); }
-  100% { box-shadow: 0 2px 12px rgba(27, 110, 194, 0.35), 0 0 0 0 rgba(102, 192, 244, 0); }
+  0% {
+    box-shadow:
+      0 4px 0 var(--cta-lip), 0 9px 18px -7px var(--cta-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 0 rgba(102, 192, 244, 0.6);
+  }
+  60% {
+    box-shadow:
+      0 4px 0 var(--cta-lip), 0 9px 18px -7px var(--cta-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 12px rgba(102, 192, 244, 0);
+  }
+  100% {
+    box-shadow:
+      0 4px 0 var(--cta-lip), 0 9px 18px -7px var(--cta-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 0 rgba(102, 192, 244, 0);
+  }
 }
 
 /* Sheen sweep across the face */
+.header-cta::after,
 .header-steam-cta::after {
   content: '';
   position: absolute;
@@ -2057,7 +2276,9 @@ code {
   85%, 100% { background-position: -50% 0; }
 }
 
-/* Periodic attention wiggle */
+/* Periodic attention wiggle, on the loud button only */
+.header-cta-etu > svg,
+.header-cta-etu > span,
 .header-steam-cta > svg,
 .header-steam-cta > span {
   animation: cta-wiggle 5.2s ease-in-out infinite;
@@ -2070,11 +2291,23 @@ code {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .header-cta,
+  .header-cta::after,
+  .header-cta > svg,
+  .header-cta > span,
   .header-steam-cta,
   .header-steam-cta::after,
   .header-steam-cta > svg,
   .header-steam-cta > span {
     animation: none !important;
+  }
+
+  /* the lift and press stay — they answer a deliberate action — but
+     they stop being animated */
+  .header-cta,
+  .header-steam-cta,
+  .nav-menu a {
+    transition: none;
   }
 }
 
@@ -3101,4 +3334,37 @@ html[data-mode="light"] .theme-toggle-knob {
   .fp-hero-blackhole {
     transition: none;
   }
+}
+
+/* blackhole.js adds .bh-armed to the section while the pointer is
+   close enough to the hole for a click to visibly do something, so the
+   backdrop advertises itself without the whole hero looking clickable.
+   Everything stacked above the canvas keeps its own cursor, so reading
+   and selecting the hero copy is unaffected. */
+.bh-armed {
+  cursor: crosshair;
+}
+
+/* Text and controls layered over the canvas keep their own cursors, so
+   reading and selecting the hero copy is unaffected. Scoping this to
+   the elements themselves rather than their container leaves the
+   crosshair on the bare backdrop between them — which is exactly where
+   a click does nothing but feed the hole. */
+.bh-armed h1,
+.bh-armed h2,
+.bh-armed p,
+.bh-armed span,
+.bh-armed svg,
+.bh-armed img,
+.bh-armed iframe,
+.bh-armed .hero-steam-card {
+  cursor: auto;
+}
+
+/* links and buttons — and whatever they wrap — still read as clickable */
+.bh-armed a,
+.bh-armed a *,
+.bh-armed button,
+.bh-armed button * {
+  cursor: pointer;
 }
