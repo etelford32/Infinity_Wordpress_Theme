@@ -5,6 +5,30 @@ entries are in release order, newest first.
 
 ## 3.1.0
 
+- **Mobile and touch pass** (`style.css`, `assets/js/blackhole.js`): four
+  things were broken on touch and are now fixed. Hover states stuck — a tap
+  synthesises a `:hover` that persists until you tap elsewhere, leaving
+  buttons floating and chips lit; motion now answers `:active` behind
+  `(hover: none)` guards. Dropdown panels were unreachable on a touch tablet,
+  where the only way in was hovering; the submenu toggle now appears on any
+  coarse pointer and opens the panel by tap. The black hole fired its jets on
+  `pointerdown`, so every swipe through the hero triggered a feeding event;
+  it now needs a real tap, judged on travel accumulated during the gesture
+  rather than on a `pointerup`'s own coordinates. And touch targets were
+  under size — the theme toggle was 46x20 and the drawer's submenu toggle
+  32x32, both now at least 44px
+- **Three mobile-nav bugs fixed**: submenus in the drawer were unopenable
+  between 769px and 1024px, because the toggle was still hidden at the old
+  breakpoint after the drawer moved to 1024px; with Sticky Header on, the
+  drawer's own overlay covered the drawer, since a fixed header with a
+  z-index makes a stacking context the nested drawer cannot escape, so every
+  tap landed on the scrim; and drawer rows sized themselves to the longest
+  label instead of the panel, because the header lays `.main-navigation` out
+  as a row and the drawer inherited it
+- **Lighter on phones**: the hero's spark swarm drops from 720 points to 170
+  below 620px, and backdrop blur — which re-samples everything behind it on
+  every frame it moves — is dropped from the sticky header and dropdown
+  panels at phone widths, keeping the translucency
 - **Sticky header collapses on scroll** (`style.css`,
   `assets/js/navigation.js`): with Sticky Header enabled, the two-row header
   compacts from 149px to 90px past the first inch — the tagline folds away,

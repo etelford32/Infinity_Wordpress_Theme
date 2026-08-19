@@ -595,6 +595,13 @@ function infinityBlackhole(canvas, cfg) {
      The rect is cached because pointermove fires far more often than
      the layout actually moves. */
   function onPointerMove(ev) {
+    /* Proximity is a mouse idea. A finger only generates pointermove
+       while it is down — that is a scroll, not a hover — and there is
+       no pointerleave to end it, so the disk would stir on every swipe
+       and stay stirred afterwards. */
+    if (ev.pointerType === 'touch' || ev.pointerType === 'pen') {
+      return;
+    }
     if (!hostRect) {
       hostRect = canvas.getBoundingClientRect();
     }
@@ -620,11 +627,64 @@ function infinityBlackhole(canvas, cfg) {
     }
   }
 
-  function onFeed() {
+  function feed() {
     feedCur = 1;
     if (!raf) {
       raf = requestAnimationFrame(frame);
     }
+  }
+
+  /* pointerdown fires the moment a finger lands, which is also the
+     moment a scroll starts — feeding the hole on every swipe through
+     the hero. A mouse press is unambiguous and fires immediately; a
+     touch has to prove it was a tap.
+
+     Travel is accumulated from the moves themselves rather than
+     compared between the down and up points. Two reasons: a drag that
+     wanders away and comes back would read as a tap on the endpoints
+     alone, and a pointerup's own coordinates are not something to lean
+     on — they vary with how the gesture ended. Timing likewise runs off
+     performance.now() rather than event.timeStamp, whose origin is not
+     consistent across browsers. */
+  var TAP_SLOP = 12;
+  var TAP_MS = 450;
+  var tapX = 0;
+  var tapY = 0;
+  var tapAt = 0;
+  var tapMoved = 0;
+  var tapId = -1;
+
+  function onPointerDown(ev) {
+    if (ev.pointerType === 'mouse') {
+      feed();
+      return;
+    }
+    tapId = ev.pointerId;
+    tapX = ev.clientX;
+    tapY = ev.clientY;
+    tapAt = performance.now();
+    tapMoved = 0;
+  }
+
+  function onTapMove(ev) {
+    if (ev.pointerId !== tapId) {
+      return;
+    }
+    tapMoved = Math.max(tapMoved, Math.abs(ev.clientX - tapX), Math.abs(ev.clientY - tapY));
+  }
+
+  function onPointerUp(ev) {
+    if (ev.pointerId !== tapId) {
+      return;
+    }
+    tapId = -1;
+    if (performance.now() - tapAt <= TAP_MS && tapMoved <= TAP_SLOP) {
+      feed();
+    }
+  }
+
+  function onPointerCancel() {
+    tapId = -1;
   }
 
   function onPointerGone() {
@@ -641,7 +701,10 @@ function infinityBlackhole(canvas, cfg) {
     if (host) {
       /* on the section, not the canvas: the canvas is pointer-events:
          none so the hero's own links keep working untouched */
-      host.addEventListener('pointerdown', onFeed);
+      host.addEventListener('pointerdown', onPointerDown, { passive: true });
+      host.addEventListener('pointermove', onTapMove, { passive: true });
+      host.addEventListener('pointerup', onPointerUp, { passive: true });
+      host.addEventListener('pointercancel', onPointerCancel, { passive: true });
     }
   }
 
@@ -652,12 +715,19 @@ function infinityBlackhole(canvas, cfg) {
 (function () {
   var hero = document.getElementById('fp-blackhole');
   if (hero) {
+    /* The swarm is the expensive half of the scene: every particle is
+       a point per tail segment, every frame. A phone is drawing this
+       on a fraction of the pixels and a fraction of the power budget,
+       so it gets a proportionally smaller one — at that size the
+       difference is invisible, and it is the difference between the
+       hero costing a phone something and costing it nothing. */
+    var small = Math.min(window.innerWidth, window.innerHeight) < 620;
     infinityBlackhole(hero, {
       zoom: 1.55,
       variant: 0,
       followTheme: true,
       interactive: true,
-      particles: { n: 90, tail: 8 },
+      particles: small ? { n: 34, tail: 5 } : { n: 90, tail: 8 },
       center: function (w) { return [w > 900 ? 0.195 : 0.5, 0.42]; }
     });
   }
@@ -670,7 +740,9 @@ function infinityBlackhole(canvas, cfg) {
     infinityBlackhole(pp, {
       zoom: 1.3,
       variant: 1,
-      particles: { n: 56, tail: 7 },
+      particles: (Math.min(window.innerWidth, window.innerHeight) < 620)
+        ? { n: 22, tail: 5 }
+        : { n: 56, tail: 7 },
       center: function () { return [0.5, 0.5]; }
     });
   }
