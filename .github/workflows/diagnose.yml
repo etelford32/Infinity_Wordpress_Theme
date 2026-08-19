@@ -1,0 +1,128 @@
+# Where did the theme actually go?
+#
+# The deploy succeeds — files transfer, caches flush — but the homepage
+# does not serve the version that was just deployed. That means the
+# files are landing somewhere the site is not reading from, and the
+# only way to know where is to ask the site and the server directly.
+#
+# Run this from Actions -> Diagnose deploy target -> Run workflow.
+# It answers three questions:
+#
+#   1. Which theme folder does the LIVE SITE load its assets from?
+#      Whatever appears in its asset URLs is, by definition, the
+#      active theme's directory name.
+#   2. What is actually IN wp-content/themes on the server, and which
+#      theme does WordPress consider active?
+#   3. Did this deploy's files land where REMOTE_PATH pointed?
+#
+# Purely read-only — it lists and greps, it never writes.
+
+name: Diagnose deploy target
+
+on:
+  workflow_dispatch:
+    inputs:
+      install:
+        description: "WP Engine install name"
+        required: false
+        default: etelford
+        type: string
+
+jobs:
+  diagnose:
+    name: Diagnose
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: "https://elliottelford.com"
+      INSTALL: ${{ inputs.install || 'etelford' }}
+    steps:
+      - name: Ask the live site which theme it loads
+        run: |
+          set -uo pipefail
+          code=$(curl -sS -o page.html -w '%{http_code}' -A 'deploy-diagnostics' "$SITE_URL")
+          echo "HTTP $code, $(wc -c < page.html) bytes"
+
+          echo ""
+          echo "--- theme directories referenced in the HTML ---"
+          grep -o 'wp-content/themes/[A-Za-z0-9_.-]*' page.html | sort -u | tee themes-seen.txt
+          [ -s themes-seen.txt ] || echo "(none — assets may be concatenated by an optimisation plugin)"
+
+          echo ""
+          echo "--- every ?ver= value on the page ---"
+          grep -o 'ver=[0-9][0-9A-Za-z._-]*' page.html | sort | uniq -c | sort -rn | head -15
+
+          echo ""
+          echo "--- does anything from this theme appear? ---"
+          for marker in 'header-cta' 'nav-item-icon' 'bh-armed' 'fp-blackhole' 'infinity'; do
+            printf '  %-16s %s\n' "$marker" "$(grep -c "$marker" page.html) hit(s)"
+          done
+
+          {
+            echo "## What the live site loads"
+            echo ""
+            echo "HTTP \`$code\`"
+            echo ""
+            echo "Theme directories in its asset URLs:"
+            echo '```'
+            cat themes-seen.txt 2>/dev/null || echo "(none found)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Ask the server what is on disk
+        env:
+          KEY: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
+        run: |
+          set -uo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$INSTALL.ssh.wpengine.net" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # WP Engine's SSH gateway takes the install name as the user;
+          # the deploy action uses a wpe_gha+ prefixed variant. Try both
+          # rather than guess, and report which one answered.
+          USER_OK=""
+          for u in "$INSTALL" "wpe_gha+$INSTALL"; do
+            if ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new \
+                 -o ConnectTimeout=20 -o BatchMode=yes \
+                 "$u@$INSTALL.ssh.wpengine.net" "echo ok" 2>/dev/null | grep -q ok; then
+              USER_OK="$u"
+              break
+            fi
+            echo "ssh user '$u' did not authenticate"
+          done
+
+          if [ -z "$USER_OK" ]; then
+            echo "::warning::Could not open an SSH session for inspection. The site output above is still the important half."
+            echo "### Server inspection unavailable (SSH session refused)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "connected as $USER_OK"
+
+          run() { ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new -o BatchMode=yes \
+                    "$USER_OK@$INSTALL.ssh.wpengine.net" "cd sites/$INSTALL && $1" 2>&1; }
+
+          echo ""
+          echo "--- wp-content/themes ---"
+          run "ls -la wp-content/themes/" | tee themes-ls.txt
+
+          echo ""
+          echo "--- what WordPress thinks is active ---"
+          run "wp theme list --skip-plugins --skip-themes" | tee theme-list.txt
+
+          echo ""
+          echo "--- did our files land in wp-content/themes/infinity? ---"
+          run "ls -la wp-content/themes/infinity/style.css wp-content/themes/infinity/assets/img/parkers-physics-logo.png 2>&1 | head -5; echo '--- version header ---'; head -8 wp-content/themes/infinity/style.css 2>&1 | grep -i version"
+
+          {
+            echo ""
+            echo "## What is on the server"
+            echo ""
+            echo '```'
+            cat themes-ls.txt
+            echo '```'
+            echo ""
+            echo '```'
+            cat theme-list.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
