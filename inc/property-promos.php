@@ -47,6 +47,16 @@ function infinity_property_logo_url($key, $site_url) {
     if ($custom) {
         return $custom;
     }
+
+    // Real artwork bundled with the theme beats a 128px favicon pulled
+    // off a third-party resolver on every page view
+    $bundled = array(
+        'parkers' => '/assets/img/parkers-physics-logo.png',
+    );
+    if (isset($bundled[$key])) {
+        return INFINITY_URI . $bundled[$key];
+    }
+
     $host = wp_parse_url($site_url, PHP_URL_HOST);
     return $host ? 'https://www.google.com/s2/favicons?domain=' . rawurlencode($host) . '&sz=128' : '';
 }

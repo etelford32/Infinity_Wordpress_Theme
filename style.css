@@ -373,7 +373,9 @@ code {
 .site-header .container {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  column-gap: var(--spacing-lg);
+  row-gap: 0;
   max-width: 1440px;
   min-height: 72px;
   padding-top: 6px;
@@ -382,14 +384,35 @@ code {
 
 /* Visual order lives here, not in the markup: the DOM keeps the menu
    toggle ahead of the nav drawer so keyboard users reach the toggle
-   before the links it controls. Desktop reads brand | nav | actions;
-   on mobile the drawer leaves the flow, so it reads
-   brand | actions | menu. The nav's auto margin does the pushing that
-   space-between used to, but without stranding the nav mid-header. */
+   before the links it controls. */
 .site-branding { order: 0; }
-.main-navigation { order: 1; margin-left: auto; }
-.header-actions { order: 2; }
+.header-actions { order: 1; margin-left: auto; }
+.main-navigation { order: 2; }
 .mobile-menu-toggle { order: 3; }
+
+/* Nav gets its own row on desktop.
+
+   Measured, not guessed: five pillar labels carrying an icon, a word
+   or three and a caret come to ~900px. Branding is ~430 and the two
+   labelled CTAs ~400. That is ~1750px of content, so on a 1440 laptop
+   a single row cannot hold all three — something has to be cut, and
+   the icons and labels are the things that were asked for. A full
+   row for the nav fits it at 1024 with room to spare. */
+@media (min-width: 1024px) {
+  .main-navigation {
+    flex-basis: 100%;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--color-bg-tertiary) 75%, transparent);
+  }
+
+  /* a longer menu than this one wraps to a second line rather than
+     pushing the header off the side of the screen */
+  .nav-menu {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}
 
 .header-actions {
   display: flex;
@@ -668,27 +691,10 @@ code {
   object-fit: contain;
 }
 
-/* Just above the drawer breakpoint the horizontal nav is a tight fit:
-   pull the gaps and item padding in so the bar still lands inside the
-   viewport at exactly 1024px. */
-@media (min-width: 1024px) and (max-width: 1200px) {
-  .site-header .container {
-    gap: var(--spacing-md);
-  }
-
-  .nav-menu {
-    gap: 4px;
-  }
-
-  .nav-menu a {
-    padding: 8px 10px;
-    font-size: 0.9rem;
-  }
-}
-
-/* Below the point where nav plus two labelled buttons stop fitting,
-   the CTAs keep their marks and drop their words */
-@media (max-width: 1360px) {
+/* In the single-row mobile bar the CTAs keep their marks and drop
+   their words; on desktop the nav has its own row, so both buttons
+   stay labelled all the way down to the drawer breakpoint */
+@media (max-width: 1023.98px) {
   .header-cta-label,
   .header-steam-cta-label {
     display: none;
@@ -723,8 +729,10 @@ code {
    a resting surface and a 2px lip so they read as raised, without
    competing with the two loud buttons beside them. */
 .nav-menu a {
-  display: block;
-  padding: 9px 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
   color: var(--color-text-secondary);
   text-decoration: none;
   font-weight: 600;
@@ -762,50 +770,221 @@ code {
   transition-duration: 70ms;
 }
 
-/* Dropdown Menus */
+/* Icon and caret inside a nav item */
+.nav-item-icon {
+  display: inline-flex;
+  line-height: 0;
+  opacity: 0.85;
+  transition: opacity var(--transition-fast), transform 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.nav-menu a:hover .nav-item-icon,
+.nav-menu a:focus-visible .nav-item-icon {
+  opacity: 1;
+  transform: scale(1.14) rotate(-8deg);
+}
+
+.nav-item-label {
+  white-space: nowrap;
+}
+
+.nav-caret {
+  display: inline-flex;
+  line-height: 0;
+  margin-left: -1px;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast), transform 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.nav-menu > li:hover > a .nav-caret,
+.nav-menu > li:focus-within > a .nav-caret {
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+/* ---- Dropdown panels ----
+
+   The trigger is a chip that keeps its lip until it opens a panel;
+   then it sits down flat and squares off its bottom corners so chip
+   and panel read as one surface. The panel springs down from the
+   trigger, its rows stagger in behind it, and a highlight sweeps the
+   face once on open. The pointer never crosses dead space on the way
+   down: the gap between chip and panel is the panel's own padding, so
+   it stays inside the hovered <li>. */
+
+.nav-menu > li.menu-item-has-children:hover > a,
+.nav-menu > li.menu-item-has-children:focus-within > a {
+  transform: translateY(0);
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  box-shadow: 0 0 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+}
+
 .nav-menu .sub-menu {
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 200px;
-  padding: var(--spacing-sm) 0;
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-bg-tertiary);
+  min-width: 232px;
+  /* padding, not margin: a margin here would be dead space between the
+     chip and the panel and the hover would drop on the way down */
+  padding: 14px 8px 8px;
+  background-color: color-mix(in srgb, var(--color-bg-secondary) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 34px -12px color-mix(in srgb, var(--color-accent-primary) 75%, transparent);
+  backdrop-filter: blur(10px);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px);
-  transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
+  transform: translateY(-10px) scale(0.97);
+  transform-origin: top left;
+  filter: blur(5px);
   list-style: none;
   z-index: var(--z-dropdown);
+  transition:
+    opacity 190ms ease,
+    filter 190ms ease,
+    transform 280ms cubic-bezier(0.16, 1.1, 0.3, 1.12),
+    visibility 0s linear 280ms;
 }
 
-.nav-menu li:hover > .sub-menu,
-.nav-menu li:focus-within > .sub-menu {
+/* The notch that ties the panel to the chip above it */
+.nav-menu .sub-menu::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 22px;
+  width: 11px;
+  height: 11px;
+  background-color: inherit;
+  border-left: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  transform: rotate(45deg);
+  border-top-left-radius: 3px;
+}
+
+/* One-shot highlight sweep, started by the open state matching */
+.nav-menu .sub-menu::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(115deg, transparent 34%, color-mix(in srgb, var(--color-accent-primary) 24%, transparent) 50%, transparent 66%);
+  background-size: 260% 100%;
+  background-position: 130% 0;
+}
+
+.nav-menu > li:hover > .sub-menu,
+.nav-menu > li:focus-within > .sub-menu {
   opacity: 1;
   visibility: visible;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  transition-delay: 0s;
+}
+
+.nav-menu > li:hover > .sub-menu::after,
+.nav-menu > li:focus-within > .sub-menu::after {
+  animation: nav-panel-sweep 720ms ease-out;
+}
+
+@keyframes nav-panel-sweep {
+  0%   { opacity: 0; background-position: 130% 0; }
+  22%  { opacity: 1; }
+  100% { opacity: 0; background-position: -40% 0; }
+}
+
+/* Rows arrive behind the panel, one after another */
+.nav-menu .sub-menu > li {
+  opacity: 0;
+  transform: translateY(-7px);
+  transition:
+    opacity 200ms ease,
+    transform 260ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.nav-menu > li:hover > .sub-menu > li,
+.nav-menu > li:focus-within > .sub-menu > li {
+  opacity: 1;
   transform: translateY(0);
 }
 
+.nav-menu > li:hover > .sub-menu > li:nth-child(1),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(1) { transition-delay: 70ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(2),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(2) { transition-delay: 110ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(3),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(3) { transition-delay: 150ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(4),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(4) { transition-delay: 190ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(5),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(5) { transition-delay: 230ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(6),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(6) { transition-delay: 265ms; }
+.nav-menu > li:hover > .sub-menu > li:nth-child(n + 7),
+.nav-menu > li:focus-within > .sub-menu > li:nth-child(n + 7) { transition-delay: 300ms; }
+
+/* The last item's panel would hang off the right edge */
+.nav-menu > li:last-child > .sub-menu {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
+}
+
+.nav-menu > li:last-child > .sub-menu::before {
+  left: auto;
+  right: 22px;
+}
+
 .nav-menu .sub-menu a {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: 0;
+  position: relative;
+  padding: 9px 12px 9px 17px;
+  border-radius: 8px;
+  font-weight: 500;
   /* inside a dropdown the raise would fight the panel it sits in */
   border-color: transparent;
   background: transparent;
   box-shadow: none;
   transform: none;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform 200ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* A bar that grows out of the row's left edge on hover */
+.nav-menu .sub-menu a::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 2px;
+  background: var(--color-accent-primary);
+  transform: translateY(-50%);
+  transition: height 200ms cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
 .nav-menu .sub-menu a:hover,
-.nav-menu .sub-menu a:active {
-  transform: none;
+.nav-menu .sub-menu a:focus-visible {
+  color: var(--color-text-primary);
+  background-color: color-mix(in srgb, var(--color-accent-primary) 13%, transparent);
+  transform: translateX(3px);
   box-shadow: none;
 }
 
-.nav-menu .sub-menu a:hover {
-  background-color: var(--color-bg-tertiary);
+.nav-menu .sub-menu a:hover::before,
+.nav-menu .sub-menu a:focus-visible::before {
+  height: 56%;
+}
+
+.nav-menu .sub-menu a:active {
+  transform: translateX(3px) scale(0.985);
+  box-shadow: none;
 }
 
 /* Mobile Menu Toggle */
@@ -1140,7 +1319,8 @@ code {
     box-shadow: 0 2px 0 color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
   }
 
-  /* Mobile dropdowns */
+  /* Mobile dropdowns: the drawer opens them by class, so none of the
+     desktop panel choreography applies here */
   .nav-menu .sub-menu {
     position: static;
     min-width: 0;
@@ -1150,10 +1330,35 @@ code {
     border: none;
     border-radius: 0;
     box-shadow: none;
+    backdrop-filter: none;
     opacity: 1;
     visibility: visible;
     transform: none;
+    filter: none;
+    transition: none;
     display: none;
+  }
+
+  .nav-menu .sub-menu::before,
+  .nav-menu .sub-menu::after {
+    display: none;
+  }
+
+  .nav-menu .sub-menu > li {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  /* navigation.js puts a real toggle button beside the link in the
+     drawer — the in-link caret would be a second chevron */
+  .nav-caret {
+    display: none;
+  }
+
+  .nav-menu .sub-menu a:hover,
+  .nav-menu .sub-menu a:focus-visible {
+    transform: none;
   }
 
   .nav-menu .submenu-open > .sub-menu {
@@ -2308,6 +2513,25 @@ code {
   .header-steam-cta,
   .nav-menu a {
     transition: none;
+  }
+
+  /* dropdowns still open and close, without the spring, the stagger
+     or the sweep */
+  .nav-menu .sub-menu,
+  .nav-menu .sub-menu > li,
+  .nav-menu .sub-menu a,
+  .nav-item-icon,
+  .nav-caret {
+    transition: none !important;
+    transition-delay: 0s !important;
+  }
+
+  .nav-menu .sub-menu {
+    filter: none;
+  }
+
+  .nav-menu .sub-menu::after {
+    animation: none !important;
   }
 }
 

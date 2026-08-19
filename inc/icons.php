@@ -74,13 +74,12 @@ function infinity_is_icon_token($token) {
  * above: each property owns its palette, so they carry their own
  * gradients rather than the shared cyan→violet one.
  *
- * They are theme-drawn stand-ins built from each property's existing
- * palette in this repo — Parker's Physics as the blue/orange binary
- * (the same split the `#pp-blackhole` variant shader uses), Explore
- * the Universe 2175 as a ringed world under a plotted transfer. To
- * use the real artwork instead, set the matching logo option
- * (`infinity_parkers_logo` / `infinity_etu_logo`) to an image URL and
- * infinity_brand_mark() will render that image in its place.
+ * Parker's Physics is the real mark, transcribed to vector in that
+ * project's own repo. Explore the Universe 2175 is still a theme-drawn
+ * stand-in — a ringed world under a plotted transfer — built from the
+ * palette this repo already uses for it. To override either, set the
+ * matching logo option (`infinity_parkers_logo` / `infinity_etu_logo`)
+ * to an image URL and infinity_brand_mark() renders that instead.
  *
  * @since 3.1.0
  */
@@ -97,19 +96,32 @@ function infinity_brand_mark_svg($key, $size = 20) {
     );
 
     if ('parkers' === $key) {
-        // Binary system: two bodies sharing one inclined orbit around a
-        // common barycentre — blue primary, orange companion.
+        /*
+         * The real Parkers Physics mark, transcribed to vector in that
+         * project's own repo (etelford32/ParkersPhysics,
+         * icons/logo-mark.svg) from ParkersPhysics_logo2.jpg: a "P"
+         * whose bowl is two tilted orbital rings crossing a vertical
+         * stem, cool over hot. Two notes carried over from the source,
+         * both of which look like cleanups and are not:
+         *
+         *   1. Flat strokes, not gradients. A vertical line has a
+         *      zero-width bounding box, so a bbox-relative gradient is
+         *      degenerate and the stem paints nothing at all.
+         *   2. The stem is drawn LAST, over the rings. Drawn first the
+         *      rings close over the junction and the whole thing reads
+         *      as an "8" instead of a P.
+         *
+         * Rebased from the source's 64x64 viewBox onto the 24x24 this
+         * icon set uses (x 0.375).
+         */
         return $open
-            . '<defs>'
-            . '<linearGradient id="' . esc_attr($gid) . '-a" x1="2" y1="4" x2="22" y2="20" gradientUnits="userSpaceOnUse">'
-            . '<stop offset="0" stop-color="#7cc4ff"/><stop offset="1" stop-color="#3b82f6"/></linearGradient>'
-            . '<linearGradient id="' . esc_attr($gid) . '-b" x1="4" y1="20" x2="20" y2="6" gradientUnits="userSpaceOnUse">'
-            . '<stop offset="0" stop-color="#ffb765"/><stop offset="1" stop-color="#f97316"/></linearGradient>'
-            . '</defs>'
-            . '<ellipse cx="12" cy="12" rx="10" ry="5.6" transform="rotate(-24 12 12)" stroke="url(#' . esc_attr($gid) . '-a)" stroke-width="1.5" opacity="0.75"/>'
-            . '<circle cx="12" cy="12" r="1" fill="currentColor" opacity="0.55"/>'
-            . '<circle cx="4.6" cy="15.6" r="3.1" fill="url(#' . esc_attr($gid) . '-a)"/>'
-            . '<circle cx="19.4" cy="8.4" r="2.2" fill="url(#' . esc_attr($gid) . '-b)"/>'
+            . '<g fill="none" stroke-linecap="round">'
+            . '<ellipse cx="13.5" cy="9" rx="6.19" ry="3.38" stroke="#22b8ff" stroke-width="2.1" transform="rotate(-20 13.5 9)"/>'
+            . '<ellipse cx="12.56" cy="15.75" rx="5.06" ry="2.78" stroke="#ff8a1f" stroke-width="2.1" transform="rotate(-20 12.56 15.75)"/>'
+            . '<line x1="5.63" y1="4.13" x2="5.63" y2="12.38" stroke="#22b8ff" stroke-width="2.1"/>'
+            . '<line x1="5.63" y1="12" x2="5.63" y2="20.25" stroke="#ff8a1f" stroke-width="2.1"/>'
+            . '</g>'
+            . '<circle cx="5.63" cy="12.19" r="1.46" fill="#fff"/>'
             . '</svg>';
     }
 
@@ -143,4 +155,69 @@ function infinity_brand_mark($key, $size = 20) {
     }
 
     echo infinity_brand_mark_svg($key, $size); // phpcs:ignore WordPress.Security.EscapeOutput -- static markup built above
+}
+
+/**
+ * Icon for a primary-menu item, matched on its label and slug.
+ *
+ * Ordered longest-intent-first: the first keyword that appears wins,
+ * so "space simulations" picks up `orbit` before the generic fallback.
+ * Filterable via `infinity_nav_icon_map` (keyword => icon name) and
+ * `infinity_nav_icon` (final answer, per item).
+ *
+ * @since 3.1.0
+ */
+function infinity_nav_icon_for($item) {
+    $map = apply_filters('infinity_nav_icon_map', array(
+        'anatomy'     => 'flask',
+        'health'      => 'flask',
+        'nutrition'   => 'flask',
+        'science'     => 'flask',
+        'simulation'  => 'orbit',
+        'space'       => 'orbit',
+        'astro'       => 'orbit',
+        'physics'     => 'orbit',
+        'solar'       => 'sun',
+        'aurora'      => 'aurora',
+        'weather'     => 'aurora',
+        'mind'        => 'spark',
+        'philosophy'  => 'spark',
+        'psychology'  => 'spark',
+        'travel'      => 'earth',
+        'experience'  => 'earth',
+        'game'        => 'rocket',
+        'universe'    => 'rocket',
+        'explore'     => 'rocket',
+        'landscap'    => 'leaf',
+        'garden'      => 'leaf',
+        'yard'        => 'tree',
+        'hardscape'   => 'wall',
+        'blog'        => 'clipboard',
+        'article'     => 'clipboard',
+        'writing'     => 'clipboard',
+        'journal'     => 'clipboard',
+        'roadmap'     => 'planner',
+        'plan'        => 'planner',
+        'design'      => 'palette',
+        'art'         => 'palette',
+        'contact'     => 'satellite',
+        'about'       => 'ship',
+        'home'        => 'earth',
+    ));
+
+    $haystack = strtolower(
+        (isset($item->title) ? $item->title : '') . ' ' .
+        (isset($item->object_slug) ? $item->object_slug : '') . ' ' .
+        (isset($item->url) ? $item->url : '')
+    );
+
+    $icon = 'spark';
+    foreach ($map as $needle => $name) {
+        if (false !== strpos($haystack, $needle)) {
+            $icon = $name;
+            break;
+        }
+    }
+
+    return apply_filters('infinity_nav_icon', $icon, $item);
 }

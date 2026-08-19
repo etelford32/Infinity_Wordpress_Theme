@@ -922,6 +922,44 @@ function infinity_enqueue_navigation_scripts() {
 add_action('wp_enqueue_scripts', 'infinity_enqueue_navigation_scripts');
 
 /**
+ * Dress primary-menu items: an icon ahead of the label, and on items
+ * that have a submenu a caret marking them as a dropdown trigger.
+ *
+ * Uses the nav_menu_item_title filter rather than a custom walker, so
+ * the extra markup lands inside the <a> without reimplementing
+ * wp_nav_menu's output — and every other menu (the footer's) is left
+ * alone by the theme_location check.
+ *
+ * @since 3.1.0
+ */
+function infinity_nav_item_title($title, $item, $args, $depth) {
+    if ($depth > 0 || empty($args->theme_location) || 'primary' !== $args->theme_location) {
+        return $title;
+    }
+
+    $classes = (isset($item->classes) && is_array($item->classes)) ? $item->classes : array();
+
+    ob_start();
+    infinity_icon(infinity_nav_icon_for($item), 17);
+    $icon = ob_get_clean();
+
+    // The caret only appears where a panel actually opens; a chevron on
+    // an item with nothing under it is a promise the nav cannot keep.
+    $caret = '';
+    if (in_array('menu-item-has-children', $classes, true)) {
+        $caret = '<span class="nav-caret" aria-hidden="true">'
+            . '<svg width="10" height="10" viewBox="0 0 12 12" fill="none">'
+            . '<path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
+            . '</svg></span>';
+    }
+
+    return '<span class="nav-item-icon" aria-hidden="true">' . $icon . '</span>'
+        . '<span class="nav-item-label">' . $title . '</span>'
+        . $caret;
+}
+add_filter('nav_menu_item_title', 'infinity_nav_item_title', 10, 4);
+
+/**
  * Pick light or dark before first paint. A stored visitor preference
  * wins; otherwise the visitor's clock decides (07:00-18:59 = light).
  * The Customizer theme mode still chooses WHICH light and dark skins

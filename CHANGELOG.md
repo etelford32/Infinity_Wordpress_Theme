@@ -5,6 +5,29 @@ entries are in release order, newest first.
 
 ## 3.1.0
 
+- **Nav items are dropdown triggers** (`functions.php`, `inc/icons.php`,
+  `style.css`): every primary-menu item now carries an icon matched to its
+  label, and items with children carry a caret. Panels spring down from
+  their trigger with a notch tying the two together, rows stagger in behind
+  the panel, a highlight sweeps the face once on open, and the trigger sits
+  down flat and squares its bottom corners so chip and panel read as one
+  surface. Rows grow an accent bar and slide on hover. The gap between chip
+  and panel is the panel's own padding, so the pointer never crosses dead
+  space on the way down. Items with no children get no caret — a chevron
+  over nothing is a promise the nav can't keep
+- **Header goes two rows on desktop**: measured, not guessed — five pillar
+  labels with icons and carets come to ~900px, branding ~430 and the two
+  labelled CTAs ~400, so ~1750px of content cannot share one row on a 1440
+  laptop. The nav now owns a full row, which fits it at 1024px with room to
+  spare, and both CTAs keep their labels across the whole desktop range
+  instead of collapsing at 1360px. A longer menu wraps to a second line
+  rather than pushing the header off screen
+- **Real Parker's Physics logo** (`inc/icons.php`,
+  `inc/property-promos.php`, `assets/img/parkers-physics-logo.png`): the
+  drawn stand-in is replaced by the actual mark — the vector transcription
+  from that project's own repo for the inline nav icon, and its 256px raster
+  bundled for the promo card, which also drops the per-pageview call to
+  Google's favicon resolver
 - **Navigation rebuilt around the property CTAs** (`header.php`, `style.css`,
   `inc/icons.php`, `assets/js/navigation.js`): the header now reads
   brand | nav | actions, with the CTAs grouped and a Parker's Physics button
