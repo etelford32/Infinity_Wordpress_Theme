@@ -435,10 +435,10 @@ jobs:
             esac
           }
 
-          # 'header-cta' occurs 30 times in this release's style.css and
-          # zero times in any earlier one; 'u_feed' is the shader uniform
-          # the interactive black hole added. Neither can appear in a
-          # bundle built before this work.
+          # These markers must be new in the release being deployed, or a
+          # hit proves only that the bundle is not ancient. Update them
+          # when they stop being new: 'subscribe-points' arrived with the
+          # 3.3.0 sign-up page, 'u_feed' with the interactive black hole.
           css_hit=no; css_n=0; css_read=0
           echo "=== stylesheets the page loads ==="
           while IFS= read -r u; do
@@ -448,11 +448,11 @@ jobs:
             # was actually read separately from what was listed.
             curl -sS --max-time 30 -o part.css "$full" || { echo "  unreachable: $full"; continue; }
             css_read=$((css_read + 1))
-            if grep -q 'header-cta' part.css; then
+            if grep -q 'subscribe-points' part.css; then
               css_hit=yes
               echo "  contains this release's rules: $full"
             else
-              echo "  no 3.1.0 rules: $full"
+              echo "  no $VERSION rules: $full"
             fi
           done < css-urls.txt
 
@@ -477,6 +477,51 @@ jobs:
           echo "js_hit=$js_hit" >> "$GITHUB_OUTPUT"
           echo "css_n=$css_n" >> "$GITHUB_OUTPUT"
           echo "js_n=$js_n" >> "$GITHUB_OUTPUT"
+
+      # A version number says the files moved. It says nothing about
+      # whether the thing this release was for actually works. So ask the
+      # page that changed.
+      - name: Does the sign-up page look right?
+        id: signup
+        continue-on-error: true
+        run: |
+          set +e
+          url="$SITE_URL/sign-up/?cb=$GITHUB_RUN_ID"
+          code=$(curl -sS --max-time 30 -o signup.html -w '%{http_code}' -A 'deploy-verify' "$url")
+          echo "HTTP $code  $SITE_URL/sign-up/"
+
+          bands=$(grep -o 'class="subscribe-band"' signup.html 2>/dev/null | wc -l)
+          points=$(grep -c 'subscribe-points' signup.html 2>/dev/null)
+          anchors=$(grep -o 'id="subscribe"' signup.html 2>/dev/null | wc -l)
+          echo "  subscribe bands on the page: $bands   (must be 1 — it was 2)"
+          echo "  'what you get' list:         $points"
+          echo "  #subscribe anchors:          $anchors   (must be 1)"
+
+          # The REST namespace index lists the registered routes without
+          # invoking any of them. POSTing /subscribe here would create a
+          # real subscriber and send real mail, which is not a test.
+          curl -sS --max-time 30 -o routes.json "$SITE_URL/wp-json/infinity/v1" || true
+          for r in subscribe confirm unsubscribe; do
+            printf '  route /%-12s %s\n' "$r" "$(grep -c "infinity/v1/$r" routes.json 2>/dev/null | head -1)"
+          done
+
+          # Straight from the theme's own stylesheet, cache-busted: this
+          # one is about a rule that was missing entirely, so the question
+          # is whether it is there at all.
+          curl -sS --max-time 30 -o sheet.css "$SITE_URL/wp-content/themes/$SLUG/style.css?cb=$GITHUB_RUN_ID" || true
+          printf '  .screen-reader-text defined: %s\n' "$(grep -c 'screen-reader-text' sheet.css 2>/dev/null)"
+
+          {
+            echo ""
+            echo "### Sign-up page"
+            echo ""
+            echo "| check | result |"
+            echo "|---|---|"
+            echo "| HTTP | \`$code\` |"
+            echo "| subscribe bands (want 1) | $bands |"
+            echo "| #subscribe anchors (want 1) | $anchors |"
+            echo "| \`what you get\` list | $points |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verdict
         env:

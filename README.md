@@ -132,6 +132,36 @@ installed, check **Appearance → Themes** for which one is actually active
 before editing files over SFTP. The deploy workflow asks WordPress the same
 question and ships into whichever directory is live.
 
+### Email delivery
+
+Subscriber email (confirmation, welcome, new-post notifications) is sent
+through [Resend](https://resend.com). Without a key configured, WordPress
+falls back to PHP `mail()`, which on most hosts leaves but lands in spam.
+
+1. Verify your sending domain on Resend.
+2. Add the key to `wp-config.php`:
+
+```php
+define('INFINITY_RESEND_API_KEY', 're_...');
+define('INFINITY_MAIL_FROM', 'Elliot Telford <hello@elliottelford.com>');
+```
+
+The `From` domain must be the one you verified. If you cannot edit
+`wp-config.php`, the same two values are in **Appearance → Customize →
+Email delivery** — the constants win, and are preferable, because options
+live in the database and the database gets exported and cloned.
+
+Failures are not silent: the reason for the last one is shown on the
+**Subscribers** screen.
+
+New addresses must click a confirmation link before anything else is sent
+to them. That protects the sending domain — without it, the public signup
+endpoint will mail any address anyone types into it. To disable:
+
+```php
+add_filter('infinity_subscribe_double_optin', '__return_false');
+```
+
 The classic theme is fully functional with no build step. To build the
 optional React frontend:
 
