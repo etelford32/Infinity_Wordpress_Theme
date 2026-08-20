@@ -3,6 +3,139 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.2.0
+
+- **Subject accents on the top level of the navigation** (`style.css`,
+  `functions.php`, `inc/icons.php`): each top-level item now carries a
+  `nav-tone-*` class naming its subject, which sets a `--nav-accent` the chip,
+  its icon, and its whole dropdown panel read from — so hovering Yoga turns
+  that branch saffron and the section you are on keeps its colour whether or
+  not the pointer is near it. The tone comes from `infinity_nav_icon_for()`
+  rather than a second keyword table, so the icon and the colour cannot drift
+  apart. Only hover, focus and the open/current states take colour: a nav
+  where every chip is permanently coloured has nothing left to say which one
+  is active. The panel's pointer arrow and its open-sweep highlight are tinted
+  too, since leaving either on the shared accent is what makes a tinted panel
+  look mismatched rather than themed.
+
+- **Project, om and music icons** (`inc/icons.php`): Elliot's Projects, Yoga
+  and Music all fell through to the default spark, because the keyword map had
+  no entry for any of them. Adds a layered-stack project mark, beamed eighth
+  notes, and a Devanagari om traced against the real glyph — two bumps facing
+  right off a shared spine, the lower bowl much the larger, and the tail
+  leaving at mid-height to hook down-right, with the crescent and bindu above
+  the tail rather than the bowl. There is deliberately no bare `om` keyword:
+  the haystack includes the item's URL and every URL here ends in `.com`,
+  which would have handed the whole navigation the same symbol.
+
+- **Steam wishlist card sized for wide screens** (`style.css`): the widget
+  lays itself out for 646px and `steam-fit.js` scales it to whatever column it
+  is given, so a 500px column was rendering it at 0.72 — small, and soft
+  wherever it had been downscaled. The extra width now comes from the section
+  rather than from the copy beside it: the hero container opens past its usual
+  1280px, so at 1480px the copy column goes 684px to 724px while the widget
+  goes 0.72 to 0.91, and at 1700px the widget reaches its native size with the
+  copy at 736px. Both columns grow; neither pays for the other.
+
+- **The event horizon is black** (`assets/js/blackhole.js`): the broad bloom
+  around the photon ring was commented "outside the silhouette" but was never
+  masked by it, so it painted over the void and the hole rendered as a muddy
+  brown disc — most visible in light mode, where it sat on a pale page. Masked,
+  and the silhouette's opacity raised, the hole is now the black it is supposed
+  to be.
+
+- **Gravitational lensing of the background sky** (`assets/js/blackhole.js`):
+  stars are sampled at their true angle rather than their apparent one
+  (`beta = theta - thetaE^2/theta`), which drags the sky inward and stacks it
+  against the photon ring, brightened by the tangential stretch `theta/beta`
+  that is what turns those stars into a rim instead of merely moving them.
+  The field fades just before `beta` collapses, where neighbouring pixels
+  would fall into one hash cell and a magnified star would stop being a point
+  and become a visible block. Adds the second-order photon image as well — the
+  light that looped the hole once more before escaping, landing just inside
+  the primary ring and far thinner, which is what makes the ring read as a
+  stack of images rather than a circle somebody drew.
+
+- **The disk is a slab, not a sheet** (`assets/js/blackhole.js`): the disk
+  had no vertical extent at all — it was one plane, sampled once. It is now
+  integrated over three heights through a scale height that flares with
+  radius, so the outer disk is thick and the inner disk is thin. The
+  geometry is one line: `squash` is the foreshortening, so `sinE = 1/squash`
+  is the sine of the viewing elevation and reading the disk at height `h`
+  means sampling the plane at `uv.y - h*cosE`. From ~17 degrees above the
+  plane the top of the slab is the near face, so the layers are integrated
+  front to back and each absorbs the ones behind it; that self-occlusion is
+  what stops the stack reading as three stacked sheets and starts it reading
+  as a body. The near/far split widens with the scale height too, or a thick
+  disk would still cross the hole on an infinitely thin line.
+
+  Slice count is a quality knob baked into the shader source, since WebGL1
+  needs a constant loop bound — three on desktop, two on small screens and
+  for the second disk on the Parker's band, matching how the particle swarm
+  already scales. `k` stays symmetric about the midplane and the vertical
+  weights are normalised from the count, so dropping a slice changes neither
+  the disk's tilt nor its brightness.
+
+- **The horizon stays black while feeding** (`assets/js/blackhole.js`): two
+  more terms were painting over the silhouette. The shock ring thrown outward
+  on a click was unmasked while the jet beside it in the same block was
+  masked, and the scene halo was unmasked as well — together they turned the
+  hole tan in exactly the state that is meant to be most dramatic. Nothing
+  escapes a black hole, including the parts of this scene that are drawn
+  after it.
+
+- **The disk tips, precesses and warps** (`assets/js/blackhole.js`): the disk
+  plane was fixed, so the only motion in the scene was the pattern flowing
+  through it. It now has a real orientation in 3D. The whole map from screen
+  to disk plane collapses to *rotate by −phi, then divide one axis by
+  sin(elev)* — the old constant `squash` was exactly the `1/sin(elev)` of
+  that, with `phi` pinned at 90°, which is why generalising it cost almost
+  nothing. `elev` breathes, so the disk opens toward the viewer and closes
+  again; `phi` precesses, so the high point of the rim walks around the hole.
+  Because Lense-Thirring precession falls off steeply with radius, `phi` is a
+  function of `r` as well as `t`: the inner disk leads the outer one and the
+  plane twists rather than tipping rigidly — a warp, not a rocking plate.
+
+  Everything keyed to the old fixed axes had to move with it or a turning
+  disk would have kept its highlights pinned to the screen: Doppler beaming
+  is now measured along the line of nodes, and the near/far split, the
+  vertical shading and the lensed far-side arc all key off the tilt azimuth.
+  A height above the midplane displaces along that azimuth too, not straight
+  up-screen. The jets are deliberately left alone — they ride the hole's spin
+  axis, which is the axis the disk precesses around, so the disk wobbles and
+  the beams hold still. The scene's own cant is now constant, since rocking
+  the frame swung the starfield and the photon ring with it, which is not
+  something a precessing disk does to the sky.
+
+- **The far side is lensed over the hole, and the cross-section is a torus**
+  (`assets/js/blackhole.js`): the disk's silhouette is now geometry rather
+  than decoration. Rays are traced backwards, bent toward the axis at
+  closest approach by the weak-field `2Rs/b`, and *then* intersected with the
+  disk plane — so the far side, which sits behind the hole, arrives lifted
+  and curls up over it and back under, which is what a real accretion disk
+  looks like. The bend ramps in only on the far side; on the near side it is
+  zero and the whole thing collapses exactly to the previous straight-line
+  intersection. Verified against the full ray-plane derivation across three
+  inclinations, three azimuths and four deflections: max error 3.5e-13, and
+  at zero deflection it reproduces the old projection bit for bit.
+
+  The deflection cap is load-bearing, not cosmetic. `2Rs/b` runs away at the
+  photon sphere, and the harder the bend the deeper inside the ISCO the far
+  side samples, which opens a dead band between the ring and where the lensed
+  disk begins — 0.126 in screen radius at the first value tried, against a
+  ring at 0.148. At 0.34 that band is ~0.05, tight enough to read as the
+  inner shadow it physically is, while the far side is still compressed from
+  a radius of ~0.98 to ~0.33.
+
+  The cross-section changed with it: a slab of constant thickness is not what
+  a thick disk looks like, so the half-height now swells in the middle and
+  thins toward both edges — an ellipse in the (r, z) plane, skewed fatter
+  outward because disks flare. Lifting the far side into view also exposed
+  far more of the cool outer disk than the foreshortened version ever did, so
+  the colour ramp moved outward to match, and the painted far-side arc is
+  back to being a little extra glow on the ring rather than a stand-in for a
+  curl the geometry now does itself.
+
 ## Unreleased
 
 - **Deploy pipeline gated and verified** (`.github/workflows/deploy.yml`):

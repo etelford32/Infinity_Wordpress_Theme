@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.1.0
+Version: 3.2.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -801,6 +801,134 @@ code {
 .nav-menu > li.submenu-open > a .nav-caret {
   opacity: 1;
   transform: rotate(180deg);
+}
+
+/* ---- Subject accents ----
+
+   Each top-level item carries a nav-tone-* class naming its subject
+   (infinity_nav_item_classes), which sets --nav-accent for that item
+   and everything beneath it. The chip, its icon and its dropdown panel
+   all read that one variable, so a whole branch lights in one colour
+   and the section you are in is legible without reading a label.
+
+   Only hover, focus and the open/current states take the colour. A nav
+   where every chip is permanently coloured has nothing left to say
+   which one is active — the restraint is what makes the signal work.
+
+   Colour is safe to leave unguarded on touch: the existing (hover:none)
+   block neutralises motion and shadow on a hover the finger did not
+   ask for, not palette. The raised lip below follows that convention
+   and is guarded; the tints are not. */
+
+.nav-menu > li { --nav-accent: var(--color-accent-primary); }
+
+.nav-menu > li.nav-tone-project   { --nav-accent: #8b7bff; }
+.nav-menu > li.nav-tone-om        { --nav-accent: #ffa63d; }
+.nav-menu > li.nav-tone-music     { --nav-accent: #ff5fa2; }
+.nav-menu > li.nav-tone-flask     { --nav-accent: #35d39a; }
+.nav-menu > li.nav-tone-orbit     { --nav-accent: #4dd2ff; }
+.nav-menu > li.nav-tone-earth     { --nav-accent: #5bc8ff; }
+.nav-menu > li.nav-tone-rocket    { --nav-accent: #ff7a45; }
+.nav-menu > li.nav-tone-leaf,
+.nav-menu > li.nav-tone-tree      { --nav-accent: #63d963; }
+.nav-menu > li.nav-tone-sun       { --nav-accent: #ffcc3d; }
+.nav-menu > li.nav-tone-aurora    { --nav-accent: #62e0d0; }
+.nav-menu > li.nav-tone-palette   { --nav-accent: #f472b6; }
+.nav-menu > li.nav-tone-clipboard,
+.nav-menu > li.nav-tone-planner   { --nav-accent: #93b4ff; }
+.nav-menu > li.nav-tone-satellite { --nav-accent: #7dd3fc; }
+.nav-menu > li.nav-tone-ship      { --nav-accent: #a9b6ff; }
+.nav-menu > li.nav-tone-wall      { --nav-accent: #c9a07a; }
+.nav-menu > li.nav-tone-moon      { --nav-accent: #b6c2ff; }
+
+.nav-menu > li > a:hover,
+.nav-menu > li > a:focus-visible,
+.nav-menu > li.submenu-open > a,
+.nav-menu > li.current-menu-item > a,
+.nav-menu > li.current-menu-parent > a,
+.nav-menu > li.current-menu-ancestor > a,
+.nav-menu > li.current_page_item > a,
+.nav-menu > li.current_page_ancestor > a {
+  color: var(--color-text-primary);
+  /* mixed against an opaque base, so the chip never goes translucent
+     over the hero canvas behind it */
+  background-color: color-mix(in srgb, var(--nav-accent) 15%, var(--color-bg-tertiary));
+  border-color: color-mix(in srgb, var(--nav-accent) 72%, transparent);
+}
+
+/* Open or current outranks merely hovered, so the section you are in
+   still reads while the pointer is somewhere else on the bar. */
+.nav-menu > li.submenu-open > a,
+.nav-menu > li.current-menu-item > a,
+.nav-menu > li.current-menu-ancestor > a,
+.nav-menu > li.current_page_item > a {
+  background-color: color-mix(in srgb, var(--nav-accent) 28%, var(--color-bg-tertiary));
+  border-color: color-mix(in srgb, var(--nav-accent) 90%, transparent);
+}
+
+/* Icons are drawn with a shared cyan-violet gradient via
+   stroke="url(#...)". A CSS stroke outranks that presentation
+   attribute, so an icon can take its subject's colour without the
+   renderer ever knowing subjects exist. */
+.nav-menu > li > a:hover .inf-icon,
+.nav-menu > li > a:focus-visible .inf-icon,
+.nav-menu > li.submenu-open > a .inf-icon,
+.nav-menu > li.current-menu-item > a .inf-icon,
+.nav-menu > li.current-menu-ancestor > a .inf-icon,
+.nav-menu > li.current_page_item > a .inf-icon {
+  stroke: var(--nav-accent);
+  color: var(--nav-accent);
+}
+
+/* The panel belongs to the same subject as the chip that opened it —
+   including the little arrow that points back up at the chip, and the
+   highlight that sweeps the face on open. Leaving either on the shared
+   accent is what makes a tinted panel look mismatched rather than
+   themed. */
+/* Guarded to the width where a floating panel exists at all. Below
+   1024px the drawer flattens the submenu with `border: none` and
+   `box-shadow: none` at (0,2,0) — one class less than these rules, and
+   a media query adds no specificity, so unguarded these would put a
+   coloured glow back around every drawer row. */
+@media (min-width: 1024px) {
+  .nav-menu > li .sub-menu {
+    border-color: color-mix(in srgb, var(--nav-accent) 40%, transparent);
+    box-shadow:
+      var(--shadow-lg),
+      0 0 34px -12px color-mix(in srgb, var(--nav-accent) 80%, transparent);
+  }
+
+  .nav-menu > li .sub-menu::before {
+    border-left-color: color-mix(in srgb, var(--nav-accent) 40%, transparent);
+    border-top-color: color-mix(in srgb, var(--nav-accent) 40%, transparent);
+  }
+
+  .nav-menu > li .sub-menu::after {
+    background-image: linear-gradient(115deg, transparent 34%, color-mix(in srgb, var(--nav-accent) 26%, transparent) 50%, transparent 66%);
+  }
+}
+
+/* The page you are on keeps its glow whether or not the pointer is
+   anywhere near it, and that glow is the subject's, not the theme's. */
+.nav-menu > li.current-menu-item > a,
+.nav-menu > li.current-menu-ancestor > a,
+.nav-menu > li.current_page_item > a,
+.nav-menu > li.current_page_ancestor > a {
+  box-shadow:
+    0 4px 0 color-mix(in srgb, var(--nav-accent) 40%, var(--color-bg-primary)),
+    0 12px 22px -12px color-mix(in srgb, var(--nav-accent) 90%, transparent);
+}
+
+@media (hover: hover) {
+  /* On an item with no panel to open, the lip IS the raised look, so
+     that is where the colour goes. Items that do open a panel sit down
+     flush instead and are already carrying the tint above. */
+  .nav-menu > li:not(.menu-item-has-children) > a:hover,
+  .nav-menu > li:not(.menu-item-has-children) > a:focus-visible {
+    box-shadow:
+      0 4px 0 color-mix(in srgb, var(--nav-accent) 40%, var(--color-bg-primary)),
+      0 12px 22px -12px color-mix(in srgb, var(--nav-accent) 90%, transparent);
+  }
 }
 
 /* ---- Dropdown panels ----
@@ -2864,6 +2992,34 @@ body.mobile-menu-open .sticky-header {
     grid-template-columns: minmax(0, 1fr) 500px;
     gap: var(--spacing-2xl);
     align-items: center;
+  }
+}
+
+/* The Steam widget lays itself out for 646px and steam-fit.js scales
+   it down to whatever column it gets, so a 500px column renders it at
+   0.72 — small, and soft everywhere it was downscaled. Give it its
+   width back where there is room for it.
+
+   That width comes from the section, not from the copy beside it. The
+   hero container opens past its usual 1280px, so the wordmark keeps
+   more room than it has today rather than paying for the card: at
+   1480px the copy column goes 684px -> 724px while the widget goes
+   0.72 -> 0.91, and both grow again at 1700px. */
+@media (min-width: 1480px) {
+  .fp-hero-blackhole > .container { max-width: 1440px; }
+
+  .fp-hero-blackhole .fp-hero-inner {
+    grid-template-columns: minmax(0, 1fr) 620px;
+  }
+}
+
+@media (min-width: 1700px) {
+  .fp-hero-blackhole > .container { max-width: 1560px; }
+
+  .fp-hero-blackhole .fp-hero-inner {
+    /* the widget's native width plus the card's own padding, so
+       steam-fit.js stops scaling it at all */
+    grid-template-columns: minmax(0, 1fr) calc(646px + var(--spacing-md) * 2);
   }
 }
 
