@@ -84,6 +84,29 @@ entries are in release order, newest first.
   escapes a black hole, including the parts of this scene that are drawn
   after it.
 
+- **The disk tips, precesses and warps** (`assets/js/blackhole.js`): the disk
+  plane was fixed, so the only motion in the scene was the pattern flowing
+  through it. It now has a real orientation in 3D. The whole map from screen
+  to disk plane collapses to *rotate by −phi, then divide one axis by
+  sin(elev)* — the old constant `squash` was exactly the `1/sin(elev)` of
+  that, with `phi` pinned at 90°, which is why generalising it cost almost
+  nothing. `elev` breathes, so the disk opens toward the viewer and closes
+  again; `phi` precesses, so the high point of the rim walks around the hole.
+  Because Lense-Thirring precession falls off steeply with radius, `phi` is a
+  function of `r` as well as `t`: the inner disk leads the outer one and the
+  plane twists rather than tipping rigidly — a warp, not a rocking plate.
+
+  Everything keyed to the old fixed axes had to move with it or a turning
+  disk would have kept its highlights pinned to the screen: Doppler beaming
+  is now measured along the line of nodes, and the near/far split, the
+  vertical shading and the lensed far-side arc all key off the tilt azimuth.
+  A height above the midplane displaces along that azimuth too, not straight
+  up-screen. The jets are deliberately left alone — they ride the hole's spin
+  axis, which is the axis the disk precesses around, so the disk wobbles and
+  the beams hold still. The scene's own cant is now constant, since rocking
+  the frame swung the starfield and the photon ring with it, which is not
+  something a precessing disk does to the sky.
+
 ## Unreleased
 
 - **Deploy pipeline gated and verified** (`.github/workflows/deploy.yml`):
