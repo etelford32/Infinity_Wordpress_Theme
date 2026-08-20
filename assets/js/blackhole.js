@@ -50,6 +50,28 @@ function infinityBlackhole(canvas, cfg) {
 
   /* ---------- shared ---------- */
 
+  /* How many heights the disk is integrated over. The vertical
+     structure is the expensive half of this shader — each slice is a
+     seam-blended fbm pair, so three slices is three times the noise of
+     a flat disk — and WebGL1 needs a constant loop bound, so the count
+     is baked into the source rather than passed as a uniform.
+
+     k must stay symmetric about the midplane at any count, and the
+     weights must sum to the same total, or dropping a slice would both
+     tilt the disk and change how bright it is. */
+  var SLICES = Math.max(1, (cfg && cfg.slices) || 3);
+  var K_EXPR = (SLICES > 1)
+    ? (1 / (SLICES - 1) * 2).toFixed(4) + ' * (' + ((SLICES - 1) / 2).toFixed(4) + ' - float(i))'
+    : '0.0';
+  var SLICE_NORM = (function () {
+    var sum = 0;
+    for (var i = 0; i < SLICES; i++) {
+      var k = (SLICES > 1) ? (2 / (SLICES - 1)) * ((SLICES - 1) / 2 - i) : 0;
+      sum += Math.exp(-k * k * 0.95);
+    }
+    return (1.49 / sum).toFixed(4);
+  })();
+
   var QUAD_VERT = [
     'attribute vec2 a_pos;',
     'void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }'
@@ -118,9 +140,30 @@ function infinityBlackhole(canvas, cfg) {
     '  float tilt = -0.10 + 0.03 * sin(u_time * 0.09);',
     '  uv = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * uv;',
     '',
-    '  /* Disk plane: strong inclination, breathing slightly. Stirring',
-    '     it puffs the disk up — a smaller squash is a thicker disk. */',
-    '  vec2 p = vec2(uv.x, uv.y * (3.4 - 0.5 * u_hover - 0.55 * u_feed + 0.35 * sin(u_time * 0.07)));',
+    '  /* ---- The disk is a slab, not a sheet ----',
+    '',
+    '     Inclination first. squash is the foreshortening, so sinE = 1/squash',
+    '     is the sine of the viewing elevation above the disk plane and cosE',
+    '     falls out of it. A point sitting h above the midplane lands at',
+    '     screen-y  Y*sinE + h*cosE, so reading the disk AT height h is just',
+    '     sampling the plane at (uv.y - h*cosE). The whole third dimension is',
+    '     that one shift.',
+    '',
+    '     Three heights through the scale height, integrated front to back.',
+    '     From ~17 degrees above the plane the TOP of the slab is the near',
+    '     face, so k runs +1 -> -1 and every layer absorbs the ones behind',
+    '     it. That self-occlusion is what stops the stack reading as three',
+    '     stacked sheets and starts it reading as a body.',
+    '',
+    '     The disk flares: H grows with radius, so the outer disk is thick',
+    '     and the inner disk is thin. True of real disks, and the reason the',
+    '     near edge cuts a solid silhouette across the hole instead of a',
+    '     ribbon. Stirring and feeding puff it further. */',
+    '  float squash = 3.4 - 0.5 * u_hover - 0.55 * u_feed + 0.35 * sin(u_time * 0.07);',
+    '  float sinE = 1.0 / squash;',
+    '  float cosE = sqrt(max(1.0 - sinE * sinE, 0.0));',
+    '',
+    '  vec2 p = vec2(uv.x, uv.y * squash);',
     '  float r = length(p);',
     '  float ang = atan(p.y, p.x);',
     '',
@@ -128,32 +171,63 @@ function infinityBlackhole(canvas, cfg) {
     '  float rsky = length(uv);',
     '  float rr = r - 0.05 / max(r, 0.06);',
     '',
-    '  /* Differential rotation. Driven by u_spin, an accumulated clock',
-    '     the JS warps on hover — scaling wall time here instead would',
-    '     teleport the phase every time the rate changed. */',
-    '  float swirl = ang - u_spin * 0.55 - 1.4 / (0.25 + rr * rr);',
+    '  float H = (0.030 + 0.020 * u_hover + 0.040 * u_feed) * (0.50 + 2.8 * clamp(rr, 0.0, 1.0));',
     '',
-    '  /* Seam-free filaments: blend across the atan wrap at +-PI */',
-    '  float wSeam = smoothstep(2.4, 3.14159, abs(ang)) * 0.5;',
-    '  float sA = fbm(vec2(swirl * 2.3, rr * 10.0 - u_spin * 0.1));',
-    '  float sB = fbm(vec2((swirl - sign(ang) * 6.2831853) * 2.3, rr * 10.0 - u_spin * 0.1));',
-    '  float streaks = pow(mix(sA, sB, wSeam), 1.6);',
+    '  float bright = 0.0;',
+    '  float trans = 1.0;',
+    '  float topFace = 0.0;',
     '',
-    '  /* Hover churns the plasma: a finer turbulence layer rides on the',
-    '     filaments and the contrast between them sharpens. One noise()',
-    '     rather than a fourth fbm, and behind a uniform branch, so an',
-    '     untouched hero costs exactly what it did before. */',
-    '  if (u_hover > 0.002) {',
-    '    float fine = noise(vec2(swirl * 7.5, rr * 26.0 - u_spin * 0.7));',
-    '    streaks = mix(streaks, streaks * (0.5 + 1.05 * fine), u_hover * 0.9);',
+    '  for (int i = 0; i < ' + SLICES + '; i++) {',
+    '    float k = ' + K_EXPR + ';',
+    '    vec2 ps = vec2(uv.x, (uv.y - k * H * cosE) * squash);',
+    '    float rs = length(ps);',
+    '    float as = atan(ps.y, ps.x);',
+    '    float rrs = rs - 0.05 / max(rs, 0.06);',
+    '',
+    '    /* Differential rotation. Driven by u_spin, an accumulated clock',
+    '       the JS warps on hover — scaling wall time here instead would',
+    '       teleport the phase every time the rate changed. */',
+    '    float sw = as - u_spin * 0.55 - 1.4 / (0.25 + rrs * rrs);',
+    '',
+    '    /* Seam-free filaments: blend across the atan wrap at +-PI */',
+    '    float wSeam = smoothstep(2.4, 3.14159, abs(as)) * 0.5;',
+    '    float sA = fbm(vec2(sw * 2.3, rrs * 10.0 - u_spin * 0.1));',
+    '    float sB = fbm(vec2((sw - sign(as) * 6.2831853) * 2.3, rrs * 10.0 - u_spin * 0.1));',
+    '    float streakS = pow(mix(sA, sB, wSeam), 1.6);',
+    '',
+    '    float diskS = smoothstep(0.155, 0.26, rrs) * (1.0 - smoothstep(0.5, 0.95, rrs));',
+    '    float e = diskS * (0.24 + 1.3 * streakS) * exp(-k * k * 0.95);',
+    '',
+    '    bright += e * trans;',
+    '    topFace += e * trans * max(k, 0.0);',
+    '    trans *= 1.0 - clamp(e * 0.62, 0.0, 0.80);',
     '  }',
     '',
-    '  /* Radial profile */',
+    '  /* The stack sums brighter than one sheet did, by exactly the sum',
+    '     of its vertical weights — so the correction is computed from the',
+    '     slice count, not guessed per quality level. */',
+    '  bright *= ' + SLICE_NORM + ';',
+    '',
+    '  /* The upper face is what the light leaves by, so it reads brighter',
+    '     than the column beneath it — the cue that says "this has a top". */',
+    '  bright += topFace * 0.20;',
+    '',
+    '  /* Radial profile of the midplane, still wanted for the inner rim */',
     '  float disk = smoothstep(0.155, 0.26, rr) * (1.0 - smoothstep(0.5, 0.95, rr));',
+    '',
+    '  /* Hover churns the plasma: a finer turbulence layer rides on the',
+    '     filaments and the contrast between them sharpens. Applied to the',
+    '     integrated column rather than per slice — one noise() instead of',
+    '     three, and over one scale height the layers churn together anyway. */',
+    '  if (u_hover > 0.002) {',
+    '    float swirl = ang - u_spin * 0.55 - 1.4 / (0.25 + rr * rr);',
+    '    float fine = noise(vec2(swirl * 7.5, rr * 26.0 - u_spin * 0.7));',
+    '    bright = mix(bright, bright * (0.5 + 1.05 * fine), u_hover * 0.9);',
+    '  }',
     '',
     '  /* Doppler beaming, harder when the disk is spun up */',
     '  float doppler = 1.0 + (0.55 + 0.3 * u_hover) * (-uv.x / max(r, 0.001));',
-    '  float bright = disk * (0.24 + 1.3 * streaks) * doppler;',
+    '  bright *= doppler;',
     '  bright *= 1.0 + 0.5 * u_hover + 0.85 * u_feed;',
     '',
     '  /* 3D shading: lit from above, near (lower) side in shadow */',
@@ -176,7 +250,7 @@ function infinityBlackhole(canvas, cfg) {
     '  float horizon = 1.0 - smoothstep(0.118, 0.138, rc);',
     '',
     '  /* Near/far split: below passes in front, above goes behind */',
-    '  float nearMask = smoothstep(0.06, -0.06, uv.y);',
+    '  float nearMask = smoothstep(0.06 + H * cosE, -0.06 - H * cosE, uv.y);',
     '  float farMask = 1.0 - nearMask;',
     '',
     '  /* Incandescent color ramp. In light mode the same ramp is',
@@ -268,6 +342,7 @@ function infinityBlackhole(canvas, cfg) {
     '       fresh click restarts it from the hole. */',
     '    float sr = 0.16 + (1.0 - u_feed) * 0.85;',
     '    float shock = exp(-pow((rc - sr) * mix(7.0, 20.0, u_feed), 2.0)) * pow(u_feed, 0.55);',
+    '    shock *= 1.0 - horizon;',
     '    c += mix(vec3(1.0, 0.86, 0.62), vec3(0.95, 0.55, 0.10), u_light) * shock * 1.2;',
     '    alpha += shock * mix(1.0, 0.55, u_light) * 0.9;',
     '  }',
@@ -283,7 +358,7 @@ function infinityBlackhole(canvas, cfg) {
     '  /* Faint warm halo at night; on paper a soft slate shade so the',
     '     scene sits in the page rather than floating on it. Added after',
     '     the gain — tripled, it would smear a grey blob over the hero. */',
-    '  float halo = 1.0 - smoothstep(0.0, mix(0.9, 0.6, u_light), rc);',
+    '  float halo = (1.0 - smoothstep(0.0, mix(0.9, 0.6, u_light), rc)) * (1.0 - horizon);',
     '  c += mix(ember * 0.045, vec3(0.30, 0.34, 0.50) * 0.05, u_light) * halo;',
     '  alpha += mix(0.04, 0.13, u_light) * halo;',
     '',
@@ -754,6 +829,7 @@ function infinityBlackhole(canvas, cfg) {
       followTheme: true,
       interactive: true,
       particles: small ? { n: 34, tail: 5 } : { n: 90, tail: 8 },
+      slices: small ? 2 : 3,
       center: function (w) { return [w > 900 ? 0.195 : 0.5, 0.42]; }
     });
   }
@@ -769,6 +845,8 @@ function infinityBlackhole(canvas, cfg) {
       particles: (Math.min(window.innerWidth, window.innerHeight) < 620)
         ? { n: 22, tail: 5 }
         : { n: 56, tail: 7 },
+      /* a second disk on the same page: it carries the cheaper column */
+      slices: 2,
       center: function () { return [0.5, 0.5]; }
     });
   }

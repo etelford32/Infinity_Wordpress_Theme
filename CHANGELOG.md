@@ -56,6 +56,34 @@ entries are in release order, newest first.
   the primary ring and far thinner, which is what makes the ring read as a
   stack of images rather than a circle somebody drew.
 
+- **The disk is a slab, not a sheet** (`assets/js/blackhole.js`): the disk
+  had no vertical extent at all — it was one plane, sampled once. It is now
+  integrated over three heights through a scale height that flares with
+  radius, so the outer disk is thick and the inner disk is thin. The
+  geometry is one line: `squash` is the foreshortening, so `sinE = 1/squash`
+  is the sine of the viewing elevation and reading the disk at height `h`
+  means sampling the plane at `uv.y - h*cosE`. From ~17 degrees above the
+  plane the top of the slab is the near face, so the layers are integrated
+  front to back and each absorbs the ones behind it; that self-occlusion is
+  what stops the stack reading as three stacked sheets and starts it reading
+  as a body. The near/far split widens with the scale height too, or a thick
+  disk would still cross the hole on an infinitely thin line.
+
+  Slice count is a quality knob baked into the shader source, since WebGL1
+  needs a constant loop bound — three on desktop, two on small screens and
+  for the second disk on the Parker's band, matching how the particle swarm
+  already scales. `k` stays symmetric about the midplane and the vertical
+  weights are normalised from the count, so dropping a slice changes neither
+  the disk's tilt nor its brightness.
+
+- **The horizon stays black while feeding** (`assets/js/blackhole.js`): two
+  more terms were painting over the silhouette. The shock ring thrown outward
+  on a click was unmasked while the jet beside it in the same block was
+  masked, and the scene halo was unmasked as well — together they turned the
+  hole tan in exactly the state that is meant to be most dramatic. Nothing
+  escapes a black hole, including the parts of this scene that are drawn
+  after it.
+
 ## Unreleased
 
 - **Deploy pipeline gated and verified** (`.github/workflows/deploy.yml`):
