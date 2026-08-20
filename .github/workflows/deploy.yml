@@ -276,11 +276,29 @@ jobs:
             -o BatchMode=yes -o ConnectTimeout=15 \
             "$INSTALL@$INSTALL.ssh.wpengine.net" \
             "cd sites/$INSTALL && wp plugin list --status=active --field=name --skip-plugins --skip-themes" \
-            2>/dev/null | tr -d '\r' | tee plugins.txt
+            2>/dev/null | tr -d '\r' | tee "$RUNNER_TEMP/plugins.txt"
           echo ""
           echo "--- ones known to rewrite or cache assets ---"
-          grep -iE 'cache|optimi[sz]|minif|rocket|autoptimize|litespeed|speed|cdn|performance|hummingbird|breeze|swift|velocity' plugins.txt \
+          grep -iE 'cache|optimi[sz]|minif|rocket|autoptimize|litespeed|speed|cdn|performance|hummingbird|breeze|swift|velocity' "$RUNNER_TEMP/plugins.txt" \
             || echo "  (none matched by name)"
+
+      # The first revision of the step above wrote its output into the
+      # workspace root, so rsync shipped plugins.txt into the live theme
+      # directory — a publicly readable list of every active plugin, which
+      # is precisely the reconnaissance worth not handing out. rsync runs
+      # without --delete and will never remove it, so remove it here.
+      - name: Remove files this workflow should not have shipped
+        continue-on-error: true
+        env:
+          INSTALL: ${{ inputs.environment || 'etelford' }}
+          SLUG: ${{ steps.target.outputs.slug }}
+        run: |
+          set +e
+          timeout 60 ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new \
+            -o BatchMode=yes -o ConnectTimeout=15 \
+            "$INSTALL@$INSTALL.ssh.wpengine.net" \
+            "cd sites/$INSTALL/wp-content/themes/$SLUG && rm -f plugins.txt && echo 'plugins.txt absent'" \
+            2>/dev/null
 
       - name: Deploy to WP Engine
         uses: wpengine/github-action-wpe-site-deploy@v3
@@ -317,22 +335,15 @@ jobs:
     env:
       CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+      VERSION: ${{ needs.validate.outputs.version }}
+      SLUG: ${{ needs.deploy.outputs.slug }}
     steps:
-      # Ask the webserver for the exact file that was just written. This
-      # goes nowhere near WordPress, so it separates the two failures that
-      # look identical from the outside: files that never arrived, and
-      # files that arrived behind a cache still serving yesterday's HTML.
       # Fetch the stylesheet twice, and the difference names the culprit.
       # The plain URL is what a real browser asks for and what a CDN has
       # cached; the unique URL is a guaranteed miss, so it reads what is
-      # on disk. Equal means the deploy is fully live. Different means
-      # the file is live but something in front is still handing visitors
-      # the old one — the case that looks like "the deploy did nothing".
+      # on disk. Equal means the file is live all the way to visitors.
       - name: Is the deployed stylesheet reaching visitors?
         id: asset
-        env:
-          VERSION: ${{ needs.validate.outputs.version }}
-          SLUG: ${{ needs.deploy.outputs.slug }}
         run: |
           set +e
           base="$SITE_URL/wp-content/themes/$SLUG/style.css"
@@ -358,14 +369,11 @@ jobs:
       # is the cache — and no difference rules it out.
       - name: Cached homepage vs uncached homepage
         id: page
-        env:
-          VERSION: ${{ needs.validate.outputs.version }}
         run: |
           set +e
-          # Retry the plain fetch: WP Engine's purge is not instant.
           for attempt in 1 2 3 4 5 6; do
             curl -sS --max-time 30 -D cached.hdr -o cached.html -A 'deploy-verify' "$SITE_URL"
-            grep -q "ver=$VERSION" cached.html && break
+            grep -q 'header-cta' cached.html && break
             [ "$attempt" = 6 ] || sleep 20
           done
           curl -sS --max-time 30 -D fresh.hdr -o fresh.html -A 'deploy-verify' "$SITE_URL/?cb=$GITHUB_RUN_ID"
@@ -382,36 +390,112 @@ jobs:
             echo "  ver= values: $(grep -o 'ver=[0-9A-Za-z._-]*' "$f.html" | sort -u | tr '\n' ' ')"
           done
 
-          # The enqueue calls all pass INFINITY_VERSION, so every theme
-          # asset should carry ?ver=<version>. Printing the URLs as the
-          # page actually contains them shows whether something stripped
-          # the query string or bundled the files, instead of leaving it
-          # to be inferred from an absence.
           echo ""
           echo "=== theme asset URLs as the page contains them ==="
           grep -o "[^\"']*wp-content/themes/[^\"']*" fresh.html | sort -u | head -20
 
-          # A missing file makes grep print nothing, and an empty string
-          # is not an integer — guard so the verdict step still runs.
           cached_hits=$(grep -c 'header-cta' cached.html 2>/dev/null)
           fresh_hits=$(grep -c 'header-cta' fresh.html 2>/dev/null)
           echo "cached_hits=${cached_hits:-0}" >> "$GITHUB_OUTPUT"
           echo "fresh_hits=${fresh_hits:-0}" >> "$GITHUB_OUTPUT"
 
+      # The theme's style.css and JS do not appear in the page at all —
+      # only its images do — so an optimiser is serving them from combined
+      # bundles. A bundle's version string says nothing about what is
+      # inside it, and this site's has not changed across a deploy that
+      # rewrote the CSS. So stop reading version numbers and read the
+      # bytes: are the selectors this release added in what the browser
+      # is actually handed?
+      - name: Do the served bundles contain this release's rules?
+        id: bundles
+        run: |
+          set +e
+          python3 - <<'PY' > css-urls.txt
+          import re
+          html = open('fresh.html', encoding='utf-8', errors='replace').read()
+          for tag in re.findall(r'<link\b[^>]*>', html, re.I):
+              if re.search(r'rel\s*=\s*["\']?[^"\'>]*stylesheet', tag, re.I):
+                  m = re.search(r'href\s*=\s*["\']([^"\']+)', tag, re.I)
+                  if m:
+                      print(m.group(1))
+          PY
+          python3 - <<'PY' > js-urls.txt
+          import re
+          html = open('fresh.html', encoding='utf-8', errors='replace').read()
+          for m in re.finditer(r'<script\b[^>]*\bsrc\s*=\s*["\']([^"\']+)', html, re.I):
+              print(m.group(1))
+          PY
+
+          absolute() {
+            case "$1" in
+              //*)   echo "https:$1" ;;
+              http*) echo "$1" ;;
+              /*)    echo "$SITE_URL$1" ;;
+              *)     echo "$SITE_URL/$1" ;;
+            esac
+          }
+
+          # 'header-cta' occurs 30 times in this release's style.css and
+          # zero times in any earlier one; 'u_feed' is the shader uniform
+          # the interactive black hole added. Neither can appear in a
+          # bundle built before this work.
+          css_hit=no; css_n=0; css_read=0
+          echo "=== stylesheets the page loads ==="
+          while IFS= read -r u; do
+            [ -n "$u" ] || continue
+            full=$(absolute "$u"); css_n=$((css_n + 1))
+            # A fetch that fails is not evidence of absence, so count what
+            # was actually read separately from what was listed.
+            curl -sS --max-time 30 -o part.css "$full" || { echo "  unreachable: $full"; continue; }
+            css_read=$((css_read + 1))
+            if grep -q 'header-cta' part.css; then
+              css_hit=yes
+              echo "  contains this release's rules: $full"
+            else
+              echo "  no 3.1.0 rules: $full"
+            fi
+          done < css-urls.txt
+
+          js_hit=no; js_n=0; js_read=0
+          echo "=== scripts the page loads ==="
+          while IFS= read -r u; do
+            [ -n "$u" ] || continue
+            full=$(absolute "$u"); js_n=$((js_n + 1))
+            curl -sS --max-time 30 -o part.js "$full" || continue
+            js_read=$((js_read + 1))
+            if grep -q 'u_feed' part.js; then
+              js_hit=yes
+              echo "  contains this release's shader: $full"
+            fi
+          done < js-urls.txt
+
+          echo ""
+          echo "stylesheets listed: $css_n, read: $css_read   this release's CSS present: $css_hit"
+          echo "scripts listed:     $js_n, read: $js_read   this release's JS present:  $js_hit"
+          echo "css_read=$css_read" >> "$GITHUB_OUTPUT"
+          echo "css_hit=$css_hit" >> "$GITHUB_OUTPUT"
+          echo "js_hit=$js_hit" >> "$GITHUB_OUTPUT"
+          echo "css_n=$css_n" >> "$GITHUB_OUTPUT"
+          echo "js_n=$js_n" >> "$GITHUB_OUTPUT"
+
       - name: Verdict
         env:
-          VERSION: ${{ needs.validate.outputs.version }}
-          SLUG: ${{ needs.deploy.outputs.slug }}
           ASSET_LIVE: ${{ steps.asset.outputs.live }}
           REACHING: ${{ steps.asset.outputs.reaching }}
           SERVED: ${{ steps.asset.outputs.served }}
           PLAIN: ${{ steps.asset.outputs.plain }}
           CACHED: ${{ steps.page.outputs.cached_hits }}
           FRESH: ${{ steps.page.outputs.fresh_hits }}
+          CSS_HIT: ${{ steps.bundles.outputs.css_hit }}
+          JS_HIT: ${{ steps.bundles.outputs.js_hit }}
+          CSS_N: ${{ steps.bundles.outputs.css_n }}
+          CSS_READ: ${{ steps.bundles.outputs.css_read }}
+          JS_N: ${{ steps.bundles.outputs.js_n }}
         run: |
           set +e
           CACHED="${CACHED:-0}"
           FRESH="${FRESH:-0}"
+          ok=no
           {
             echo "## Verify"
             echo ""
@@ -422,44 +506,55 @@ jobs:
             echo "| stylesheet, plain URL a browser asks for | \`$PLAIN\` |"
             echo "| new markup, normal request | $CACHED hit(s) |"
             echo "| new markup, cache-busted request | $FRESH hit(s) |"
+            echo "| this release's CSS in the $CSS_N served stylesheet(s) | $CSS_HIT |"
+            echo "| this release's JS in the $JS_N served script(s) | $JS_HIT |"
             echo ""
-            if [ "$ASSET_LIVE" = "yes" ] && [ "$REACHING" = "no" ]; then
+            if [ "$ASSET_LIVE" != "yes" ]; then
+              echo "**Not live.** The webserver returns \`$SERVED\` for the stylesheet in"
+              echo "\`$SLUG\`, not \`$VERSION\`, so the deployed file is not the one being"
+              echo "read. Check whether a child theme or a second install directory is in play."
+            elif [ "$REACHING" != "yes" ]; then
               echo "**Deployed, but visitors get the old stylesheet.** A cache-busted URL"
-              echo "returns \`$VERSION\`, so the file is live on disk — but the plain URL a"
-              echo "browser actually requests returns \`$PLAIN\`. Something in front of the"
-              echo "site is serving the previous copy under the same URL, which is why new"
-              echo "markup can appear against old styling and the page looks broken rather"
-              echo "than unchanged."
+              echo "returns \`$VERSION\` while the plain URL a browser requests returns"
+              echo "\`$PLAIN\`. Something in front of the site is serving the previous copy"
+              echo "under the same URL. Purge the CDN; adding \`CLOUDFLARE_API_TOKEN\` and"
+              echo "\`CLOUDFLARE_ZONE_ID\` as repository secrets automates it."
+            elif [ "$CSS_HIT" != "yes" ] && [ "${CSS_READ:-0}" -eq 0 ]; then
+              echo "**Deployed; the served stylesheets could not be read.** The theme's own"
+              echo "stylesheet is live and correct, but none of the $CSS_N stylesheets the"
+              echo "page loads could be fetched, so whether they carry this release's rules"
+              echo "is unknown — this is not evidence of a problem, only of a failed check."
+            elif [ "$CSS_HIT" != "yes" ]; then
+              echo "**Deployed, but the browser never receives this release's CSS.** The"
+              echo "theme's own stylesheet is live and correct, yet none of the $CSS_READ"
+              echo "stylesheets that were read contain rules this release added."
+              echo "An asset optimiser is serving a combined bundle built before this"
+              echo "deploy, so new markup renders with no styling behind it."
               echo ""
-              echo "The theme enqueues every asset with \`INFINITY_VERSION\`, so this cannot"
-              echo "be fixed by bumping the version — the query string is not reaching the"
-              echo "URL. Purge the CDN. Adding \`CLOUDFLARE_API_TOKEN\` and"
-              echo "\`CLOUDFLARE_ZONE_ID\` as repository secrets makes this workflow do it"
-              echo "on every deploy."
-            elif [ "$ASSET_LIVE" = "yes" ] && [ "$CACHED" -gt 0 ]; then
-              echo "**Live.** \`$VERSION\` is on disk, reaching visitors, and rendering."
-            elif [ "$ASSET_LIVE" = "yes" ] && [ "$FRESH" -gt 0 ]; then
-              echo "**Deployed, HTML is cached.** The theme files are live — a cache-busted"
-              echo "request renders the new markup, a normal one does not. Purge the page"
-              echo "cache in front of the site (WP Engine portal, or Cloudflare if it fronts"
-              echo "this domain). Add \`CLOUDFLARE_API_TOKEN\` and \`CLOUDFLARE_ZONE_ID\` as"
-              echo "repository secrets and this workflow will purge it automatically."
-            elif [ "$ASSET_LIVE" = "yes" ]; then
+              echo "Bumping the theme version cannot fix this — the bundle is keyed on its"
+              echo "own hash, not the theme's. Clear the optimiser's cache (its settings"
+              echo "screen, or \`wp <plugin> clear\` over SSH). The plugin inventory in the"
+              echo "deploy job names the candidates."
+            elif [ "$CACHED" -gt 0 ]; then
+              echo "**Live.** \`$VERSION\` is on disk, reaching visitors, and rendering,"
+              echo "and the CSS the browser receives contains this release's rules."
+              ok=yes
+            elif [ "$FRESH" -gt 0 ]; then
+              echo "**Deployed, HTML is cached.** A cache-busted request renders the new"
+              echo "markup, a normal one does not. Purge the page cache in front of the"
+              echo "site (WP Engine portal, or Cloudflare if it fronts this domain)."
+            else
               echo "**Deployed, but not rendering.** \`$VERSION\` is on disk and served,"
               echo "yet neither request shows the new markup. That points at the homepage"
               echo "not being built by this theme's templates — a page builder, a cached"
               echo "object/fragment store, or a static-HTML plugin serving the front page."
-            else
-              echo "**Not live.** The webserver returns \`$SERVED\` for the stylesheet in"
-              echo "\`$SLUG\`, not \`$VERSION\`, so the deployed file is not the one being"
-              echo "read. Check whether a child theme or a second install directory is in play."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-          if [ "$ASSET_LIVE" = "yes" ] && [ "$REACHING" = "yes" ] && [ "$CACHED" -gt 0 ]; then
+          if [ "$ok" = "yes" ]; then
             echo "Live and rendering $VERSION"
           else
-            echo "::warning::$VERSION deployed to $SLUG; stylesheet plain='$PLAIN' busted='$SERVED', markup hits cached=$CACHED fresh=$FRESH. See the run summary."
+            echo "::warning::$VERSION deployed to $SLUG; stylesheet plain='$PLAIN' busted='$SERVED', markup cached=$CACHED fresh=$FRESH, bundle css=$CSS_HIT js=$JS_HIT. See the run summary."
           fi
 
       - name: Purge Cloudflare
