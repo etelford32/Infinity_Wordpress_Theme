@@ -107,6 +107,35 @@ entries are in release order, newest first.
   the frame swung the starfield and the photon ring with it, which is not
   something a precessing disk does to the sky.
 
+- **The far side is lensed over the hole, and the cross-section is a torus**
+  (`assets/js/blackhole.js`): the disk's silhouette is now geometry rather
+  than decoration. Rays are traced backwards, bent toward the axis at
+  closest approach by the weak-field `2Rs/b`, and *then* intersected with the
+  disk plane — so the far side, which sits behind the hole, arrives lifted
+  and curls up over it and back under, which is what a real accretion disk
+  looks like. The bend ramps in only on the far side; on the near side it is
+  zero and the whole thing collapses exactly to the previous straight-line
+  intersection. Verified against the full ray-plane derivation across three
+  inclinations, three azimuths and four deflections: max error 3.5e-13, and
+  at zero deflection it reproduces the old projection bit for bit.
+
+  The deflection cap is load-bearing, not cosmetic. `2Rs/b` runs away at the
+  photon sphere, and the harder the bend the deeper inside the ISCO the far
+  side samples, which opens a dead band between the ring and where the lensed
+  disk begins — 0.126 in screen radius at the first value tried, against a
+  ring at 0.148. At 0.34 that band is ~0.05, tight enough to read as the
+  inner shadow it physically is, while the far side is still compressed from
+  a radius of ~0.98 to ~0.33.
+
+  The cross-section changed with it: a slab of constant thickness is not what
+  a thick disk looks like, so the half-height now swells in the middle and
+  thins toward both edges — an ellipse in the (r, z) plane, skewed fatter
+  outward because disks flare. Lifting the far side into view also exposed
+  far more of the cool outer disk than the foreshortened version ever did, so
+  the colour ramp moved outward to match, and the painted far-side arc is
+  back to being a little extra glow on the ring rather than a stand-in for a
+  curl the geometry now does itself.
+
 ## Unreleased
 
 - **Deploy pipeline gated and verified** (`.github/workflows/deploy.yml`):
