@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.1.0');
+define('INFINITY_VERSION', '3.2.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -958,6 +958,28 @@ function infinity_nav_item_title($title, $item, $args, $depth) {
         . $caret;
 }
 add_filter('nav_menu_item_title', 'infinity_nav_item_title', 10, 4);
+
+/**
+ * Tag each top-level primary-menu item with its subject, so the
+ * stylesheet can give that subject its own accent colour and the
+ * active section is readable at a glance rather than by reading.
+ *
+ * Reuses infinity_nav_icon_for() instead of carrying a second keyword
+ * table: one classification with two consequences — the icon and the
+ * colour — which therefore cannot drift apart.
+ *
+ * @since 3.2.0
+ */
+function infinity_nav_item_classes($classes, $item, $args, $depth) {
+    if ($depth > 0 || empty($args->theme_location) || 'primary' !== $args->theme_location) {
+        return $classes;
+    }
+
+    $classes[] = 'nav-tone-' . infinity_nav_icon_for($item);
+
+    return $classes;
+}
+add_filter('nav_menu_css_class', 'infinity_nav_item_classes', 10, 4);
 
 /**
  * Pick light or dark before first paint. A stored visitor preference

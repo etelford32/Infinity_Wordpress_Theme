@@ -34,6 +34,18 @@ function infinity_icon_paths() {
         'leaf' => '<path d="M19.8 4.2C12 4.6 6.4 7.6 5.2 13.2c-.7 3.2 1 6 4.2 6.6 5.6 1 9.6-4.6 10.4-15.6z"/><path d="M5.8 20.2C9 15 13 11 17.6 7.8"/>',
         'wall' => '<path d="M3 6.4h18v12H3z"/><path d="M3 10.4h18M3 14.4h18M8 6.4v4M14 6.4v4M6 10.4v4M12 10.4v4M18 10.4v4M9 14.4v4M15 14.4v4"/>',
         'clipboard' => '<rect x="5" y="4.4" width="14" height="16.6" rx="2"/><path d="M9 4.4a3 3 0 0 1 6 0"/><path d="M8.6 11l2.2 2.2 4.6-4.6M8.6 16.6h6.8"/>',
+        'project' => '<path d="M12 2.8 21 7.4 12 12 3 7.4 12 2.8z"/><path d="M3 12.2 12 16.8 21 12.2"/><path d="M3 16.8 12 21.4 21 16.8"/>',
+        /*
+         * Devanagari OM. Traced against the real glyph rather than
+         * invented: the two bumps face RIGHT off a shared spine (the
+         * numeral-3 reading, not the mirrored one), the lower bowl is
+         * much the larger of the two, and the tail leaves the spine at
+         * mid-height and hooks down-right. Crescent and bindu sit above
+         * the tail, not above the bowl. Getting any of those backwards
+         * reads as a squiggle instead of a symbol.
+         */
+        'om' => '<path d="M6.9 8.1c1.9-1.4 5-.8 5.2 1.5.1 1.6-1.6 2.6-3.3 2.4"/><path d="M8.8 11.9c3.9-.6 7.2 1.6 6.9 4.8-.3 3.2-3.8 5.2-7.1 4.2-2.5-.7-4.1-2.5-4.4-4.5"/><path d="M15.4 13.2c1.3-1.7 3.7-2 5.2-.7 1.5 1.3 1.6 3.5.3 4.9"/><path d="M13.8 7.2q3 3.8 6 0"/><circle cx="16.8" cy="3.8" r="1" fill="currentColor" stroke="none"/>',
+        'music' => '<path d="M9.4 17.6V6.2l9.2-2.2v11.4"/><path d="M9.4 8.6l9.2-2.2"/><ellipse cx="7.1" cy="18" rx="2.4" ry="1.9" transform="rotate(-18 7.1 18)"/><ellipse cx="16.3" cy="15.4" rx="2.4" ry="1.9" transform="rotate(-18 16.3 15.4)"/>',
         'spark' => '<path d="M12 2.8c.7 4.4 2.6 6.3 7 7-4.4.7-6.3 2.6-7 7-.7-4.4-2.6-6.3-7-7 4.4-.7 6.3-2.6 7-7z"/><circle cx="19" cy="17.6" r="0.9" fill="currentColor" stroke="none"/>',
         'sun' => '<circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.8M12 18.6v2.8M2.6 12h2.8M18.6 12h2.8M5.2 5.2l2 2M16.8 16.8l2 2M18.8 5.2l-2 2M7.2 16.8l-2 2"/>',
         'moon' => '<path d="M20.4 13.4A8.4 8.4 0 1 1 10.6 3.6a6.8 6.8 0 0 0 9.8 9.8z"/><circle cx="17.6" cy="5.8" r="0.8" fill="currentColor" stroke="none"/>',
@@ -168,7 +180,25 @@ function infinity_brand_mark($key, $size = 20) {
  * @since 3.1.0
  */
 function infinity_nav_icon_for($item) {
+    /*
+     * First match wins, so the most specific subjects lead.
+     *
+     * The haystack includes the item's URL, which is why there is no
+     * bare 'om' key here: every URL on this site ends in ".com", so
+     * 'om' would match every menu item and hand the whole navigation
+     * the same symbol. Match the words people actually write instead.
+     */
     $map = apply_filters('infinity_nav_icon_map', array(
+        'project'     => 'project',
+        'portfolio'   => 'project',
+        'yoga'        => 'om',
+        'meditat'     => 'om',
+        'asana'       => 'om',
+        'mantra'      => 'om',
+        'pranayam'    => 'om',
+        'music'       => 'music',
+        'song'        => 'music',
+        'album'       => 'music',
         'anatomy'     => 'flask',
         'health'      => 'flask',
         'nutrition'   => 'flask',

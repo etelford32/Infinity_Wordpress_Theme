@@ -3,6 +3,59 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.2.0
+
+- **Subject accents on the top level of the navigation** (`style.css`,
+  `functions.php`, `inc/icons.php`): each top-level item now carries a
+  `nav-tone-*` class naming its subject, which sets a `--nav-accent` the chip,
+  its icon, and its whole dropdown panel read from — so hovering Yoga turns
+  that branch saffron and the section you are on keeps its colour whether or
+  not the pointer is near it. The tone comes from `infinity_nav_icon_for()`
+  rather than a second keyword table, so the icon and the colour cannot drift
+  apart. Only hover, focus and the open/current states take colour: a nav
+  where every chip is permanently coloured has nothing left to say which one
+  is active. The panel's pointer arrow and its open-sweep highlight are tinted
+  too, since leaving either on the shared accent is what makes a tinted panel
+  look mismatched rather than themed.
+
+- **Project, om and music icons** (`inc/icons.php`): Elliot's Projects, Yoga
+  and Music all fell through to the default spark, because the keyword map had
+  no entry for any of them. Adds a layered-stack project mark, beamed eighth
+  notes, and a Devanagari om traced against the real glyph — two bumps facing
+  right off a shared spine, the lower bowl much the larger, and the tail
+  leaving at mid-height to hook down-right, with the crescent and bindu above
+  the tail rather than the bowl. There is deliberately no bare `om` keyword:
+  the haystack includes the item's URL and every URL here ends in `.com`,
+  which would have handed the whole navigation the same symbol.
+
+- **Steam wishlist card sized for wide screens** (`style.css`): the widget
+  lays itself out for 646px and `steam-fit.js` scales it to whatever column it
+  is given, so a 500px column was rendering it at 0.72 — small, and soft
+  wherever it had been downscaled. The extra width now comes from the section
+  rather than from the copy beside it: the hero container opens past its usual
+  1280px, so at 1480px the copy column goes 684px to 724px while the widget
+  goes 0.72 to 0.91, and at 1700px the widget reaches its native size with the
+  copy at 736px. Both columns grow; neither pays for the other.
+
+- **The event horizon is black** (`assets/js/blackhole.js`): the broad bloom
+  around the photon ring was commented "outside the silhouette" but was never
+  masked by it, so it painted over the void and the hole rendered as a muddy
+  brown disc — most visible in light mode, where it sat on a pale page. Masked,
+  and the silhouette's opacity raised, the hole is now the black it is supposed
+  to be.
+
+- **Gravitational lensing of the background sky** (`assets/js/blackhole.js`):
+  stars are sampled at their true angle rather than their apparent one
+  (`beta = theta - thetaE^2/theta`), which drags the sky inward and stacks it
+  against the photon ring, brightened by the tangential stretch `theta/beta`
+  that is what turns those stars into a rim instead of merely moving them.
+  The field fades just before `beta` collapses, where neighbouring pixels
+  would fall into one hash cell and a magnified star would stop being a point
+  and become a visible block. Adds the second-order photon image as well — the
+  light that looped the hole once more before escaping, landing just inside
+  the primary ring and far thinner, which is what makes the ring read as a
+  stack of images rather than a circle somebody drew.
+
 ## Unreleased
 
 - **Deploy pipeline gated and verified** (`.github/workflows/deploy.yml`):
