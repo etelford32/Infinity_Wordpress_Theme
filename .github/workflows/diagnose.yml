@@ -1,21 +1,19 @@
 # Where did the theme actually go?
 #
 # The deploy succeeds — files transfer, caches flush — but the homepage
-# does not serve the version that was just deployed. That means the
-# files are landing somewhere the site is not reading from, and the
-# only way to know where is to ask the site and the server directly.
+# does not serve the version that was just deployed. So the files are
+# landing somewhere the site is not reading from, and the only way to
+# know where is to ask the site and the server directly.
 #
-# Run this from Actions -> Diagnose deploy target -> Run workflow.
-# It answers three questions:
+# Two SEPARATE jobs, deliberately. The first run of this put both in
+# one job, the SSH half hung, and because GitHub only serves logs for
+# a FINISHED job, the site half — which had already succeeded and holds
+# the answer — was unreadable behind it. Split, a hung or refused SSH
+# probe cannot take the useful half down with it.
 #
-#   1. Which theme folder does the LIVE SITE load its assets from?
-#      Whatever appears in its asset URLs is, by definition, the
-#      active theme's directory name.
-#   2. What is actually IN wp-content/themes on the server, and which
-#      theme does WordPress consider active?
-#   3. Did this deploy's files land where REMOTE_PATH pointed?
+# Purely read-only: it lists and greps, it never writes.
 #
-# Purely read-only — it lists and greps, it never writes.
+# Run from Actions -> Diagnose deploy target -> Run workflow.
 
 name: Diagnose deploy target
 
@@ -29,32 +27,33 @@ on:
         type: string
 
 jobs:
-  diagnose:
-    name: Diagnose
+  site:
+    name: Ask the live site
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     env:
       SITE_URL: "https://elliottelford.com"
-      INSTALL: ${{ inputs.install || 'etelford' }}
     steps:
-      - name: Ask the live site which theme it loads
+      - name: Which theme does the homepage load?
         run: |
           set -uo pipefail
-          code=$(curl -sS -o page.html -w '%{http_code}' -A 'deploy-diagnostics' "$SITE_URL")
-          echo "HTTP $code, $(wc -c < page.html) bytes"
+          code=$(curl -sS --max-time 30 -o page.html -w '%{http_code}' \
+                   -A 'deploy-diagnostics' "$SITE_URL" || echo 000)
+          echo "HTTP $code, $(wc -c < page.html 2>/dev/null || echo 0) bytes"
 
           echo ""
-          echo "--- theme directories referenced in the HTML ---"
+          echo "=== THEME DIRECTORIES IN THE HTML (this is the answer) ==="
           grep -o 'wp-content/themes/[A-Za-z0-9_.-]*' page.html | sort -u | tee themes-seen.txt
           [ -s themes-seen.txt ] || echo "(none — assets may be concatenated by an optimisation plugin)"
 
           echo ""
-          echo "--- every ?ver= value on the page ---"
+          echo "=== every ?ver= on the page ==="
           grep -o 'ver=[0-9][0-9A-Za-z._-]*' page.html | sort | uniq -c | sort -rn | head -15
 
           echo ""
-          echo "--- does anything from this theme appear? ---"
-          for marker in 'header-cta' 'nav-item-icon' 'bh-armed' 'fp-blackhole' 'infinity'; do
-            printf '  %-16s %s\n' "$marker" "$(grep -c "$marker" page.html) hit(s)"
+          echo "=== markers from the new header ==="
+          for marker in 'header-cta' 'nav-item-icon' 'bh-armed' 'fp-blackhole' 'sticky-header'; do
+            printf '  %-16s %s hit(s)\n' "$marker" "$(grep -c "$marker" page.html)"
           done
 
           {
@@ -68,7 +67,16 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Ask the server what is on disk
+  server:
+    name: Ask the server
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    # Never block the site answer on this half
+    continue-on-error: true
+    env:
+      INSTALL: ${{ inputs.install || 'etelford' }}
+    steps:
+      - name: What is on disk?
         env:
           KEY: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
         run: |
@@ -76,43 +84,34 @@ jobs:
           mkdir -p ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$INSTALL.ssh.wpengine.net" >> ~/.ssh/known_hosts 2>/dev/null
+          timeout 30 ssh-keyscan -H "$INSTALL.ssh.wpengine.net" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-          # WP Engine's SSH gateway takes the install name as the user;
-          # the deploy action uses a wpe_gha+ prefixed variant. Try both
-          # rather than guess, and report which one answered.
-          USER_OK=""
-          for u in "$INSTALL" "wpe_gha+$INSTALL"; do
-            if ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new \
-                 -o ConnectTimeout=20 -o BatchMode=yes \
-                 "$u@$INSTALL.ssh.wpengine.net" "echo ok" 2>/dev/null | grep -q ok; then
-              USER_OK="$u"
-              break
-            fi
-            echo "ssh user '$u' did not authenticate"
-          done
+          # The deploy action authenticates as wpe_gha+<install> and
+          # successfully runs remote commands that way, so use exactly
+          # that. The previous version also tried the bare install name
+          # first and hung on it — every call is under `timeout` now so
+          # a wedged session ends the step instead of the job.
+          SSH_USER="wpe_gha+$INSTALL"
+          run() {
+            timeout 45 ssh -i ~/.ssh/id_ed25519 \
+              -o StrictHostKeyChecking=accept-new -o BatchMode=yes \
+              -o ConnectTimeout=15 -o ServerAliveInterval=5 -o ServerAliveCountMax=3 \
+              "$SSH_USER@$INSTALL.ssh.wpengine.net" "cd sites/$INSTALL && $1" 2>&1
+            local rc=$?
+            [ $rc -eq 124 ] && echo "(timed out)"
+            return 0
+          }
 
-          if [ -z "$USER_OK" ]; then
-            echo "::warning::Could not open an SSH session for inspection. The site output above is still the important half."
-            echo "### Server inspection unavailable (SSH session refused)" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          echo "connected as $USER_OK"
-
-          run() { ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new -o BatchMode=yes \
-                    "$USER_OK@$INSTALL.ssh.wpengine.net" "cd sites/$INSTALL && $1" 2>&1; }
-
-          echo ""
-          echo "--- wp-content/themes ---"
+          echo "=== wp-content/themes ==="
           run "ls -la wp-content/themes/" | tee themes-ls.txt
 
           echo ""
-          echo "--- what WordPress thinks is active ---"
+          echo "=== which theme WordPress considers active ==="
           run "wp theme list --skip-plugins --skip-themes" | tee theme-list.txt
 
           echo ""
-          echo "--- did our files land in wp-content/themes/infinity? ---"
-          run "ls -la wp-content/themes/infinity/style.css wp-content/themes/infinity/assets/img/parkers-physics-logo.png 2>&1 | head -5; echo '--- version header ---'; head -8 wp-content/themes/infinity/style.css 2>&1 | grep -i version"
+          echo "=== did this deploy land in themes/infinity? ==="
+          run "ls -la wp-content/themes/infinity/assets/img/parkers-physics-logo.png 2>&1; grep -i '^Version' wp-content/themes/infinity/style.css 2>&1"
 
           {
             echo ""
