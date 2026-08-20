@@ -125,6 +125,13 @@ Or zip the repo and upload via **Appearance → Themes → Add New → Upload
 Theme**, then activate **Infinity**. Activation registers the custom post
 types, user roles, and analytics tables.
 
+The folder name does not have to be `infinity`. A zip downloaded from a
+GitHub branch unpacks to `Infinity_Wordpress_Theme-<branch>`, and WordPress
+is happy to run it under that name — so if you have more than one copy
+installed, check **Appearance → Themes** for which one is actually active
+before editing files over SFTP. The deploy workflow asks WordPress the same
+question and ships into whichever directory is live.
+
 The classic theme is fully functional with no build step. To build the
 optional React frontend:
 

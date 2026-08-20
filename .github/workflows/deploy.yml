@@ -22,8 +22,16 @@
 #      New repository secret, name WPE_SSHG_KEY_PRIVATE, value = the
 #      PRIVATE key (contents of wpe_deploy, including the BEGIN/END
 #      lines).
-#   4. Confirm REMOTE_PATH below matches the live theme folder name
-#      under wp-content/themes/ (check via SFTP or Appearance -> Themes).
+#
+# The deploy target is NOT hardcoded. Before rsyncing, this asks the
+# install which theme WordPress is actually running and deploys into
+# that directory. That is deliberate: the first working deploy shipped
+# every file correctly into wp-content/themes/infinity/ while the site
+# ran wp-content/themes/Infinity_Wordpress_Theme-claude-wordpress-\
+# threejs-theme-s3PrM/ — the folder name WordPress creates when you
+# install a GitHub *branch* zip. Every stage reported success and the
+# site did not change. A hardcoded path cannot notice that; asking the
+# server cannot miss it.
 #
 # If step 2 is skipped or the keys do not match, every run fails with
 # "Permission denied (publickey)" — the key is offered and refused. The
@@ -49,6 +57,11 @@ on:
         required: false
         default: etelford
         type: string
+      theme_dir:
+        description: "Theme folder to deploy into (blank = ask the site which theme is active)"
+        required: false
+        default: ""
+        type: string
 
 # One deploy at a time, and never cancel one midway: a half-finished
 # rsync over a live theme directory is the worst possible outcome.
@@ -57,7 +70,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REMOTE_PATH: "wp-content/themes/infinity/"
   SITE_URL: "https://elliottelford.com"
 
 jobs:
@@ -175,12 +187,85 @@ jobs:
           fi
           echo "Deploy key present"
 
+      - name: Ask WordPress which theme directory is live
+        id: target
+        env:
+          KEY: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
+          INSTALL: ${{ inputs.environment || 'etelford' }}
+          OVERRIDE: ${{ inputs.theme_dir }}
+        run: |
+          set -uo pipefail
+
+          slug=""
+          if [ -n "${OVERRIDE:-}" ]; then
+            slug="$OVERRIDE"
+            echo "Using the directory given on this run: $slug"
+          else
+            mkdir -p ~/.ssh
+            printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh-keyscan -H "$INSTALL.ssh.wpengine.net" >> ~/.ssh/known_hosts 2>/dev/null
+
+            # The gateway takes the install name for interactive commands
+            # and a wpe_gha+ variant for the deploy action's rsync. Which
+            # one answers depends on how the key was registered, so ask
+            # both rather than assume, and bound every attempt: a wedged
+            # SSH session must not hold the deploy open for six hours.
+            for u in "$INSTALL" "wpe_gha+$INSTALL"; do
+              slug=$(timeout 90 ssh -i ~/.ssh/id_ed25519 \
+                       -o StrictHostKeyChecking=accept-new \
+                       -o BatchMode=yes -o ConnectTimeout=15 \
+                       "$u@$INSTALL.ssh.wpengine.net" \
+                       "cd sites/$INSTALL && wp option get stylesheet --skip-plugins --skip-themes" \
+                       2>/dev/null | tr -d '\r' | tail -1)
+              [ -n "$slug" ] && { echo "WordPress answered over SSH as '$u'"; break; }
+              echo "ssh user '$u' gave no answer"
+            done
+          fi
+
+          if [ -z "$slug" ]; then
+            echo "::error::Could not ask the install which theme is active, so there is no safe directory to deploy into. Re-run this workflow and set 'theme_dir' to the folder name under wp-content/themes/ (Appearance -> Themes, or SFTP)."
+            exit 1
+          fi
+
+          # This string becomes a remote path. Anything that is not a
+          # plain directory name is a bug or a trap, not a theme.
+          case "$slug" in
+            "" | .* | *[!A-Za-z0-9._-]*)
+              echo "::error::Refusing to deploy into an implausible theme directory: '$slug'"
+              exit 1 ;;
+          esac
+
+          echo "path=wp-content/themes/$slug/" >> "$GITHUB_OUTPUT"
+          echo "slug=$slug" >> "$GITHUB_OUTPUT"
+          echo "Deploying into wp-content/themes/$slug/"
+
+          # Cross-check against the site itself. get_stylesheet() is what
+          # builds the asset URLs, so if the homepage names a different
+          # directory something is in front of it — say so rather than
+          # deploy quietly into the wrong place again.
+          curl -sS --max-time 30 -o page.html -A 'deploy-target-check' "$SITE_URL" || true
+          seen=$(grep -o 'wp-content/themes/[A-Za-z0-9_.-]*' page.html 2>/dev/null | sort -u | head -1)
+          if [ -n "$seen" ] && [ "$seen" != "wp-content/themes/$slug" ]; then
+            echo "::warning::WordPress reports '$slug' but the homepage loads assets from '$seen'. Deploying to '$slug'."
+          fi
+
+          {
+            echo "### Deploying into \`wp-content/themes/$slug/\`"
+            echo ""
+            if [ "$slug" != "infinity" ]; then
+              echo "That is the folder WordPress currently has active — not \`infinity\`."
+              echo "It is the name WordPress gives a theme installed from a GitHub branch zip."
+              echo "The site will pick this deploy up regardless; renaming is optional tidying."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Deploy to WP Engine
         uses: wpengine/github-action-wpe-site-deploy@v3
         with:
           WPE_SSHG_KEY_PRIVATE: ${{ secrets.WPE_SSHG_KEY_PRIVATE }}
           WPE_ENV: ${{ inputs.environment || 'etelford' }}
-          REMOTE_PATH: ${{ env.REMOTE_PATH }}
+          REMOTE_PATH: ${{ steps.target.outputs.path }}
           FLAGS: -azvr --inc-recursive --exclude='.git*' --exclude='node_modules' --exclude='tools' --exclude='frontend'
           CACHE_CLEAR: TRUE
 
@@ -234,8 +319,9 @@ jobs:
             echo ""
             echo "Last response was HTTP \`$code\`. The files went up — this check"
             echo "only says the homepage is not yet serving \`?ver=$VERSION\`."
-            echo "Usually that is a cache in front of the site (Cloudflare, or a"
-            echo "minification plugin) still holding the old HTML."
+            echo "The deploy resolved its target from the active theme, so a stale"
+            echo "path is no longer the likely cause — check for a cache in front of"
+            echo "the site (Cloudflare, or a minification plugin) holding the HTML."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "::warning::Could not confirm $VERSION is live (last HTTP $code)"
 
