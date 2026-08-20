@@ -86,12 +86,27 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           timeout 30 ssh-keyscan -H "$INSTALL.ssh.wpengine.net" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-          # The deploy action authenticates as wpe_gha+<install> and
-          # successfully runs remote commands that way, so use exactly
-          # that. The previous version also tried the bare install name
-          # first and hung on it — every call is under `timeout` now so
-          # a wedged session ends the step instead of the job.
-          SSH_USER="wpe_gha+$INSTALL"
+          # Measured, not guessed: the bare install name is what answered
+          # (the earlier run only looked hung because GitHub serves no logs
+          # for a job still in flight). wpe_gha+<install> is what the deploy
+          # action rsyncs as, so keep it as the fallback. Every call is under
+          # `timeout` so a wedged session ends the step, not the job.
+          SSH_USER=""
+          for u in "$INSTALL" "wpe_gha+$INSTALL"; do
+            if timeout 30 ssh -i ~/.ssh/id_ed25519 \
+                 -o StrictHostKeyChecking=accept-new -o BatchMode=yes \
+                 -o ConnectTimeout=15 \
+                 "$u@$INSTALL.ssh.wpengine.net" "echo ok" 2>/dev/null | grep -q ok; then
+              SSH_USER="$u"
+              break
+            fi
+            echo "ssh user '$u' did not answer"
+          done
+          if [ -z "$SSH_USER" ]; then
+            echo "::warning::No SSH user authenticated; the site job above holds the answer."
+            exit 0
+          fi
+          echo "connected as $SSH_USER"
           run() {
             timeout 45 ssh -i ~/.ssh/id_ed25519 \
               -o StrictHostKeyChecking=accept-new -o BatchMode=yes \
@@ -110,8 +125,8 @@ jobs:
           run "wp theme list --skip-plugins --skip-themes" | tee theme-list.txt
 
           echo ""
-          echo "=== did this deploy land in themes/infinity? ==="
-          run "ls -la wp-content/themes/infinity/assets/img/parkers-physics-logo.png 2>&1; grep -i '^Version' wp-content/themes/infinity/style.css 2>&1"
+          echo "=== what version is in the ACTIVE theme's directory? ==="
+          run "s=\$(wp option get stylesheet --skip-plugins --skip-themes); echo \"active dir: \$s\"; grep -i '^Version' wp-content/themes/\$s/style.css 2>&1; ls -la wp-content/themes/\$s/assets/img/parkers-physics-logo.png 2>&1"
 
           {
             echo ""
