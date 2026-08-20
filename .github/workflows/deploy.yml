@@ -174,6 +174,8 @@ jobs:
     name: Deploy
     needs: validate
     runs-on: ubuntu-latest
+    outputs:
+      slug: ${{ steps.target.outputs.slug }}
     steps:
       - uses: actions/checkout@v5
 
@@ -296,34 +298,109 @@ jobs:
       CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CF_ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
     steps:
-      - name: Confirm the new version is being served
+      # Ask the webserver for the exact file that was just written. This
+      # goes nowhere near WordPress, so it separates the two failures that
+      # look identical from the outside: files that never arrived, and
+      # files that arrived behind a cache still serving yesterday's HTML.
+      - name: Is the deployed stylesheet actually being served?
+        id: asset
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+          SLUG: ${{ needs.deploy.outputs.slug }}
+        run: |
+          set +e
+          url="$SITE_URL/wp-content/themes/$SLUG/style.css?cb=$GITHUB_RUN_ID"
+          code=$(curl -sS --max-time 30 -o css.txt -w '%{http_code}' "$url")
+          served=$(sed -n 's/^Version:[[:space:]]*//p' css.txt | head -1 | tr -d '[:space:]')
+          echo "HTTP $code  $SITE_URL/wp-content/themes/$SLUG/style.css"
+          echo "Version header on disk: '${served:-none}'   expected: '$VERSION'"
+          [ "$served" = "$VERSION" ] && echo "live=yes" >> "$GITHUB_OUTPUT" || echo "live=no" >> "$GITHUB_OUTPUT"
+          echo "served=${served:-none}" >> "$GITHUB_OUTPUT"
+
+      # A page cache serves the same stale HTML to every anonymous
+      # visitor, including this check. Fetching with a unique query
+      # string is a different cache key, so a difference between the two
+      # is the cache — and no difference rules it out.
+      - name: Cached homepage vs uncached homepage
+        id: page
         env:
           VERSION: ${{ needs.validate.outputs.version }}
         run: |
-          set -uo pipefail
-          # WP Engine's purge is not instant, and Cloudflare may still be
-          # holding the HTML, so give it a few tries before calling it.
+          set +e
+          # Retry the plain fetch: WP Engine's purge is not instant.
           for attempt in 1 2 3 4 5 6; do
-            code=$(curl -sS -o page.html -w '%{http_code}' -A 'github-actions deploy-verify' "$SITE_URL" || echo 000)
-            if [ "$code" = "200" ] && grep -q "ver=$VERSION" page.html; then
-              echo "Live and serving $VERSION"
-              echo "### Deployed \`$VERSION\` ✅" >> "$GITHUB_STEP_SUMMARY"
-              exit 0
-            fi
-            echo "attempt $attempt: HTTP $code, version $VERSION not visible yet"
-            sleep 20
+            curl -sS --max-time 30 -D cached.hdr -o cached.html -A 'deploy-verify' "$SITE_URL"
+            grep -q "ver=$VERSION" cached.html && break
+            [ "$attempt" = 6 ] || sleep 20
+          done
+          curl -sS --max-time 30 -D fresh.hdr -o fresh.html -A 'deploy-verify' "$SITE_URL/?cb=$GITHUB_RUN_ID"
+
+          for f in cached fresh; do
+            echo ""
+            echo "=== $f ==="
+            grep -iE '^(x-cache|cf-cache-status|age|cache-control|x-wpe|server):' "$f.hdr" | sed 's/^/  /'
+            # Markup this theme emits and nothing else does. A minifier can
+            # rewrite asset URLs; it does not rename HTML classes.
+            for m in header-cta nav-item-icon sticky-header bh-armed fp-blackhole; do
+              printf '  %-16s %s hit(s)\n' "$m" "$(grep -c "$m" "$f.html")"
+            done
+            echo "  ver= values: $(grep -o 'ver=[0-9A-Za-z._-]*' "$f.html" | sort -u | tr '\n' ' ')"
           done
 
+          # A missing file makes grep print nothing, and an empty string
+          # is not an integer — guard so the verdict step still runs.
+          cached_hits=$(grep -c 'header-cta' cached.html 2>/dev/null)
+          fresh_hits=$(grep -c 'header-cta' fresh.html 2>/dev/null)
+          echo "cached_hits=${cached_hits:-0}" >> "$GITHUB_OUTPUT"
+          echo "fresh_hits=${fresh_hits:-0}" >> "$GITHUB_OUTPUT"
+
+      - name: Verdict
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+          SLUG: ${{ needs.deploy.outputs.slug }}
+          ASSET_LIVE: ${{ steps.asset.outputs.live }}
+          SERVED: ${{ steps.asset.outputs.served }}
+          CACHED: ${{ steps.page.outputs.cached_hits }}
+          FRESH: ${{ steps.page.outputs.fresh_hits }}
+        run: |
+          set +e
+          CACHED="${CACHED:-0}"
+          FRESH="${FRESH:-0}"
           {
-            echo "### Deployed, but could not confirm \`$VERSION\` is live"
+            echo "## Verify"
             echo ""
-            echo "Last response was HTTP \`$code\`. The files went up — this check"
-            echo "only says the homepage is not yet serving \`?ver=$VERSION\`."
-            echo "The deploy resolved its target from the active theme, so a stale"
-            echo "path is no longer the likely cause — check for a cache in front of"
-            echo "the site (Cloudflare, or a minification plugin) holding the HTML."
+            echo "| check | result |"
+            echo "|---|---|"
+            echo "| target | \`wp-content/themes/$SLUG/\` |"
+            echo "| stylesheet served by the webserver | \`$SERVED\` (expected \`$VERSION\`) |"
+            echo "| new markup, normal request | $CACHED hit(s) |"
+            echo "| new markup, cache-busted request | $FRESH hit(s) |"
+            echo ""
+            if [ "$ASSET_LIVE" = "yes" ] && [ "$CACHED" -gt 0 ]; then
+              echo "**Live.** \`$VERSION\` is on disk and the homepage is rendering it."
+            elif [ "$ASSET_LIVE" = "yes" ] && [ "$FRESH" -gt 0 ]; then
+              echo "**Deployed, HTML is cached.** The theme files are live — a cache-busted"
+              echo "request renders the new markup, a normal one does not. Purge the page"
+              echo "cache in front of the site (WP Engine portal, or Cloudflare if it fronts"
+              echo "this domain). Add \`CLOUDFLARE_API_TOKEN\` and \`CLOUDFLARE_ZONE_ID\` as"
+              echo "repository secrets and this workflow will purge it automatically."
+            elif [ "$ASSET_LIVE" = "yes" ]; then
+              echo "**Deployed, but not rendering.** \`$VERSION\` is on disk and served,"
+              echo "yet neither request shows the new markup. That points at the homepage"
+              echo "not being built by this theme's templates — a page builder, a cached"
+              echo "object/fragment store, or a static-HTML plugin serving the front page."
+            else
+              echo "**Not live.** The webserver returns \`$SERVED\` for the stylesheet in"
+              echo "\`$SLUG\`, not \`$VERSION\`, so the deployed file is not the one being"
+              echo "read. Check whether a child theme or a second install directory is in play."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "::warning::Could not confirm $VERSION is live (last HTTP $code)"
+
+          if [ "$ASSET_LIVE" = "yes" ] && [ "$CACHED" -gt 0 ]; then
+            echo "Live and rendering $VERSION"
+          else
+            echo "::warning::$VERSION deployed to $SLUG; stylesheet served='$SERVED', markup hits cached=$CACHED fresh=$FRESH. See the run summary."
+          fi
 
       - name: Purge Cloudflare
         if: env.CF_TOKEN != '' && env.CF_ZONE != ''
