@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.2.0');
+define('INFINITY_VERSION', '3.3.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -525,6 +525,44 @@ function infinity_customize_register($wp_customize) {
         'type'        => 'text',
     ));
 
+    /*
+     * Email delivery. The constants in wp-config.php win over these,
+     * and are the better place: an option lives in the database, and
+     * the database is what gets backed up, exported and cloned to
+     * staging. This exists for people who cannot edit wp-config.
+     */
+    $wp_customize->add_section('infinity_mail_settings', array(
+        'title'       => esc_html__('Email delivery', 'infinity'),
+        'description' => esc_html__('Subscriber email is sent through Resend. Preferably set INFINITY_RESEND_API_KEY in wp-config.php; if you cannot, paste the key here. The From domain must be one you have verified on your Resend account.', 'infinity'),
+        'priority'    => 36,
+    ));
+
+    $wp_customize->add_setting('infinity_resend_api_key', array(
+        'type'              => 'option',
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('infinity_resend_api_key', array(
+        'label'       => esc_html__('Resend API key', 'infinity'),
+        'description' => esc_html__('Starts with re_. Leave blank if it is set in wp-config.php.', 'infinity'),
+        'section'     => 'infinity_mail_settings',
+        'type'        => 'password',
+    ));
+
+    $wp_customize->add_setting('infinity_mail_from', array(
+        'type'              => 'option',
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    $wp_customize->add_control('infinity_mail_from', array(
+        'label'       => esc_html__('From address', 'infinity'),
+        'description' => esc_html__('e.g. Elliot Telford <hello@elliottelford.com>. Defaults to noreply@ your own domain.', 'infinity'),
+        'section'     => 'infinity_mail_settings',
+        'type'        => 'text',
+    ));
+
     // Steam Promotion Section
     $wp_customize->add_section('infinity_steam_settings', array(
         'title'       => esc_html__('Steam Promotion', 'infinity'),
@@ -684,6 +722,7 @@ require_once INFINITY_DIR . '/inc/api-endpoints.php';
 require_once INFINITY_DIR . '/inc/stripe-api.php';
 require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 require_once INFINITY_DIR . '/inc/property-promos.php';
+require_once INFINITY_DIR . '/inc/mailer.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';
 require_once INFINITY_DIR . '/inc/seo-cleanup.php';

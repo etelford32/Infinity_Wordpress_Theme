@@ -3,6 +3,65 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.3.0
+
+- **Subscriber email actually arrives** (`inc/mailer.php`): WordPress hands
+  every `wp_mail()` to PHP's `mail()`, which on shared hosting is an
+  unauthenticated message from an IP the receiving side was never asked to
+  trust — it leaves, and it lands in spam, and nothing reports an error. A
+  `pre_wp_mail` transport now posts to Resend's HTTP API instead. No call site
+  changed: every existing `wp_mail()` keeps working and simply starts
+  arriving. With no key configured the filter returns null and WordPress uses
+  its own transport, so an unconfigured site behaves exactly as before rather
+  than silently sending nothing. Attachments deliberately fall through too —
+  the theme sends none, and quietly dropping one is worse than being slow.
+  The key comes from `INFINITY_RESEND_API_KEY` in `wp-config.php`, with a
+  Customizer field as a fallback; failures are recorded and surfaced on the
+  Subscribers screen, because a silent mail failure needs somewhere to be seen.
+
+- **Addresses are confirmed before anything is sent to them**
+  (`inc/subscribe.php`): the signup endpoint is public, so it would previously
+  mail a welcome to any address anybody typed into it — a way to spend a
+  sending domain's reputation on other people's spam complaints. Signup now
+  parks the address as `pending` and sends a confirmation link; the welcome
+  goes out when that link is clicked. Confirm links are namespaced into the
+  HMAC so they cannot be replayed as unsubscribe links or the reverse, and the
+  empty namespace still hashes exactly what the old scheme hashed, so every
+  unsubscribe link already sitting in an inbox keeps working. If the
+  confirmation cannot be delivered the signup is recorded anyway — stranding
+  someone behind a link they will never receive is the worse failure.
+  `add_filter('infinity_subscribe_double_optin', '__return_false')` restores
+  the old behaviour.
+
+- **The subscribe band no longer renders twice on the sign-up page**
+  (`inc/subscribe.php`): the footer renders it on every page and the sign-up
+  page also carries `[infinity_subscribe]`, so that page showed the identical
+  form twice. The `#subscribe` anchor now goes to whichever band renders
+  first, so suppressing the footer copy does not take the anchor off the page
+  with it, and two shortcodes on one page cannot duplicate the id.
+
+- **`.screen-reader-text` is defined by the theme** (`style.css`): four
+  templates use it and none of them defined it. It looks right today only
+  because WordPress's block-library stylesheet happens to carry a definition —
+  a stylesheet this site's asset optimiser is free to drop, at which point a
+  stray "Email address" label appears in the middle of the subscribe form.
+  Includes the `:focus` reveal, so skip links behave.
+
+- **Sign-up page and its states** (`inc/subscribe.php`, `assets/js/subscribe.js`,
+  `style.css`): the in-content band now answers "what do I get?" — cadence,
+  what arrives first, what happens to the address. The three "yes" answers are
+  distinguished rather than all reported as "Subscribed", since telling
+  somebody they are subscribed when they still need to confirm costs a
+  subscriber; re-signing up an address that is already confirmed no longer
+  counts as a funnel conversion. Email links land on a banner at the top of
+  the body: confirmed, expired-link, and unsubscribed. That last one has been
+  redirected to since the feature shipped and never rendered anything, so
+  one-click unsubscribe has always dropped people on a home page that gave no
+  sign it had worked.
+
+- **Dropped a deprecated call** (`inc/subscribe.php`): subscriber lookup used
+  `get_page_by_title()`, deprecated in WordPress 6.2.
+
 ## 3.2.0
 
 - **Subject accents on the top level of the navigation** (`style.css`,

@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.2.0
+Version: 3.3.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -3497,6 +3497,130 @@ body.mobile-menu-open .sticky-header {
 
 @media (prefers-reduced-motion: reduce) {
   .subscribe-btn { animation: none; }
+}
+
+/* Visually hidden, still read aloud.
+
+   Four templates use this class — the subscribe form's label, the
+   header, the index and the app template — and the theme never defined
+   it. It only looks right today because WordPress's block-library
+   stylesheet happens to carry a definition, which is a stylesheet this
+   site's asset optimiser is entitled to drop at any point; the failure
+   mode is a stray "Email address" label appearing mid-form. Themes are
+   supposed to own this one. */
+.screen-reader-text {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  width: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  position: absolute !important;
+  white-space: nowrap;
+  word-wrap: normal !important;
+}
+
+/* Skip links and the like have to become visible when tabbed to */
+.screen-reader-text:focus {
+  clip-path: none;
+  height: auto;
+  width: auto;
+  margin: 0;
+  padding: 14px 22px;
+  display: block;
+  top: 6px;
+  left: 6px;
+  z-index: 100000;
+  border-radius: 8px;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-lg);
+}
+
+/* What you get, on the sign-up page only. The footer strip is an
+   afterthought someone scrolled past; the sign-up page is somewhere
+   they went on purpose, and it can afford to answer the question. */
+.subscribe-points {
+  list-style: none;
+  margin: var(--spacing-lg) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.subscribe-points li {
+  position: relative;
+  padding-left: 26px;
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.subscribe-points li::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent-primary);
+  box-shadow: 0 0 10px -1px var(--color-accent-primary);
+}
+
+/* The banner someone lands on from an email link. Top of the body, not
+   inside the band: these links land on the home page and the band is at
+   the bottom of it. */
+.subscribe-flash {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent-primary) 34%, transparent);
+  background: color-mix(in srgb, var(--color-accent-primary) 13%, var(--color-bg-secondary));
+}
+
+.subscribe-flash.is-warn {
+  border-bottom-color: color-mix(in srgb, #ffb020 44%, transparent);
+  background: color-mix(in srgb, #ffb020 15%, var(--color-bg-secondary));
+}
+
+.subscribe-flash-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.subscribe-flash-text {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.subscribe-flash-close {
+  flex: none;
+  /* 44px of target on a 24px glyph: the close control on a banner is
+     exactly the sort of thing that ends up too small to hit on a phone */
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px -10px 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-tertiary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.subscribe-flash-close:hover,
+.subscribe-flash-close:focus-visible {
+  color: var(--color-text-primary);
+  background-color: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
 }
 
 /* ETU teaser video */
