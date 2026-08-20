@@ -500,9 +500,15 @@ jobs:
           # The REST namespace index lists the registered routes without
           # invoking any of them. POSTing /subscribe here would create a
           # real subscriber and send real mail, which is not a test.
-          curl -sS --max-time 30 -o routes.json "$SITE_URL/wp-json/infinity/v1" || true
+          rcode=$(curl -sS --max-time 30 -o routes.json -w '%{http_code}' "$SITE_URL/wp-json/infinity/v1")
+          # WordPress serialises REST responses with PHP's json_encode and
+          # no JSON_UNESCAPED_SLASHES, so every path in there reads
+          # "infinity\/v1\/subscribe". Grepping the unescaped form finds
+          # nothing and looks exactly like a missing route.
+          tr -d '\\' < routes.json > routes-flat.json 2>/dev/null || true
+          echo "  namespace index: HTTP $rcode, $(wc -c < routes-flat.json 2>/dev/null || echo 0) bytes"
           for r in subscribe confirm unsubscribe; do
-            printf '  route /%-12s %s\n' "$r" "$(grep -c "infinity/v1/$r" routes.json 2>/dev/null | head -1)"
+            printf '  route /%-12s %s\n' "$r" "$(grep -c "infinity/v1/$r" routes-flat.json 2>/dev/null | head -1)"
           done
 
           # Straight from the theme's own stylesheet, cache-busted: this
