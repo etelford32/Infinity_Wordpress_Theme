@@ -232,6 +232,53 @@ function infinity_mail_record_error($reason) {
 }
 
 /**
+ * Send a test email to whoever is asking.
+ *
+ * The signup flow is a poor way to test a mail transport: with confirmed
+ * opt-in the first message is a confirmation rather than a welcome, an
+ * address that is already subscribed is deliberately sent nothing at
+ * all, and neither of those looks any different from a broken API key.
+ * This exercises the transport on its own and reports what happened.
+ */
+function infinity_mail_send_test() {
+    if (!current_user_can('manage_options')) {
+        wp_die(esc_html__('You are not allowed to do that.', 'infinity'));
+    }
+    check_admin_referer('infinity_mail_test');
+
+    $user = wp_get_current_user();
+    $to   = $user ? $user->user_email : '';
+
+    if (!is_email($to)) {
+        $result = 'noaddress';
+    } else {
+        delete_option('infinity_mail_last_error');
+
+        $sent = wp_mail(
+            $to,
+            sprintf(__('[%s] Mail test', 'infinity'), get_bloginfo('name')),
+            '<p>' . esc_html__('If you are reading this, subscriber email is working.', 'infinity') . '</p>'
+                . '<p style="color:#666;font-size:13px;">' . esc_html(sprintf(
+                    /* translators: %s: the From address messages are sent as. */
+                    __('Sent as %s.', 'infinity'),
+                    infinity_mail_from()
+                )) . '</p>',
+            array('Content-Type: text/html; charset=UTF-8')
+        );
+
+        $result = $sent ? 'sent' : 'failed';
+    }
+
+    wp_safe_redirect(add_query_arg(
+        'infinity_mail_test',
+        $result,
+        admin_url('edit.php?post_type=inf_subscriber')
+    ));
+    exit;
+}
+add_action('admin_post_infinity_mail_test', 'infinity_mail_send_test');
+
+/**
  * Surface mail trouble where the subscriber list is, which is the one
  * screen where someone is already thinking about email.
  */
@@ -242,6 +289,45 @@ function infinity_mail_admin_notice() {
     }
     if (!current_user_can('manage_options')) {
         return;
+    }
+
+    $result = isset($_GET['infinity_mail_test']) ? sanitize_key(wp_unslash($_GET['infinity_mail_test'])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+    if ('sent' === $result) {
+        printf(
+            '<div class="notice notice-success"><p><strong>%s</strong> %s</p></div>',
+            esc_html__('Test email sent.', 'infinity'),
+            esc_html(sprintf(
+                /* translators: %s: the admin's own email address. */
+                __('Resend accepted it for %s. If it does not arrive, the delivery status is in Resend under Logs.', 'infinity'),
+                wp_get_current_user()->user_email
+            ))
+        );
+    } elseif ('failed' === $result) {
+        $why = get_option('infinity_mail_last_error');
+        printf(
+            '<div class="notice notice-error"><p><strong>%s</strong> %s</p></div>',
+            esc_html__('Test email failed.', 'infinity'),
+            esc_html(is_array($why) && !empty($why['reason']) ? $why['reason'] : __('No reason was recorded.', 'infinity'))
+        );
+    } elseif ('noaddress' === $result) {
+        printf(
+            '<div class="notice notice-error"><p>%s</p></div>',
+            esc_html__('Your user account has no valid email address to send a test to.', 'infinity')
+        );
+    }
+
+    if (infinity_resend_ready()) {
+        printf(
+            '<div class="notice notice-info"><p>%s <a class="button button-secondary" href="%s">%s</a></p></div>',
+            esc_html(sprintf(
+                /* translators: %s: the From address messages are sent as. */
+                __('Subscriber email is sent through Resend as %s.', 'infinity'),
+                infinity_mail_from()
+            )),
+            esc_url(wp_nonce_url(admin_url('admin-post.php?action=infinity_mail_test'), 'infinity_mail_test')),
+            esc_html__('Send me a test email', 'infinity')
+        );
     }
 
     if (!infinity_resend_ready()) {

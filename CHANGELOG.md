@@ -3,6 +3,18 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.3.1
+
+- **A "send me a test email" button on the Subscribers screen**
+  (`inc/mailer.php`): the signup flow turns out to be a poor way to test a
+  mail transport. With confirmed opt-in the first message is a confirmation
+  rather than a welcome; an address that is already subscribed is deliberately
+  sent nothing at all; and neither of those looks any different from a broken
+  API key. The button exercises the transport on its own and reports what came
+  back — accepted, or the exact reason Resend refused. Admin-only, nonce-checked.
+  The screen also states the From address it would send as, since a From on an
+  unverified domain is the failure people hit first.
+
 ## 3.3.0
 
 - **Subscriber email actually arrives** (`inc/mailer.php`): WordPress hands
