@@ -262,6 +262,26 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # An asset optimiser that concatenates or de-versions the theme's
+      # CSS is invisible from the outside and changes what "deployed"
+      # means, so record which one is in play next to the deploy that
+      # has to live with it. Informational only — never fail on it.
+      - name: Which plugins touch assets or caching?
+        continue-on-error: true
+        env:
+          INSTALL: ${{ inputs.environment || 'etelford' }}
+        run: |
+          set +e
+          timeout 90 ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=accept-new \
+            -o BatchMode=yes -o ConnectTimeout=15 \
+            "$INSTALL@$INSTALL.ssh.wpengine.net" \
+            "cd sites/$INSTALL && wp plugin list --status=active --field=name --skip-plugins --skip-themes" \
+            2>/dev/null | tr -d '\r' | tee plugins.txt
+          echo ""
+          echo "--- ones known to rewrite or cache assets ---"
+          grep -iE 'cache|optimi[sz]|minif|rocket|autoptimize|litespeed|speed|cdn|performance|hummingbird|breeze|swift|velocity' plugins.txt \
+            || echo "  (none matched by name)"
+
       - name: Deploy to WP Engine
         uses: wpengine/github-action-wpe-site-deploy@v3
         with:
@@ -302,20 +322,35 @@ jobs:
       # goes nowhere near WordPress, so it separates the two failures that
       # look identical from the outside: files that never arrived, and
       # files that arrived behind a cache still serving yesterday's HTML.
-      - name: Is the deployed stylesheet actually being served?
+      # Fetch the stylesheet twice, and the difference names the culprit.
+      # The plain URL is what a real browser asks for and what a CDN has
+      # cached; the unique URL is a guaranteed miss, so it reads what is
+      # on disk. Equal means the deploy is fully live. Different means
+      # the file is live but something in front is still handing visitors
+      # the old one — the case that looks like "the deploy did nothing".
+      - name: Is the deployed stylesheet reaching visitors?
         id: asset
         env:
           VERSION: ${{ needs.validate.outputs.version }}
           SLUG: ${{ needs.deploy.outputs.slug }}
         run: |
           set +e
-          url="$SITE_URL/wp-content/themes/$SLUG/style.css?cb=$GITHUB_RUN_ID"
-          code=$(curl -sS --max-time 30 -o css.txt -w '%{http_code}' "$url")
-          served=$(sed -n 's/^Version:[[:space:]]*//p' css.txt | head -1 | tr -d '[:space:]')
-          echo "HTTP $code  $SITE_URL/wp-content/themes/$SLUG/style.css"
-          echo "Version header on disk: '${served:-none}'   expected: '$VERSION'"
-          [ "$served" = "$VERSION" ] && echo "live=yes" >> "$GITHUB_OUTPUT" || echo "live=no" >> "$GITHUB_OUTPUT"
-          echo "served=${served:-none}" >> "$GITHUB_OUTPUT"
+          base="$SITE_URL/wp-content/themes/$SLUG/style.css"
+
+          codeA=$(curl -sS --max-time 30 -D plain.hdr -o plain.css -w '%{http_code}' "$base")
+          plain=$(sed -n 's/^Version:[[:space:]]*//p' plain.css | head -1 | tr -d '[:space:]')
+          codeB=$(curl -sS --max-time 30 -D bust.hdr -o bust.css -w '%{http_code}' "$base?cb=$GITHUB_RUN_ID")
+          bust=$(sed -n 's/^Version:[[:space:]]*//p' bust.css | head -1 | tr -d '[:space:]')
+
+          echo "plain URL      HTTP $codeA   Version: ${plain:-none}"
+          grep -iE '^(cf-cache-status|x-cache|age|cache-control):' plain.hdr | sed 's/^/    /'
+          echo "cache-busted   HTTP $codeB   Version: ${bust:-none}      expected: $VERSION"
+          grep -iE '^(cf-cache-status|x-cache|age|cache-control):' bust.hdr | sed 's/^/    /'
+
+          [ "$bust" = "$VERSION" ] && echo "live=yes" >> "$GITHUB_OUTPUT" || echo "live=no" >> "$GITHUB_OUTPUT"
+          [ "$plain" = "$VERSION" ] && echo "reaching=yes" >> "$GITHUB_OUTPUT" || echo "reaching=no" >> "$GITHUB_OUTPUT"
+          echo "served=${bust:-none}" >> "$GITHUB_OUTPUT"
+          echo "plain=${plain:-none}" >> "$GITHUB_OUTPUT"
 
       # A page cache serves the same stale HTML to every anonymous
       # visitor, including this check. Fetching with a unique query
@@ -347,6 +382,15 @@ jobs:
             echo "  ver= values: $(grep -o 'ver=[0-9A-Za-z._-]*' "$f.html" | sort -u | tr '\n' ' ')"
           done
 
+          # The enqueue calls all pass INFINITY_VERSION, so every theme
+          # asset should carry ?ver=<version>. Printing the URLs as the
+          # page actually contains them shows whether something stripped
+          # the query string or bundled the files, instead of leaving it
+          # to be inferred from an absence.
+          echo ""
+          echo "=== theme asset URLs as the page contains them ==="
+          grep -o "[^\"']*wp-content/themes/[^\"']*" fresh.html | sort -u | head -20
+
           # A missing file makes grep print nothing, and an empty string
           # is not an integer — guard so the verdict step still runs.
           cached_hits=$(grep -c 'header-cta' cached.html 2>/dev/null)
@@ -359,7 +403,9 @@ jobs:
           VERSION: ${{ needs.validate.outputs.version }}
           SLUG: ${{ needs.deploy.outputs.slug }}
           ASSET_LIVE: ${{ steps.asset.outputs.live }}
+          REACHING: ${{ steps.asset.outputs.reaching }}
           SERVED: ${{ steps.asset.outputs.served }}
+          PLAIN: ${{ steps.asset.outputs.plain }}
           CACHED: ${{ steps.page.outputs.cached_hits }}
           FRESH: ${{ steps.page.outputs.fresh_hits }}
         run: |
@@ -372,12 +418,26 @@ jobs:
             echo "| check | result |"
             echo "|---|---|"
             echo "| target | \`wp-content/themes/$SLUG/\` |"
-            echo "| stylesheet served by the webserver | \`$SERVED\` (expected \`$VERSION\`) |"
+            echo "| stylesheet, cache-busted URL | \`$SERVED\` (expected \`$VERSION\`) |"
+            echo "| stylesheet, plain URL a browser asks for | \`$PLAIN\` |"
             echo "| new markup, normal request | $CACHED hit(s) |"
             echo "| new markup, cache-busted request | $FRESH hit(s) |"
             echo ""
-            if [ "$ASSET_LIVE" = "yes" ] && [ "$CACHED" -gt 0 ]; then
-              echo "**Live.** \`$VERSION\` is on disk and the homepage is rendering it."
+            if [ "$ASSET_LIVE" = "yes" ] && [ "$REACHING" = "no" ]; then
+              echo "**Deployed, but visitors get the old stylesheet.** A cache-busted URL"
+              echo "returns \`$VERSION\`, so the file is live on disk — but the plain URL a"
+              echo "browser actually requests returns \`$PLAIN\`. Something in front of the"
+              echo "site is serving the previous copy under the same URL, which is why new"
+              echo "markup can appear against old styling and the page looks broken rather"
+              echo "than unchanged."
+              echo ""
+              echo "The theme enqueues every asset with \`INFINITY_VERSION\`, so this cannot"
+              echo "be fixed by bumping the version — the query string is not reaching the"
+              echo "URL. Purge the CDN. Adding \`CLOUDFLARE_API_TOKEN\` and"
+              echo "\`CLOUDFLARE_ZONE_ID\` as repository secrets makes this workflow do it"
+              echo "on every deploy."
+            elif [ "$ASSET_LIVE" = "yes" ] && [ "$CACHED" -gt 0 ]; then
+              echo "**Live.** \`$VERSION\` is on disk, reaching visitors, and rendering."
             elif [ "$ASSET_LIVE" = "yes" ] && [ "$FRESH" -gt 0 ]; then
               echo "**Deployed, HTML is cached.** The theme files are live — a cache-busted"
               echo "request renders the new markup, a normal one does not. Purge the page"
@@ -396,10 +456,10 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-          if [ "$ASSET_LIVE" = "yes" ] && [ "$CACHED" -gt 0 ]; then
+          if [ "$ASSET_LIVE" = "yes" ] && [ "$REACHING" = "yes" ] && [ "$CACHED" -gt 0 ]; then
             echo "Live and rendering $VERSION"
           else
-            echo "::warning::$VERSION deployed to $SLUG; stylesheet served='$SERVED', markup hits cached=$CACHED fresh=$FRESH. See the run summary."
+            echo "::warning::$VERSION deployed to $SLUG; stylesheet plain='$PLAIN' busted='$SERVED', markup hits cached=$CACHED fresh=$FRESH. See the run summary."
           fi
 
       - name: Purge Cloudflare
