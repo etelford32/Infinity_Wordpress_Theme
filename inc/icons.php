@@ -82,91 +82,40 @@ function infinity_is_icon_token($token) {
 /**
  * Marketing brand marks for the sibling properties.
  *
- * These are full-colour marks, not members of the stroke icon set
- * above: each property owns its palette, so they carry their own
- * gradients rather than the shared cyan→violet one.
+ * Both are the properties' own artwork, bundled as small rasters:
+ * Parker's Physics is the blue/orange nebula "P" (a 96px cut of
+ * parkers-physics-logo.png), Explore the Universe 2175 is the crystal
+ * ETU wordmark from that project's repo (etelford32/ETUWebsite,
+ * public/brand/etu-wordmark.png). The nebula is all glow and soft
+ * edges, which no stroke transcription survives at button size, so a
+ * vector stand-in is a step down from the picture, not up.
  *
- * Parker's Physics is the real mark, transcribed to vector in that
- * project's own repo. Explore the Universe 2175 is still a theme-drawn
- * stand-in — a ringed world under a plotted transfer — built from the
- * palette this repo already uses for it. To override either, set the
- * matching logo option (`infinity_parkers_logo` / `infinity_etu_logo`)
- * to an image URL and infinity_brand_mark() renders that instead.
+ * $size is the mark's height; the width follows the artwork, so the
+ * ETU wordmark comes out wide and the Parker's mark square. Setting
+ * `infinity_parkers_logo` / `infinity_etu_logo` overrides either.
  *
  * @since 3.1.0
  */
-function infinity_brand_mark_svg($key, $size = 20) {
-    static $instance = 0;
-    $instance++;
-    $gid = 'infbm-' . $instance;
-
-    $size = (int) $size;
-    $open = sprintf(
-        '<svg class="inf-brand-mark inf-brand-mark-%1$s" width="%2$d" height="%2$d" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">',
-        esc_attr($key),
-        $size
-    );
-
-    if ('parkers' === $key) {
-        /*
-         * The real Parkers Physics mark, transcribed to vector in that
-         * project's own repo (etelford32/ParkersPhysics,
-         * icons/logo-mark.svg) from ParkersPhysics_logo2.jpg: a "P"
-         * whose bowl is two tilted orbital rings crossing a vertical
-         * stem, cool over hot. Two notes carried over from the source,
-         * both of which look like cleanups and are not:
-         *
-         *   1. Flat strokes, not gradients. A vertical line has a
-         *      zero-width bounding box, so a bbox-relative gradient is
-         *      degenerate and the stem paints nothing at all.
-         *   2. The stem is drawn LAST, over the rings. Drawn first the
-         *      rings close over the junction and the whole thing reads
-         *      as an "8" instead of a P.
-         *
-         * Rebased from the source's 64x64 viewBox onto the 24x24 this
-         * icon set uses (x 0.375).
-         */
-        return $open
-            . '<g fill="none" stroke-linecap="round">'
-            . '<ellipse cx="13.5" cy="9" rx="6.19" ry="3.38" stroke="#22b8ff" stroke-width="2.1" transform="rotate(-20 13.5 9)"/>'
-            . '<ellipse cx="12.56" cy="15.75" rx="5.06" ry="2.78" stroke="#ff8a1f" stroke-width="2.1" transform="rotate(-20 12.56 15.75)"/>'
-            . '<line x1="5.63" y1="4.13" x2="5.63" y2="12.38" stroke="#22b8ff" stroke-width="2.1"/>'
-            . '<line x1="5.63" y1="12" x2="5.63" y2="20.25" stroke="#ff8a1f" stroke-width="2.1"/>'
-            . '</g>'
-            . '<circle cx="5.63" cy="12.19" r="1.46" fill="#fff"/>'
-            . '</svg>';
-    }
-
-    // Explore the Universe 2175: a ringed world with a plotted transfer
-    // arc climbing off it, and the star it is departing.
-    return $open
-        . '<defs>'
-        . '<linearGradient id="' . esc_attr($gid) . '-a" x1="4" y1="6" x2="18" y2="21" gradientUnits="userSpaceOnUse">'
-        . '<stop offset="0" stop-color="#8fd6ff"/><stop offset="1" stop-color="#1b6ec2"/></linearGradient>'
-        . '</defs>'
-        . '<circle cx="10.4" cy="13.6" r="5.6" fill="url(#' . esc_attr($gid) . '-a)"/>'
-        . '<ellipse cx="10.4" cy="13.6" rx="9.4" ry="3.2" transform="rotate(-21 10.4 13.6)" stroke="#66c0f4" stroke-width="1.4" opacity="0.85"/>'
-        . '<path d="M3.4 9.2C7 3.6 14.4 2 20.6 4.4" stroke="#ffd7a1" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3.4 2.6" opacity="0.95"/>'
-        . '<circle cx="20.6" cy="4.4" r="1.9" fill="#ffd166"/>'
-        . '</svg>';
-}
-
-/**
- * Echo a property's brand mark, preferring a real uploaded logo when
- * the site owner has set one.
- */
 function infinity_brand_mark($key, $size = 20) {
-    $logo = get_option('infinity_' . $key . '_logo', '');
-    if ($logo) {
-        printf(
-            '<img class="inf-brand-mark inf-brand-mark-img" src="%1$s" width="%2$d" height="%2$d" alt="" loading="lazy" decoding="async">',
-            esc_url($logo),
-            (int) $size
-        );
+    $marks = array(
+        'parkers' => array('/assets/img/parkers-physics-mark.webp', 1),
+        'etu'     => array('/assets/img/etu-logo.webp', 160 / 66),
+    );
+    if (!isset($marks[$key])) {
         return;
     }
 
-    echo infinity_brand_mark_svg($key, $size); // phpcs:ignore WordPress.Security.EscapeOutput -- static markup built above
+    $logo   = get_option('infinity_' . $key . '_logo', '');
+    $ratio  = $logo ? 1 : $marks[$key][1];
+    $height = (int) $size;
+
+    printf(
+        '<img class="inf-brand-mark inf-brand-mark-%1$s" src="%2$s" width="%3$d" height="%4$d" alt="" decoding="async">',
+        esc_attr($key),
+        esc_url($logo ? $logo : INFINITY_URI . $marks[$key][0]),
+        (int) round($height * $ratio),
+        $height
+    );
 }
 
 /**

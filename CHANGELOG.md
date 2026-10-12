@@ -3,6 +3,27 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.4.0
+
+- **Property buttons wear their own brands** (`header.php`,
+  `inc/icons.php`, `inc/etu-type.php`): the two header CTAs now carry each
+  property's real artwork. Parker's Physics is back to the blue/orange nebula
+  "P", replacing the line transcription, which lost the glow and soft edges
+  that make the mark read at button size. Explore the Universe 2175 swaps its
+  theme-drawn planet for the crystal ETU wordmark from the ETU site's own repo.
+  Both labels are set in the ETU 2175 title typography: the sprite font cut
+  from the game's official title artwork, rendered server-side with the ETU
+  site's metrics and kerning. The bundled atlas is a quarter-resolution copy
+  (64KB, not 636KB), which is still 2x for the button sizes. Custom labels
+  keep working, any character the art has no letter for falls back to
+  Orbitron, and the real words stay in the accessible name.
+- Buttons are a size up: 52px tall, 23px lettering from 1280px (18px from
+  1024px), with a nebula face for Parker's and deep-space cyan for ETU. On
+  phones they shrink to marks only, sized so the menu button still fits the
+  bar from 375px up, as before.
+- The "Mega CTA" block no longer overrides the ETU header button's padding.
+  That override was what made it taller than its neighbour on mobile.
+
 ## 3.3.1
 
 - **A "send me a test email" button on the Subscribers screen**

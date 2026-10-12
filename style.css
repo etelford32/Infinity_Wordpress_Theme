@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.3.1
+Version: 3.4.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -672,12 +672,35 @@ code {
   outline-offset: 3px;
 }
 
+/* The two property buttons are a size up from the Steam CTA they
+   share a skin with: room for each property's real artwork and a label
+   set in the ETU title face, which needs ~18px before its crystal
+   texture reads as more than noise. */
+.header-cta {
+  gap: 11px;
+  padding: 8px 18px 8px 10px;
+  border-radius: 14px;
+  min-height: 52px;
+}
+
 .header-cta-parkers {
-  /* Parker's binary palette: blue primary, orange companion */
-  --cta-face: linear-gradient(135deg, #12233f 0%, #1e4173 48%, #c2571a 100%);
-  --cta-edge: rgba(255, 160, 84, 0.5);
-  --cta-lip: #7c3410;
+  /* the nebula's own split: cold blue rising into hot orange */
+  --cta-face:
+    radial-gradient(120% 140% at 0% 0%, rgba(34, 184, 255, 0.28) 0%, transparent 55%),
+    linear-gradient(135deg, #06101f 0%, #12305a 46%, #8a3a10 100%);
+  --cta-edge: rgba(255, 160, 84, 0.55);
+  --cta-lip: #6a2a0b;
   --cta-glow: rgba(249, 115, 22, 0.5);
+}
+
+.header-cta-etu {
+  /* ETU 2175's deep space and crystal cyan */
+  --cta-face:
+    radial-gradient(120% 140% at 100% 0%, rgba(34, 211, 238, 0.24) 0%, transparent 55%),
+    linear-gradient(135deg, #020617 0%, #0b1023 45%, #0e4a63 100%);
+  --cta-edge: rgba(103, 232, 249, 0.55);
+  --cta-lip: #063445;
+  --cta-glow: rgba(34, 211, 238, 0.45);
 }
 
 .header-cta .inf-brand-mark,
@@ -686,9 +709,113 @@ code {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 }
 
-.inf-brand-mark-img {
-  border-radius: 5px;
+/* The nebula P is square app-icon art with a dark tile of its own;
+   rounding it keeps that tile from reading as a hard box on the face. */
+.header-cta .inf-brand-mark-parkers {
+  border-radius: 9px;
+  box-shadow: 0 0 0 1px rgba(255, 160, 84, 0.35), 0 0 12px -2px rgba(34, 184, 255, 0.55);
+}
+
+.header-cta .inf-brand-mark-etu {
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.45)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+.inf-brand-mark {
   object-fit: contain;
+}
+
+.header-cta-label {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Wide screens have the room for the lettering at full size, where
+   the crystal facets read as letters rather than texture */
+@media (min-width: 1280px) {
+  .header-cta-label {
+    font-size: 23px;
+  }
+}
+
+.header-cta:hover .etu-type,
+.header-cta:focus-visible .etu-type {
+  filter: brightness(1.22) contrast(1.06) drop-shadow(0 0 5px rgba(103, 232, 249, 0.6));
+}
+
+/* ETU 2175 title face (inc/etu-type.php).
+
+   Ported from the ETU site's .etu-title, static parts only. Every
+   metric arrives in sprite px; --k turns those into em with the letter
+   depth (face + extrusion) pinned at 0.8em. Keep 0.8 / 12 / 64 in step
+   with the source repo's src/lib/etuTitle/layout.ts. */
+.etu-type {
+  --k: calc(0.8em / var(--etu-depth));
+  --etu-track: 12;
+  --etu-gap: 64;
+  display: inline-block;
+  position: relative;
+  white-space: nowrap;
+  line-height: 1;
+  filter: brightness(1.08) contrast(1.06) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
+  transition: filter 150ms ease;
+}
+
+.etu-type__body {
+  display: inline-flex;
+  align-items: flex-start;
+}
+
+.etu-type__word {
+  display: inline-flex;
+  align-items: flex-start;
+  height: calc(var(--etu-depth) * var(--k));
+}
+
+.etu-type__word + .etu-type__word {
+  margin-left: calc(var(--etu-gap) * var(--k));
+}
+
+.etu-glyph {
+  position: relative;
+  flex: none;
+  width: calc(var(--ga) * var(--k));
+  height: calc(var(--etu-depth) * var(--k));
+  margin-right: calc((var(--etu-track) + var(--kern, 0)) * var(--k));
+}
+
+.etu-glyph:last-child {
+  margin-right: 0;
+}
+
+/* The art cell is wider and taller than the advance: glow and
+   extrusion spill past the letter, as they do in the artwork. */
+.etu-glyph::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--etu-margin) * var(--k) * -1);
+  top: calc(var(--etu-margin) * var(--k) * -1);
+  width: calc(var(--gw) * var(--k));
+  height: calc(var(--etu-frame) * var(--k));
+  background-image: var(--etu-art);
+  background-repeat: no-repeat;
+  background-size: calc(var(--etu-aw) * var(--k)) calc(var(--etu-ah) * var(--k));
+  background-position: calc(var(--gx) * var(--k) * -1) calc(var(--gy) * var(--k) * -1);
+  pointer-events: none;
+}
+
+/* a character the artwork has no letter for */
+.etu-type__char,
+.etu-type-fallback {
+  font-family: var(--font-family-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #cffafe;
+}
+
+.etu-type__char {
+  font-size: 0.8em;
+  line-height: 1;
 }
 
 /* In the single-row mobile bar the CTAs keep their marks and drop
@@ -703,6 +830,33 @@ code {
   .header-cta,
   .header-steam-cta {
     padding: 9px 11px;
+  }
+
+  .header-cta {
+    min-height: 0;
+    padding: 6px 9px;
+  }
+
+  .header-cta .inf-brand-mark {
+    width: auto;
+    height: 28px;
+  }
+}
+
+/* Phones: the ETU wordmark is 2.4x as wide as it is tall, and at the
+   tablet size it pushes the menu button onto a second row */
+@media (max-width: 480px) {
+  .header-cta {
+    min-height: 38px;
+    padding: 6px 7px;
+  }
+
+  .header-cta .inf-brand-mark {
+    height: 24px;
+  }
+
+  .header-cta .inf-brand-mark-etu {
+    height: 19px;
   }
 }
 
@@ -1313,7 +1467,8 @@ body.mobile-menu-open .sticky-header {
 }
 
 .sticky-header.is-scrolled .header-cta {
-  padding: 7px 14px;
+  min-height: 44px;
+  padding: 5px 14px 5px 8px;
 }
 
 @media (min-width: 1024px) {
@@ -2859,9 +3014,13 @@ body.mobile-menu-open .sticky-header {
 .header-cta-etu,
 .header-steam-cta {
   overflow: hidden;
+  animation: cta-beacon 2.6s ease-out infinite;
+}
+
+/* the header pair already sizes itself (see .header-cta above) */
+.header-steam-cta {
   padding: 10px 18px;
   font-size: 0.95rem;
-  animation: cta-beacon 2.6s ease-out infinite;
 }
 
 .header-cta-etu:hover,
@@ -2911,7 +3070,7 @@ body.mobile-menu-open .sticky-header {
 }
 
 /* Periodic attention wiggle, on the loud button only */
-.header-cta-etu > svg,
+.header-cta-etu > img,
 .header-cta-etu > span,
 .header-steam-cta > svg,
 .header-steam-cta > span {
@@ -2927,7 +3086,7 @@ body.mobile-menu-open .sticky-header {
 @media (prefers-reduced-motion: reduce) {
   .header-cta,
   .header-cta::after,
-  .header-cta > svg,
+  .header-cta > img,
   .header-cta > span,
   .header-steam-cta,
   .header-steam-cta::after,

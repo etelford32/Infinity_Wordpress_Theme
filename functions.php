@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.3.1');
+define('INFINITY_VERSION', '3.4.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -725,6 +725,7 @@ require_once INFINITY_DIR . '/inc/property-promos.php';
 require_once INFINITY_DIR . '/inc/mailer.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';
+require_once INFINITY_DIR . '/inc/etu-type.php';
 require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 require_once INFINITY_DIR . '/inc/analytics-rum.php';
 
