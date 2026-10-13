@@ -725,7 +725,6 @@ require_once INFINITY_DIR . '/inc/property-promos.php';
 require_once INFINITY_DIR . '/inc/mailer.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';
-require_once INFINITY_DIR . '/inc/etu-type.php';
 require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 require_once INFINITY_DIR . '/inc/analytics-rum.php';
 

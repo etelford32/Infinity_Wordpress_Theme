@@ -673,9 +673,7 @@ code {
 }
 
 /* The two property buttons are a size up from the Steam CTA they
-   share a skin with: room for each property's real artwork and a label
-   set in the ETU title face, which needs ~18px before its crystal
-   texture reads as more than noise. */
+   share a skin with, to give each property's real artwork room. */
 .header-cta {
   gap: 11px;
   padding: 8px 18px 8px 10px;
@@ -725,97 +723,19 @@ code {
 }
 
 .header-cta-label {
-  font-size: 18px;
+  font-family: var(--font-family-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 }
 
-/* Wide screens have the room for the lettering at full size, where
-   the crystal facets read as letters rather than texture */
 @media (min-width: 1280px) {
   .header-cta-label {
-    font-size: 23px;
+    font-size: 16px;
   }
-}
-
-.header-cta:hover .etu-type,
-.header-cta:focus-visible .etu-type {
-  filter: brightness(1.22) contrast(1.06) drop-shadow(0 0 5px rgba(103, 232, 249, 0.6));
-}
-
-/* ETU 2175 title face (inc/etu-type.php).
-
-   Ported from the ETU site's .etu-title, static parts only. Every
-   metric arrives in sprite px; --k turns those into em with the letter
-   depth (face + extrusion) pinned at 0.8em. Keep 0.8 / 12 / 64 in step
-   with the source repo's src/lib/etuTitle/layout.ts. */
-.etu-type {
-  --k: calc(0.8em / var(--etu-depth));
-  --etu-track: 12;
-  --etu-gap: 64;
-  display: inline-block;
-  position: relative;
-  white-space: nowrap;
-  line-height: 1;
-  filter: brightness(1.08) contrast(1.06) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
-  transition: filter 150ms ease;
-}
-
-.etu-type__body {
-  display: inline-flex;
-  align-items: flex-start;
-}
-
-.etu-type__word {
-  display: inline-flex;
-  align-items: flex-start;
-  height: calc(var(--etu-depth) * var(--k));
-}
-
-.etu-type__word + .etu-type__word {
-  margin-left: calc(var(--etu-gap) * var(--k));
-}
-
-.etu-glyph {
-  position: relative;
-  flex: none;
-  width: calc(var(--ga) * var(--k));
-  height: calc(var(--etu-depth) * var(--k));
-  margin-right: calc((var(--etu-track) + var(--kern, 0)) * var(--k));
-}
-
-.etu-glyph:last-child {
-  margin-right: 0;
-}
-
-/* The art cell is wider and taller than the advance: glow and
-   extrusion spill past the letter, as they do in the artwork. */
-.etu-glyph::before {
-  content: '';
-  position: absolute;
-  left: calc(var(--etu-margin) * var(--k) * -1);
-  top: calc(var(--etu-margin) * var(--k) * -1);
-  width: calc(var(--gw) * var(--k));
-  height: calc(var(--etu-frame) * var(--k));
-  background-image: var(--etu-art);
-  background-repeat: no-repeat;
-  background-size: calc(var(--etu-aw) * var(--k)) calc(var(--etu-ah) * var(--k));
-  background-position: calc(var(--gx) * var(--k) * -1) calc(var(--gy) * var(--k) * -1);
-  pointer-events: none;
-}
-
-/* a character the artwork has no letter for */
-.etu-type__char,
-.etu-type-fallback {
-  font-family: var(--font-family-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #cffafe;
-}
-
-.etu-type__char {
-  font-size: 0.8em;
-  line-height: 1;
 }
 
 /* In the single-row mobile bar the CTAs keep their marks and drop
