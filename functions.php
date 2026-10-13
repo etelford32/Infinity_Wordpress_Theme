@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.4.0');
+define('INFINITY_VERSION', '3.5.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -699,9 +699,39 @@ function infinity_body_classes($classes) {
         $classes[] = 'user-logged-in';
     }
 
+    // Slug classes let a page be styled by name rather than by an ID
+    // that changes between staging and production
+    if (is_page()) {
+        $classes[] = 'page-slug-' . sanitize_html_class(get_post_field('post_name', get_queried_object_id()));
+    }
+
+    if (infinity_is_music_page()) {
+        $classes[] = 'is-music-page';
+    }
+
     return $classes;
 }
 add_filter('body_class', 'infinity_body_classes');
+
+/**
+ * Whether the current page is a music page: its slug or any ancestor's
+ * mentions music (etmusic, music, music/albums...). Filterable so a page
+ * with an unrelated slug can opt in.
+ */
+function infinity_is_music_page() {
+    $is_music = false;
+
+    if (is_page()) {
+        $id    = get_queried_object_id();
+        $slugs = array(get_post_field('post_name', $id));
+        foreach (get_post_ancestors($id) as $ancestor) {
+            $slugs[] = get_post_field('post_name', $ancestor);
+        }
+        $is_music = (bool) preg_grep('/music/i', $slugs);
+    }
+
+    return (bool) apply_filters('infinity_is_music_page', $is_music);
+}
 
 /**
  * Add theme mode data attribute to body

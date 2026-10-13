@@ -3,6 +3,31 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.5.0
+
+- **Pages finally have content styles** (`style.css` §22): the global reset
+  zeroes every margin and list indent, and nothing put them back, so on pages
+  and posts headings sat on the paragraph above, ordered lists hung their
+  numbers outside the container on phones, and quotes, separators and embeds
+  were bare browser defaults. Content now has a reading measure (760px) with
+  media, galleries and columns allowed wider (1120px), vertical rhythm, accent
+  bars under section headings, styled lists, quotes, separators, buttons,
+  captions, embeds and audio. Scoped to pages and posts, so the simulation,
+  blueprint and challenge templates are untouched.
+- Orbitron is kept for h1–h3. h4–h6 in content switch to the text face, since
+  they are often used for paragraph-length copy (a page-opening one becomes
+  an intro card). Paragraphs given a large font size in the editor are styled
+  as section titles.
+- A column that holds cover art and an audio player becomes a release card;
+  below 782px it collapses to a playlist row. Spotify, SoundCloud and Bandcamp
+  embeds drop the 21:9 box WordPress gives them, which left an empty band.
+- **Music pages** (§22.1, `functions.php`, `page.php`): any page whose slug or
+  parent slug mentions "music" gets `body.is-music-page` (filterable via
+  `infinity_is_music_page`). It takes the nav's Music pink, a stage glow, an
+  animated equalizer over the title (static under reduced motion) and
+  numbered tracklist rows for ordered lists. Pages also get a
+  `page-slug-{slug}` body class.
+
 ## 3.4.0
 
 - **Property buttons wear their own brands** (`header.php`,

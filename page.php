@@ -16,6 +16,9 @@ get_header();
             the_post();
         ?>
             <header class="entry-header">
+                <?php if (infinity_is_music_page()) : ?>
+                    <span class="entry-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                <?php endif; ?>
                 <?php the_title('<h1 class="entry-title">', '</h1>'); ?>
             </header>
 
