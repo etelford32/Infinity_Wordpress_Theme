@@ -14,6 +14,10 @@ get_header();
         <?php
         while (have_posts()) :
             the_post();
+
+            if (infinity_is_music_page()) {
+                get_template_part('template-parts/music/album-hero');
+            }
         ?>
             <header class="entry-header">
                 <?php if (infinity_is_music_page()) : ?>
@@ -38,6 +42,12 @@ get_header();
                 ));
                 ?>
             </div>
+
+            <?php
+            if (infinity_is_music_page()) {
+                get_template_part('template-parts/music/soundcloud-cta');
+            }
+            ?>
 
             <?php if (get_edit_post_link()) : ?>
                 <footer class="entry-footer">

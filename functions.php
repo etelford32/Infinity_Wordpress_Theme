@@ -81,6 +81,16 @@ function infinity_enqueue_scripts() {
         null
     );
 
+    // Music pages carry their own stylesheet so their look can't leak
+    if (infinity_is_music_page()) {
+        wp_enqueue_style(
+            'infinity-music',
+            INFINITY_URI . '/assets/css/music.css',
+            array('infinity-style'),
+            INFINITY_VERSION
+        );
+    }
+
     /*
      * The React app (~270 KB JS + 38 KB CSS) only mounts on templates
      * that render #infinity-root: the posts-page fallback (index.php)
@@ -677,6 +687,49 @@ function infinity_customize_register($wp_customize) {
         'section'     => 'infinity_steam_settings',
         'type'        => 'checkbox',
     ));
+
+    // Music pages: featured album hero and SoundCloud follow band
+    $wp_customize->add_section('infinity_music_settings', array(
+        'title'       => esc_html__('Music Pages', 'infinity'),
+        'description' => esc_html__('The featured album at the top of the music page and the SoundCloud follow call-to-action. Music pages are any page whose slug (or a parent\'s) contains "music".', 'infinity'),
+        'priority'    => 36,
+    ));
+
+    $music_fields = array(
+        'infinity_soundcloud_url' => array('url', '', 'esc_url_raw', __('SoundCloud profile URL', 'infinity'), __('e.g. https://soundcloud.com/your-name. Until this is set the follow buttons are hidden from visitors.', 'infinity')),
+        'infinity_album_show'     => array('checkbox', 1, 'absint', __('Show the featured album at the top of the music page', 'infinity'), ''),
+        'infinity_album_kicker'   => array('text', __('Next album · In the studio', 'infinity'), 'sanitize_text_field', __('Album kicker', 'infinity'), __('Small line above the title', 'infinity')),
+        'infinity_album_title'    => array('text', 'Explore the Universe 2175', 'sanitize_text_field', __('Album title', 'infinity'), ''),
+        'infinity_album_subtitle' => array('text', __('Original soundtrack by E.T.', 'infinity'), 'sanitize_text_field', __('Album subtitle', 'infinity'), ''),
+        'infinity_album_blurb'    => array('textarea', __('The score for the game: orbital ambience, battle themes and the sound of a living galaxy, written in Ableton alongside the build. Follow on SoundCloud to hear the tracks as they come out of the studio.', 'infinity'), 'sanitize_textarea_field', __('Album description', 'infinity'), ''),
+        'infinity_album_status'   => array('text', __('Coming soon', 'infinity'), 'sanitize_text_field', __('Release status', 'infinity'), __('e.g. "Coming soon", "Out March 2027", "Out now"', 'infinity')),
+    );
+    foreach ($music_fields as $id => $field) {
+        list($type, $default, $sanitize, $label, $description) = $field;
+        $wp_customize->add_setting($id, array(
+            'type'              => 'option',
+            'default'           => $default,
+            'sanitize_callback' => $sanitize,
+        ));
+        $wp_customize->add_control($id, array(
+            'label'       => $label,
+            'description' => $description,
+            'section'     => 'infinity_music_settings',
+            'type'        => $type,
+        ));
+    }
+
+    $wp_customize->add_setting('infinity_album_cover', array(
+        'type'              => 'option',
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'infinity_album_cover', array(
+        'label'       => esc_html__('Album cover art', 'infinity'),
+        'description' => esc_html__('Square works best. Leave empty for a placeholder cover drawn by the theme.', 'infinity'),
+        'section'     => 'infinity_music_settings',
+    )));
 }
 add_action('customize_register', 'infinity_customize_register');
 
@@ -731,6 +784,22 @@ function infinity_is_music_page() {
     }
 
     return (bool) apply_filters('infinity_is_music_page', $is_music);
+}
+
+/**
+ * SoundCloud's cloud-and-bars mark, filled with currentColor
+ */
+function infinity_soundcloud_mark($size = 22) {
+    printf(
+        '<svg class="soundcloud-mark" width="%1$d" height="%2$d" viewBox="0 0 36 16" fill="currentColor" aria-hidden="true" focusable="false">'
+        . '<rect x="0" y="9" width="1.6" height="6" rx=".8"/><rect x="3" y="6.5" width="1.6" height="8.5" rx=".8"/>'
+        . '<rect x="6" y="5" width="1.6" height="10" rx=".8"/><rect x="9" y="3.5" width="1.6" height="11.5" rx=".8"/>'
+        . '<rect x="12" y="2.5" width="1.6" height="12.5" rx=".8"/>'
+        . '<path d="M15.2 15V2.1C16.6 1 18.4.4 20.3.4c4.4 0 8 3.2 8.6 7.4.6-.3 1.3-.4 2-.4 2.8 0 5.1 2.2 5.1 5S33.7 15 30.9 15H15.2z"/>'
+        . '</svg>',
+        (int) $size,
+        (int) round($size * 16 / 36)
+    );
 }
 
 /**

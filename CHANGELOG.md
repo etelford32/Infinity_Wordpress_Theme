@@ -5,28 +5,30 @@ entries are in release order, newest first.
 
 ## 3.5.0
 
-- **Pages finally have content styles** (`style.css` §22): the global reset
-  zeroes every margin and list indent, and nothing put them back, so on pages
-  and posts headings sat on the paragraph above, ordered lists hung their
-  numbers outside the container on phones, and quotes, separators and embeds
-  were bare browser defaults. Content now has a reading measure (760px) with
-  media, galleries and columns allowed wider (1120px), vertical rhythm, accent
-  bars under section headings, styled lists, quotes, separators, buttons,
-  captions, embeds and audio. Scoped to pages and posts, so the simulation,
-  blueprint and challenge templates are untouched.
-- Orbitron is kept for h1–h3. h4–h6 in content switch to the text face, since
-  they are often used for paragraph-length copy (a page-opening one becomes
-  an intro card). Paragraphs given a large font size in the editor are styled
-  as section titles.
-- A column that holds cover art and an audio player becomes a release card;
-  below 782px it collapses to a playlist row. Spotify, SoundCloud and Bandcamp
-  embeds drop the 21:9 box WordPress gives them, which left an empty band.
-- **Music pages** (§22.1, `functions.php`, `page.php`): any page whose slug or
-  parent slug mentions "music" gets `body.is-music-page` (filterable via
-  `infinity_is_music_page`). It takes the nav's Music pink, a stage glow, an
-  animated equalizer over the title (static under reduced motion) and
-  numbered tracklist rows for ordered lists. Pages also get a
-  `page-slug-{slug}` body class.
+- **Music pages get their own look, and only music pages** (`assets/css/music.css`,
+  `functions.php`): any page whose slug, or a parent's, contains "music" (e.g.
+  `/etmusic/`) gets `body.is-music-page` and a dedicated stylesheet that is
+  enqueued nowhere else. Every rule is also scoped to that body class, so no
+  other page changes. Detection is filterable via `infinity_is_music_page`;
+  pages also gain a `page-slug-{slug}` body class.
+- Block content on music pages gets the rhythm the global reset removed:
+  a 760px reading measure with media up to 1120px, heading accent bars, styled
+  lists, quotes, separators, buttons, captions and embeds. h4–h6 use the text
+  face (an opening one becomes an intro card), and editor "large" paragraphs
+  read as section titles. A column holding cover art plus an audio block
+  becomes a release card, collapsing to a playlist row below 782px. Ordered
+  lists become numbered tracklists. Accent is the nav's Music pink, with an
+  equalizer over the title.
+- **Featured album hero** (`template-parts/music/album-hero.php`): the top of
+  the music hub now announces *Explore the Universe 2175*, the soundtrack
+  album: cover with a vinyl sliding out behind it, kicker, title, blurb,
+  release status, a Follow on SoundCloud button and a Wishlist link to Steam.
+  Copy and cover art are set in Customize → Music Pages; with no cover
+  uploaded the theme draws one. Shown only on top-level music pages.
+- **"Follow the E.T. on SoundCloud" band** (`template-parts/music/soundcloud-cta.php`)
+  closes every music page. Both SoundCloud buttons stay hidden from visitors
+  until the profile URL is set in Customize → Music Pages; until then admins
+  see a link to that setting instead.
 
 ## 3.4.0
 

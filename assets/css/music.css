@@ -1,0 +1,1203 @@
+/**
+ * Music pages
+ *
+ * Loaded only where infinity_is_music_page() is true (any page whose
+ * slug, or a parent's, mentions "music" — e.g. /etmusic/), and every
+ * rule is scoped to body.is-music-page as a second guard.
+ *
+ * 1.0 - Content: block editor typography and media
+ * 2.0 - Music accent, equalizer, tracklists
+ * 3.0 - Featured album hero
+ * 4.0 - SoundCloud follow band
+ */
+
+/* ==========================================================================
+   1.0 Content: block editor typography and media
+
+   The theme's global reset zeroes every margin and list indent, so
+   block content needs its rhythm put back. Everything is scoped to
+   body.is-music-page, and this file is only enqueued on music pages,
+   so no other page changes.
+   ========================================================================== */
+
+body.is-music-page {
+  --content-measure: 760px;
+  --content-wide: 1120px;
+  --content-accent: var(--color-accent-primary);
+  --content-accent-2: var(--color-accent-secondary);
+  --content-card: color-mix(in srgb, var(--color-bg-secondary) 88%, transparent);
+  --content-line: color-mix(in srgb, var(--color-text-tertiary) 28%, transparent);
+}
+
+/* ---- Page header ---- */
+
+.is-music-page .entry-header {
+  position: relative;
+  max-width: var(--content-wide);
+  margin: 0 auto;
+  padding: var(--spacing-2xl) 0 var(--spacing-xl);
+  text-align: center;
+}
+
+.is-music-page .entry-title {
+  margin: 0;
+  font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4rem);
+  letter-spacing: 0.02em;
+  background: linear-gradient(100deg, var(--color-text-primary) 20%, var(--content-accent) 60%, var(--content-accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.is-music-page .entry-header::after {
+  content: "";
+  display: block;
+  width: 96px;
+  height: 3px;
+  margin: var(--spacing-lg) auto 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, var(--content-accent), var(--content-accent-2), transparent);
+}
+
+.is-music-page .entry-thumbnail {
+  max-width: var(--content-wide);
+  margin: 0 auto var(--spacing-2xl);
+}
+
+.is-music-page .entry-thumbnail img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl);
+}
+
+/* ---- Rhythm and measure ---- */
+
+.is-music-page .entry-content {
+  padding-bottom: var(--spacing-3xl);
+  font-size: var(--font-size-lg);
+  line-height: 1.75;
+}
+
+.is-music-page .entry-content > * {
+  max-width: var(--content-measure);
+  margin-inline: auto;
+}
+
+.is-music-page .entry-content > * + * {
+  margin-top: var(--spacing-lg);
+}
+
+/* Media and layouts get room to breathe beyond the reading measure */
+.is-music-page .entry-content > :is(.wp-block-image, .wp-block-gallery, .wp-block-embed, .wp-block-columns, .wp-block-video, .wp-block-cover, .wp-block-media-text, .alignwide) {
+  max-width: var(--content-wide);
+}
+
+.is-music-page .entry-content > .alignfull {
+  max-width: none;
+}
+
+.is-music-page .entry-content p {
+  margin-bottom: 0;
+}
+
+.is-music-page .entry-content > .is-style-lead,
+.is-music-page .entry-content > p:first-child {
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.4rem);
+  line-height: 1.6;
+  text-align: center;
+  color: var(--color-text-primary);
+}
+
+/* ---- Headings ---- */
+
+.is-music-page .entry-content :is(h2, h3, h4) {
+  margin-bottom: 0;
+  letter-spacing: 0.01em;
+}
+
+.is-music-page .entry-content > h2 {
+  margin-top: var(--spacing-3xl);
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.25rem);
+}
+
+.is-music-page .entry-content > h2::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin-top: 0.6rem;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--content-accent), var(--content-accent-2));
+}
+
+.is-music-page .entry-content > h3 {
+  margin-top: var(--spacing-2xl);
+  font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.6rem);
+}
+
+/* Media sections centre their heading so it sits over the wide block */
+.is-music-page .entry-content > h2:has(+ :is(.wp-block-gallery, .wp-block-embed, .wp-block-columns)) {
+  max-width: var(--content-wide);
+}
+
+/* ---- Lists ---- */
+
+.is-music-page .entry-content :is(ul, ol) {
+  padding-left: 1.5em;
+}
+
+.is-music-page .entry-content li + li {
+  margin-top: 0.35em;
+}
+
+.is-music-page .entry-content li::marker {
+  color: var(--content-accent);
+  font-weight: 700;
+}
+
+/* ---- Links inside prose ---- */
+
+.is-music-page .entry-content :is(p, li) a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+.is-music-page .entry-content :is(p, li) a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* ---- Images, galleries and captions ---- */
+
+.is-music-page .entry-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.is-music-page .entry-content > .wp-block-image img {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+.is-music-page .entry-content .wp-element-caption {
+  margin-top: 0.75rem;
+  margin-bottom: 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+.is-music-page .entry-content .wp-block-gallery.has-nested-images {
+  gap: var(--spacing-lg);
+}
+
+.is-music-page .entry-content .wp-block-gallery.has-nested-images figure.wp-block-image {
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+}
+
+.is-music-page .entry-content .wp-block-gallery.has-nested-images figure.wp-block-image img {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.is-music-page .entry-content .wp-block-gallery.has-nested-images figure.wp-block-image:hover img {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl), 0 0 28px color-mix(in srgb, var(--content-accent) 35%, transparent);
+}
+
+/* Captions sit under the artwork rather than over it: album titles are
+   the point, and the default overlay hides the cover's lower third */
+.is-music-page .entry-content .wp-block-gallery.has-nested-images figure.wp-block-image figcaption {
+  position: static;
+  max-height: none;
+  overflow: visible;
+  padding: 0.6rem 0 0;
+  background: none;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-shadow: none;
+}
+
+/* ---- Embeds (YouTube, Spotify, SoundCloud, Bandcamp…) ---- */
+
+.is-music-page .entry-content .wp-block-embed__wrapper {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--content-line);
+  background: var(--content-card);
+  box-shadow: var(--shadow-xl);
+}
+
+.is-music-page .entry-content .wp-block-embed iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+
+/* Spotify and SoundCloud players are fixed-height strips: the 21:9
+   ratio WordPress assigns them leaves a tall empty band on phones */
+.is-music-page .entry-content .wp-block-embed:is(.is-provider-spotify, .is-provider-soundcloud, .is-provider-bandcamp) .wp-block-embed__wrapper::before {
+  display: none;
+}
+
+.is-music-page .entry-content .wp-block-embed:is(.is-provider-spotify, .is-provider-soundcloud, .is-provider-bandcamp) iframe {
+  position: static;
+  height: 352px;
+}
+
+.is-music-page .entry-content .wp-block-embed.is-provider-spotify .wp-block-embed__wrapper {
+  border-radius: 12px;
+}
+
+.is-music-page .entry-content > .wp-block-embed:is(.is-provider-spotify, .is-provider-soundcloud, .is-provider-bandcamp) {
+  max-width: var(--content-measure);
+}
+
+/* ---- Audio: each file becomes a track card ---- */
+
+.is-music-page .entry-content .wp-block-audio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--content-line);
+  border-radius: var(--radius-lg);
+  background: var(--content-card);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.is-music-page .entry-content .wp-block-audio:hover,
+.is-music-page .entry-content .wp-block-audio:focus-within {
+  border-color: color-mix(in srgb, var(--content-accent) 55%, transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--content-accent) 18%, transparent);
+}
+
+.is-music-page .entry-content .wp-block-audio + .wp-block-audio {
+  margin-top: var(--spacing-sm);
+}
+
+/* The caption is the track title, so it leads */
+.is-music-page .entry-content .wp-block-audio figcaption {
+  order: -1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-align: left;
+  color: var(--color-text-primary);
+}
+
+.is-music-page .entry-content .wp-block-audio figcaption::before {
+  content: "";
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 17V6l10-2v11'/%3E%3Ccircle cx='7' cy='17' r='2'/%3E%3Ccircle cx='17' cy='15' r='2'/%3E%3C/svg%3E") center / 16px no-repeat,
+    linear-gradient(135deg, var(--content-accent), var(--content-accent-2));
+}
+
+.is-music-page .entry-content .wp-block-audio audio {
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  border-radius: var(--radius-full);
+  accent-color: var(--content-accent);
+}
+
+/* ---- Buttons ---- */
+
+.is-music-page .entry-content .wp-block-buttons {
+  gap: 0.75rem;
+}
+
+.is-music-page .entry-content > .wp-block-buttons {
+  justify-content: center;
+}
+
+.is-music-page .entry-content .wp-block-button__link {
+  padding: 0.7rem 1.5rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  line-height: 1.2;
+  color: #fff;
+  background: linear-gradient(135deg, var(--content-accent), var(--content-accent-2));
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--content-accent) 30%, transparent);
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+}
+
+.is-music-page .entry-content .wp-block-button__link:hover {
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--content-accent) 45%, transparent);
+}
+
+.is-music-page .entry-content .wp-block-button.is-style-outline > .wp-block-button__link {
+  padding: 0.7rem 1.5rem;
+  border: 2px solid color-mix(in srgb, var(--content-accent) 60%, transparent);
+  color: var(--color-text-primary);
+  background: var(--content-card);
+  box-shadow: none;
+}
+
+.is-music-page .entry-content .wp-block-button.is-style-outline > .wp-block-button__link:hover {
+  border-color: var(--content-accent);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--content-accent) 30%, transparent);
+}
+
+/* ---- Columns ---- */
+
+.is-music-page .entry-content .wp-block-columns {
+  gap: var(--spacing-xl);
+  margin-bottom: 0;
+}
+
+/* ---- Quote, pullquote, separator ---- */
+
+.is-music-page .entry-content :is(.wp-block-quote, .wp-block-pullquote) {
+  position: relative;
+  margin-block: var(--spacing-2xl);
+  padding: var(--spacing-xl) var(--spacing-xl) var(--spacing-xl) calc(var(--spacing-xl) + 4px);
+  border: 1px solid var(--content-line);
+  border-radius: var(--radius-lg);
+  background: var(--content-card);
+  overflow: hidden;
+}
+
+.is-music-page .entry-content .wp-block-quote::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--content-accent), var(--content-accent-2));
+}
+
+.is-music-page .entry-content :is(.wp-block-quote, .wp-block-pullquote) p {
+  font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.is-music-page .entry-content :is(.wp-block-quote, .wp-block-pullquote) cite {
+  display: block;
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--content-accent);
+}
+
+.is-music-page .entry-content :is(.wp-block-quote, .wp-block-pullquote) cite::before {
+  content: "— ";
+}
+
+.is-music-page .entry-content .wp-block-separator {
+  height: 1px;
+  margin-block: var(--spacing-2xl);
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--content-line) 20%, color-mix(in srgb, var(--content-accent) 50%, transparent) 50%, var(--content-line) 80%, transparent);
+  opacity: 1;
+}
+
+/* ---- Edit link ---- */
+
+.is-music-page .entry-footer {
+  max-width: var(--content-measure);
+  margin: 0 auto;
+  padding-bottom: var(--spacing-2xl);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 640px) {
+  .is-music-page .entry-header {
+    padding: var(--spacing-xl) 0 var(--spacing-lg);
+  }
+
+  .is-music-page .entry-content {
+    font-size: var(--font-size-base);
+  }
+
+  .is-music-page .entry-content .wp-block-gallery.has-nested-images {
+    gap: var(--spacing-md);
+  }
+
+  .is-music-page .entry-content :is(.wp-block-quote, .wp-block-pullquote) {
+    padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-lg) calc(var(--spacing-lg) + 4px);
+  }
+
+  .is-music-page .entry-content .wp-block-audio {
+    padding: var(--spacing-md);
+  }
+
+  .is-music-page .entry-content > :is(h4, h5, h6):first-child {
+    padding: var(--spacing-lg);
+  }
+
+  .is-music-page .entry-content .wp-block-embed:is(.is-provider-spotify, .is-provider-soundcloud, .is-provider-bandcamp) iframe {
+    height: 232px;
+  }
+}
+
+/* ==========================================================================
+   2.0 Music pages: neon pink, an equalizer, and a proper tracklist
+
+   The pink matches the Music item in the nav, so the page and its
+   menu entry read as one place.
+   ========================================================================== */
+
+body.is-music-page {
+  --content-accent: #ff5fa2;
+  --content-accent-2: #8b5cf6;
+}
+
+html[data-mode="light"] body.is-music-page {
+  --content-accent: #db2777;
+  --content-accent-2: #7c3aed;
+}
+
+/* Soft stage glow behind the header */
+.is-music-page .site-main {
+  background:
+    radial-gradient(60% 420px at 50% 0, color-mix(in srgb, var(--content-accent) 16%, transparent), transparent 70%),
+    radial-gradient(40% 320px at 85% 120px, color-mix(in srgb, var(--content-accent-2) 14%, transparent), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+.entry-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 28px;
+  margin-bottom: var(--spacing-md);
+}
+
+.entry-eq i {
+  display: block;
+  width: 5px;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--content-accent), var(--content-accent-2));
+  transform-origin: bottom;
+  animation: entry-eq-bounce 1.1s ease-in-out infinite;
+}
+
+.entry-eq i:nth-child(1) { animation-delay: -0.2s; }
+.entry-eq i:nth-child(2) { animation-delay: -0.7s; animation-duration: 0.9s; }
+.entry-eq i:nth-child(3) { animation-delay: -0.4s; animation-duration: 1.3s; }
+.entry-eq i:nth-child(4) { animation-delay: -0.9s; }
+.entry-eq i:nth-child(5) { animation-delay: -0.1s; animation-duration: 0.8s; }
+
+@keyframes entry-eq-bounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-eq i {
+    animation: none;
+  }
+
+  .entry-eq i:nth-child(odd) {
+    transform: scaleY(0.6);
+  }
+}
+
+/* Ordered lists read as tracklists: numbered rows with hairlines */
+.is-music-page .entry-content ol {
+  padding: 0;
+  list-style: none;
+  counter-reset: track;
+  border-top: 1px solid var(--content-line);
+}
+
+.is-music-page .entry-content ol > li {
+  counter-increment: track;
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-md);
+  margin: 0;
+  padding: 0.7rem 0.5rem;
+  border-bottom: 1px solid var(--content-line);
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.is-music-page .entry-content ol > li:hover {
+  background: color-mix(in srgb, var(--content-accent) 8%, transparent);
+}
+
+.is-music-page .entry-content ol > li::before {
+  content: counter(track, decimal-leading-zero);
+  flex: none;
+  min-width: 2ch;
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--content-accent);
+}
+
+/* ---- Headings used as body copy ----
+   Orbitron is a display face: at paragraph length it turns into a wall.
+   h4–h6 inside content keep their weight and size but switch to the
+   text face, and a run of them opening a page reads as the intro. */
+
+.is-music-page .entry-content :is(h4, h5, h6) {
+  font-family: var(--font-family-primary);
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+
+.is-music-page .entry-content > h4 {
+  margin-top: var(--spacing-xl);
+  font-size: clamp(1.15rem, 1.02rem + 0.45vw, 1.35rem);
+}
+
+.is-music-page .entry-content > :is(h4, h5, h6):first-child {
+  margin-top: 0;
+  padding: var(--spacing-xl);
+  border: 1px solid var(--content-line);
+  border-radius: var(--radius-xl);
+  background: var(--content-card);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  box-shadow: inset 4px 0 0 var(--content-accent);
+}
+
+/* Big paragraphs (font size set in the editor) are section titles in all
+   but name, so they get a heading's face, spacing and accent bar */
+.is-music-page .entry-content > p:is(.has-large-font-size, .has-x-large-font-size, .has-xx-large-font-size, .has-huge-font-size) {
+  margin-top: var(--spacing-3xl);
+  font-family: var(--font-family-display);
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.25rem) !important;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.is-music-page .entry-content > p:is(.has-large-font-size, .has-x-large-font-size, .has-xx-large-font-size, .has-huge-font-size)::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin-top: 0.6rem;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--content-accent), var(--content-accent-2));
+}
+
+.is-music-page .entry-content > p:is(.has-large-font-size, .has-x-large-font-size, .has-xx-large-font-size, .has-huge-font-size):has(+ .wp-block-columns),
+.is-music-page .entry-content > .wp-block-columns + .wp-block-columns {
+  max-width: var(--content-wide);
+}
+
+.is-music-page .entry-content > .wp-block-columns + .wp-block-columns {
+  margin-top: var(--spacing-xl);
+}
+
+/* ---- Release cards: a column holding cover art and an audio player ---- */
+
+.is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--content-line);
+  border-radius: var(--radius-xl);
+  background: var(--content-card);
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.is-music-page .entry-content .wp-block-column:has(> .wp-block-audio):hover,
+.is-music-page .entry-content .wp-block-column:has(> .wp-block-audio):focus-within {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--content-accent) 55%, transparent);
+  box-shadow: var(--shadow-xl), 0 0 30px color-mix(in srgb, var(--content-accent) 22%, transparent);
+}
+
+.is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > .wp-block-image {
+  margin: 0;
+}
+
+.is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > .wp-block-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--color-bg-tertiary);
+}
+
+.is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > .wp-block-audio {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > * + * {
+  margin-top: 0;
+}
+
+/* Below the point where WordPress stacks columns, release cards turn
+   into playlist rows (cover thumbnail, title, player) so six tracks
+   don't cost six screens of scrolling */
+@media (max-width: 781px) {
+  .is-music-page .entry-content .wp-block-columns:has(> .wp-block-column > .wp-block-audio) {
+    gap: var(--spacing-md);
+  }
+
+  .is-music-page .entry-content > .wp-block-columns + .wp-block-columns {
+    margin-top: var(--spacing-md);
+  }
+
+  .is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > .wp-block-image {
+    align-self: stretch;
+  }
+
+  .is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > .wp-block-image img {
+    height: 100%;
+  }
+
+  .is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > .wp-block-audio {
+    gap: 0.5rem;
+    padding: 0.6rem 0.5rem 0.6rem 0.75rem;
+  }
+
+  .is-music-page .entry-content .wp-block-column:has(> .wp-block-audio) > .wp-block-audio figcaption::before {
+    width: 24px;
+    height: 24px;
+    background-size: 13px, auto;
+  }
+
+  .is-music-page .entry-content .wp-block-column:has(> .wp-block-audio):hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   3.0 Featured album hero
+
+   A deep-space panel in both light and dark mode, like the front
+   page's tag globe: the album is set in the game's universe, and
+   space stays black. The vinyl slides out from behind the cover.
+   ========================================================================== */
+
+.is-music-page .album-hero {
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #c3cadc;
+  --color-text-tertiary: #8790a8;
+  --hero-cyan: #5ee7ff;
+  position: relative;
+  isolation: isolate;
+  max-width: var(--content-wide);
+  margin: var(--spacing-xl) auto 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  background: #070a16;
+  color: var(--color-text-primary);
+  color-scheme: dark;
+  box-shadow:
+    0 30px 60px rgba(5, 8, 20, 0.45),
+    0 0 0 1px rgba(255, 95, 162, 0.08);
+}
+
+.is-music-page .album-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1px 1px at 8% 14%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 22% 64%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 41% 22%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 57% 8%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 69% 38%, rgba(207, 233, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 83% 18%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 93% 56%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 35% 88%, rgba(255, 255, 255, 0.5), transparent);
+}
+
+/* A planet's limb rising along the bottom edge, as in the game's key art */
+.is-music-page .album-hero-backdrop::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 82%;
+  width: max(160%, 1400px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 50% 4%, #2c5bc4, #10224f 18%, #070b1c 40%);
+  box-shadow:
+    0 -10px 60px rgba(94, 160, 255, 0.55),
+    0 -1px 0 rgba(180, 220, 255, 0.85);
+}
+
+.is-music-page .album-hero-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 90% at 0% 50%, rgba(255, 95, 162, 0.28), transparent 60%),
+    radial-gradient(60% 80% at 100% 0%, rgba(94, 231, 255, 0.18), transparent 60%),
+    linear-gradient(90deg, rgba(7, 10, 22, 0.2) 0%, rgba(7, 10, 22, 0.5) 100%);
+}
+
+.is-music-page .album-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  padding: clamp(2rem, 4vw, 3.5rem);
+  padding-right: clamp(2rem, 5vw, 4rem);
+}
+
+/* ---- Cover + vinyl ---- */
+
+.is-music-page .album-hero-art {
+  position: relative;
+  aspect-ratio: 1;
+  margin-right: 18%;
+}
+
+.is-music-page .album-hero-cover {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(255, 95, 162, 0.25);
+}
+
+.is-music-page .album-hero-disc {
+  position: absolute;
+  top: 4%;
+  left: 22%;
+  width: 92%;
+  height: 92%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #0b0b10 0 2%, #ff5fa2 2.5% 15%, #c93f7f 15.5% 16%, transparent 16.5%),
+    repeating-radial-gradient(circle, #1b1b24 0 2px, #2a2a36 2px 3px),
+    #1b1b24;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 0 30px rgba(255, 95, 162, 0.18);
+  animation: album-disc-spin 9s linear infinite;
+  transition: left 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* light catching the grooves */
+.is-music-page .album-hero-disc::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 30deg, transparent 0 18%, rgba(255, 255, 255, 0.16) 25%, transparent 32% 68%, rgba(255, 255, 255, 0.12) 75%, transparent 82%);
+}
+
+.is-music-page .album-hero:hover .album-hero-disc {
+  left: 32%;
+}
+
+@keyframes album-disc-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Theme-drawn placeholder cover, until real art is uploaded */
+.is-music-page .album-hero-cover--drawn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-align: center;
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff, transparent),
+    radial-gradient(1px 1px at 78% 12%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 30% 70%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 48%, #fff, transparent),
+    radial-gradient(1px 1px at 55% 30%, #cfe9ff, transparent),
+    radial-gradient(1.5px 1.5px at 20% 42%, #fff, transparent),
+    radial-gradient(1px 1px at 66% 62%, #fff, transparent),
+    radial-gradient(120% 80% at 50% 0%, #2a1b4d, #0b0f24 55%, #05070f);
+}
+
+.is-music-page .album-cover-planet {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  top: 72%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 8%, #3b6fd8, #10224f 35%, #070b1c 60%);
+  box-shadow: 0 -6px 30px rgba(94, 160, 255, 0.75), 0 -1px 0 rgba(180, 220, 255, 0.9);
+}
+
+.is-music-page .album-cover-kicker,
+.is-music-page .album-cover-title,
+.is-music-page .album-cover-year {
+  position: relative;
+  font-family: var(--font-family-display);
+  line-height: 1.05;
+}
+
+.is-music-page .album-cover-kicker {
+  margin-bottom: 0.9rem;
+  font-size: clamp(0.7rem, 1.4vw, 0.85rem);
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  color: #ff8ec0;
+}
+
+.is-music-page .album-cover-title {
+  font-size: clamp(1.25rem, 2.6vw, 1.85rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(170, 200, 255, 0.6);
+}
+
+.is-music-page .album-cover-year {
+  margin-top: 0.6rem;
+  font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px #5ee7ff;
+  text-shadow: 0 0 16px rgba(94, 231, 255, 0.55);
+}
+
+/* ---- Copy ---- */
+
+.is-music-page .album-hero-copy > * {
+  margin: 0;
+}
+
+.is-music-page .album-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid rgba(255, 95, 162, 0.45);
+  border-radius: var(--radius-full);
+  background: rgba(255, 95, 162, 0.12);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffb3d3;
+}
+
+.is-music-page .album-hero-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff5fa2;
+  box-shadow: 0 0 0 0 rgba(255, 95, 162, 0.7);
+  animation: album-pulse 1.8s ease-out infinite;
+}
+
+@keyframes album-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 95, 162, 0.7); }
+  100% { box-shadow: 0 0 0 10px rgba(255, 95, 162, 0); }
+}
+
+.is-music-page .album-hero-title {
+  margin-top: var(--spacing-md);
+  font-size: clamp(2rem, 1.3rem + 2.8vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  color: #fff;
+  text-shadow: 0 0 28px rgba(94, 231, 255, 0.35);
+}
+
+.is-music-page .album-hero-subtitle {
+  margin-top: 0.6rem;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hero-cyan);
+}
+
+.is-music-page .album-hero-blurb {
+  max-width: 54ch;
+  margin-top: var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.is-music-page .album-hero-status {
+  margin-top: var(--spacing-lg);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.is-music-page .album-hero-status::before {
+  content: "◷ ";
+  color: var(--hero-cyan);
+}
+
+.is-music-page .album-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: var(--spacing-xl);
+}
+
+/* ---- Buttons shared by the hero and the SoundCloud band ---- */
+
+.is-music-page .music-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 50px;
+  padding: 0.8rem 1.6rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.is-music-page .music-btn:hover {
+  transform: translateY(-2px);
+}
+
+.is-music-page .music-btn--soundcloud {
+  color: #fff;
+  background: linear-gradient(135deg, #ff8800, #ff3300);
+  box-shadow: 0 8px 24px rgba(255, 85, 0, 0.4);
+}
+
+.is-music-page .music-btn--soundcloud:hover {
+  color: #fff;
+  box-shadow: 0 12px 32px rgba(255, 85, 0, 0.55);
+}
+
+.is-music-page .music-btn--ghost {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.is-music-page .music-btn--ghost:hover {
+  border-color: var(--hero-cyan, #5ee7ff);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(94, 231, 255, 0.3);
+}
+
+/* Admin-only nudge while the SoundCloud URL is unset */
+.is-music-page .music-btn--setup {
+  border: 2px dashed rgba(255, 136, 0, 0.7);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #ffb070;
+  background: rgba(255, 136, 0, 0.08);
+}
+
+.is-music-page .music-btn--setup:hover {
+  color: #ffd2a8;
+}
+
+@media (max-width: 781px) {
+  .is-music-page .album-hero-inner {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .is-music-page .album-hero-art {
+    width: min(64vw, 260px);
+    margin-right: 22%;
+  }
+
+  .is-music-page .album-hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .is-music-page .album-hero-actions {
+    justify-content: center;
+  }
+
+  .is-music-page .album-hero-actions .music-btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* ==========================================================================
+   4.0 SoundCloud follow band
+   ========================================================================== */
+
+.is-music-page .soundcloud-cta {
+  position: relative;
+  isolation: isolate;
+  max-width: var(--content-wide);
+  margin: 0 auto var(--spacing-3xl);
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(80% 140% at 100% 0%, rgba(139, 92, 246, 0.55), transparent 60%),
+    linear-gradient(120deg, #ff6a00 0%, #ff3d3d 45%, #e8287a 100%);
+  color: #fff;
+  box-shadow: 0 24px 50px rgba(255, 70, 40, 0.28);
+}
+
+/* A waveform across the band, SoundCloud's signature */
+.is-music-page .soundcloud-cta-wave {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: -1;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 70%;
+  padding: 0 2%;
+  opacity: 0.18;
+  /* fade out under the copy so the text keeps its contrast */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 30%, #000 70%);
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 30%, #000 70%);
+}
+
+.is-music-page .soundcloud-cta-wave i {
+  flex: 1;
+  height: calc(18% + var(--h, 40%));
+  border-radius: 2px 2px 0 0;
+  background: #fff;
+  transform-origin: bottom;
+  animation: sc-wave 2.4s ease-in-out infinite alternate;
+}
+
+.is-music-page .soundcloud-cta-wave i:nth-child(3n)   { --h: 62%; animation-delay: -0.4s; }
+.is-music-page .soundcloud-cta-wave i:nth-child(3n+1) { --h: 28%; animation-delay: -1.1s; }
+.is-music-page .soundcloud-cta-wave i:nth-child(4n)   { --h: 78%; animation-delay: -1.7s; }
+.is-music-page .soundcloud-cta-wave i:nth-child(5n)   { --h: 46%; animation-delay: -0.8s; }
+.is-music-page .soundcloud-cta-wave i:nth-child(7n)   { --h: 12%; animation-delay: -2.1s; }
+
+@keyframes sc-wave {
+  from { transform: scaleY(0.55); }
+  to   { transform: scaleY(1); }
+}
+
+.is-music-page .soundcloud-cta-body {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+  padding: clamp(1.75rem, 3.5vw, 2.75rem) clamp(1.5rem, 4vw, 3rem);
+}
+
+.is-music-page .soundcloud-cta-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.is-music-page .soundcloud-cta-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.is-music-page .soundcloud-cta-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 1.1rem + 1.2vw, 2rem);
+  color: #fff;
+}
+
+.is-music-page .soundcloud-cta-text {
+  max-width: 56ch;
+  margin: 0.5rem 0 0;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* On an orange band the button inverts: white face, orange label */
+.is-music-page .soundcloud-cta .music-btn--soundcloud {
+  flex: none;
+  min-width: 150px;
+  color: #ff4a00;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(80, 10, 0, 0.3);
+}
+
+.is-music-page .soundcloud-cta .music-btn--soundcloud:hover {
+  color: #e03a00;
+  box-shadow: 0 12px 30px rgba(80, 10, 0, 0.4);
+}
+
+.is-music-page .soundcloud-cta .music-btn--setup {
+  border-color: rgba(255, 255, 255, 0.8);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 781px) {
+  .is-music-page .soundcloud-cta-body {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-lg);
+  }
+
+  .is-music-page .soundcloud-cta-text {
+    margin-inline: auto;
+  }
+
+  .is-music-page .soundcloud-cta .music-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-music-page .album-hero-disc,
+  .is-music-page .album-hero-pulse,
+  .is-music-page .soundcloud-cta-wave i {
+    animation: none;
+  }
+}
