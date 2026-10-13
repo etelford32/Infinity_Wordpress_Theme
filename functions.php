@@ -697,6 +697,8 @@ function infinity_customize_register($wp_customize) {
 
     $music_fields = array(
         'infinity_soundcloud_url' => array('url', '', 'esc_url_raw', __('SoundCloud profile URL', 'infinity'), __('e.g. https://soundcloud.com/your-name. Until this is set the follow buttons are hidden from visitors.', 'infinity')),
+        'infinity_spotify_url'    => array('url', 'https://open.spotify.com/artist/656cOBMdQmS3QIySIgiNc6', 'esc_url_raw', __('Spotify artist URL', 'infinity'), __('Leave empty to hide the Spotify buttons', 'infinity')),
+        'infinity_youtube_url'    => array('url', 'https://www.youtube.com/@thee.t.6444', 'esc_url_raw', __('YouTube channel URL', 'infinity'), __('Leave empty to hide the YouTube buttons', 'infinity')),
         'infinity_album_show'     => array('checkbox', 1, 'absint', __('Show the featured album at the top of the music page', 'infinity'), ''),
         'infinity_album_kicker'   => array('text', __('Next album · In the studio', 'infinity'), 'sanitize_text_field', __('Album kicker', 'infinity'), __('Small line above the title', 'infinity')),
         'infinity_album_title'    => array('text', 'Explore the Universe 2175', 'sanitize_text_field', __('Album title', 'infinity'), ''),
@@ -787,18 +789,66 @@ function infinity_is_music_page() {
 }
 
 /**
- * SoundCloud's cloud-and-bars mark, filled with currentColor
+ * Streaming platforms linked from the music pages, in display order.
+ * Each entry: Customizer option, default URL, label, and a filled
+ * currentColor mark (viewBox, inner SVG).
  */
-function infinity_soundcloud_mark($size = 22) {
+function infinity_music_platforms() {
+    return array(
+        'soundcloud' => array(
+            'option'  => 'infinity_soundcloud_url',
+            'default' => '',
+            'label'   => 'SoundCloud',
+            'viewbox' => '0 0 36 16',
+            'mark'    => '<rect x="0" y="9" width="1.6" height="6" rx=".8"/><rect x="3" y="6.5" width="1.6" height="8.5" rx=".8"/>'
+                       . '<rect x="6" y="5" width="1.6" height="10" rx=".8"/><rect x="9" y="3.5" width="1.6" height="11.5" rx=".8"/>'
+                       . '<rect x="12" y="2.5" width="1.6" height="12.5" rx=".8"/>'
+                       . '<path d="M15.2 15V2.1C16.6 1 18.4.4 20.3.4c4.4 0 8 3.2 8.6 7.4.6-.3 1.3-.4 2-.4 2.8 0 5.1 2.2 5.1 5S33.7 15 30.9 15H15.2z"/>',
+        ),
+        'spotify' => array(
+            'option'  => 'infinity_spotify_url',
+            'default' => 'https://open.spotify.com/artist/656cOBMdQmS3QIySIgiNc6',
+            'label'   => 'Spotify',
+            'viewbox' => '0 0 24 24',
+            'mark'    => '<path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22zm5.05 15.87a.69.69 0 0 1-.94.23c-2.58-1.58-5.83-1.93-9.66-1.06a.69.69 0 1 1-.3-1.34c4.19-.96 7.79-.55 10.68 1.23.32.2.42.62.22.94zm1.35-3a.86.86 0 0 1-1.18.28c-2.95-1.81-7.45-2.34-10.94-1.28a.86.86 0 1 1-.5-1.65c3.99-1.21 8.95-.62 12.34 1.46.4.25.53.78.28 1.19zm.12-3.13C14.98 8.64 9.15 8.45 5.78 9.47a1.03 1.03 0 1 1-.6-1.97c3.87-1.17 10.3-.95 14.37 1.46a1.03 1.03 0 1 1-1.05 1.78z"/>',
+        ),
+        'youtube' => array(
+            'option'  => 'infinity_youtube_url',
+            'default' => 'https://www.youtube.com/@thee.t.6444',
+            'label'   => 'YouTube',
+            'viewbox' => '0 0 24 17',
+            'mark'    => '<path fill-rule="evenodd" d="M23.5 2.65A3 3 0 0 0 21.38.52C19.5 0 12 0 12 0S4.5 0 2.62.52A3 3 0 0 0 .5 2.65C0 4.53 0 8.5 0 8.5s0 3.97.5 5.85a3 3 0 0 0 2.12 2.13C4.5 17 12 17 12 17s7.5 0 9.38-.52a3 3 0 0 0 2.12-2.13C24 12.47 24 8.5 24 8.5s0-3.97-.5-5.85zM9.6 12.14V4.86L15.83 8.5 9.6 12.14z"/>',
+        ),
+    );
+}
+
+/**
+ * URL for one platform, or '' when it is not set
+ */
+function infinity_music_platform_url($platform) {
+    $platforms = infinity_music_platforms();
+    if (!isset($platforms[$platform])) {
+        return '';
+    }
+    return (string) get_option($platforms[$platform]['option'], $platforms[$platform]['default']);
+}
+
+/**
+ * Print a platform's brand mark, sized by height-adjusted width
+ */
+function infinity_music_platform_mark($platform, $size = 22) {
+    $platforms = infinity_music_platforms();
+    if (!isset($platforms[$platform])) {
+        return;
+    }
+    list(, , $w, $h) = array_map('floatval', explode(' ', $platforms[$platform]['viewbox']));
     printf(
-        '<svg class="soundcloud-mark" width="%1$d" height="%2$d" viewBox="0 0 36 16" fill="currentColor" aria-hidden="true" focusable="false">'
-        . '<rect x="0" y="9" width="1.6" height="6" rx=".8"/><rect x="3" y="6.5" width="1.6" height="8.5" rx=".8"/>'
-        . '<rect x="6" y="5" width="1.6" height="10" rx=".8"/><rect x="9" y="3.5" width="1.6" height="11.5" rx=".8"/>'
-        . '<rect x="12" y="2.5" width="1.6" height="12.5" rx=".8"/>'
-        . '<path d="M15.2 15V2.1C16.6 1 18.4.4 20.3.4c4.4 0 8 3.2 8.6 7.4.6-.3 1.3-.4 2-.4 2.8 0 5.1 2.2 5.1 5S33.7 15 30.9 15H15.2z"/>'
-        . '</svg>',
+        '<svg class="platform-mark platform-mark--%1$s" width="%2$d" height="%3$d" viewBox="%4$s" fill="currentColor" aria-hidden="true" focusable="false">%5$s</svg>',
+        esc_attr($platform),
         (int) $size,
-        (int) round($size * 16 / 36)
+        (int) round($size * $h / $w),
+        esc_attr($platforms[$platform]['viewbox']),
+        $platforms[$platform]['mark'] // static markup defined above
     );
 }
 

@@ -979,8 +979,13 @@ html[data-mode="light"] body.is-music-page {
 .is-music-page .album-hero-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.6rem;
   margin-top: var(--spacing-xl);
+}
+
+/* Three platforms share one row beside the cover */
+.is-music-page .album-hero-actions .music-btn {
+  padding-inline: 1.15rem;
 }
 
 /* ---- Buttons shared by the hero and the SoundCloud band ---- */
@@ -1016,16 +1021,50 @@ html[data-mode="light"] body.is-music-page {
   box-shadow: 0 12px 32px rgba(255, 85, 0, 0.55);
 }
 
-.is-music-page .music-btn--ghost {
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
+.is-music-page .music-btn--spotify {
+  color: #0b0b0b;
+  background: #1ed760;
+  box-shadow: 0 8px 24px rgba(30, 215, 96, 0.3);
 }
 
-.is-music-page .music-btn--ghost:hover {
-  border-color: var(--hero-cyan, #5ee7ff);
+.is-music-page .music-btn--spotify:hover {
+  color: #0b0b0b;
+  background: #3be477;
+  box-shadow: 0 12px 30px rgba(30, 215, 96, 0.45);
+}
+
+.is-music-page .music-btn--youtube {
   color: #fff;
-  box-shadow: 0 0 20px rgba(94, 231, 255, 0.3);
+  background: #e60000;
+  box-shadow: 0 8px 24px rgba(230, 0, 0, 0.32);
+}
+
+.is-music-page .music-btn--youtube:hover {
+  color: #fff;
+  background: #ff1a1a;
+  box-shadow: 0 12px 30px rgba(230, 0, 0, 0.45);
+}
+
+.is-music-page .album-hero-steam {
+  display: inline-block;
+  margin-top: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--hero-cyan);
+  text-decoration: none;
+}
+
+.is-music-page .album-hero-steam span {
+  display: inline-block;
+  transition: transform var(--transition-fast);
+}
+
+.is-music-page .album-hero-steam:hover {
+  color: #fff;
+}
+
+.is-music-page .album-hero-steam:hover span {
+  transform: translateX(4px);
 }
 
 /* Admin-only nudge while the SoundCloud URL is unset */
@@ -1061,10 +1100,15 @@ html[data-mode="light"] body.is-music-page {
 
   .is-music-page .album-hero-actions {
     justify-content: center;
+    width: 100%;
   }
 
   .is-music-page .album-hero-actions .music-btn {
-    flex: 1 1 100%;
+    flex: 1 1 40%;
+  }
+
+  .is-music-page .album-hero-actions .music-btn:is(.music-btn--soundcloud, .music-btn--setup) {
+    flex-basis: 100%;
   }
 }
 
@@ -1158,6 +1202,43 @@ html[data-mode="light"] body.is-music-page {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.is-music-page .soundcloud-cta-actions {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.is-music-page .soundcloud-cta-more {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.is-music-page .music-chip {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.is-music-page .music-chip:hover {
+  color: #fff;
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-2px);
+}
+
 /* On an orange band the button inverts: white face, orange label */
 .is-music-page .soundcloud-cta .music-btn--soundcloud {
   flex: none;
@@ -1189,7 +1270,7 @@ html[data-mode="light"] body.is-music-page {
     margin-inline: auto;
   }
 
-  .is-music-page .soundcloud-cta .music-btn {
+  .is-music-page .soundcloud-cta-actions {
     width: 100%;
   }
 }

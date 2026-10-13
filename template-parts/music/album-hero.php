@@ -19,7 +19,12 @@ $album_subtitle = get_option('infinity_album_subtitle', __('Original soundtrack 
 $album_blurb    = get_option('infinity_album_blurb', __('The score for the game: orbital ambience, battle themes and the sound of a living galaxy, written in Ableton alongside the build. Follow on SoundCloud to hear the tracks as they come out of the studio.', 'infinity'));
 $album_status   = get_option('infinity_album_status', __('Coming soon', 'infinity'));
 $album_cover    = get_option('infinity_album_cover', '');
-$soundcloud_url = get_option('infinity_soundcloud_url', '');
+$soundcloud_url = infinity_music_platform_url('soundcloud');
+$platform_cta   = array(
+    'soundcloud' => __('Follow on SoundCloud', 'infinity'),
+    'spotify'    => __('Spotify', 'infinity'),
+    'youtube'    => __('YouTube', 'infinity'),
+);
 $steam_url      = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
 ?>
 
@@ -64,23 +69,26 @@ $steam_url      = get_option('infinity_steam_url', 'https://store.steampowered.c
             <?php endif; ?>
 
             <div class="album-hero-actions">
-                <?php if ($soundcloud_url) : ?>
-                    <a class="music-btn music-btn--soundcloud" href="<?php echo esc_url($soundcloud_url); ?>" target="_blank" rel="noopener noreferrer">
-                        <?php infinity_soundcloud_mark(26); ?>
-                        <span><?php esc_html_e('Follow on SoundCloud', 'infinity'); ?></span>
-                    </a>
-                <?php elseif (current_user_can('edit_theme_options')) : ?>
-                    <a class="music-btn music-btn--setup" href="<?php echo esc_url(admin_url('customize.php?autofocus[section]=infinity_music_settings')); ?>">
-                        <?php esc_html_e('Add your SoundCloud URL to show the follow button', 'infinity'); ?>
-                    </a>
-                <?php endif; ?>
-
-                <?php if ($steam_url) : ?>
-                    <a class="music-btn music-btn--ghost" href="<?php echo esc_url($steam_url); ?>" target="_blank" rel="noopener noreferrer">
-                        <?php esc_html_e('Wishlist the game', 'infinity'); ?>
-                    </a>
-                <?php endif; ?>
+                <?php foreach ($platform_cta as $platform => $label) : ?>
+                    <?php $url = infinity_music_platform_url($platform); ?>
+                    <?php if ($url) : ?>
+                        <a class="music-btn music-btn--<?php echo esc_attr($platform); ?>" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
+                            <?php infinity_music_platform_mark($platform, 'soundcloud' === $platform ? 26 : 20); ?>
+                            <span><?php echo esc_html($label); ?></span>
+                        </a>
+                    <?php elseif ('soundcloud' === $platform && current_user_can('edit_theme_options')) : ?>
+                        <a class="music-btn music-btn--setup" href="<?php echo esc_url(admin_url('customize.php?autofocus[section]=infinity_music_settings')); ?>">
+                            <?php esc_html_e('Add your SoundCloud URL to show the follow button', 'infinity'); ?>
+                        </a>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </div>
+
+            <?php if ($steam_url) : ?>
+                <a class="album-hero-steam" href="<?php echo esc_url($steam_url); ?>" target="_blank" rel="noopener noreferrer">
+                    <?php esc_html_e('Wishlist the game on Steam', 'infinity'); ?> <span aria-hidden="true">&rarr;</span>
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </section>

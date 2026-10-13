@@ -29,6 +29,12 @@ entries are in release order, newest first.
   closes every music page. Both SoundCloud buttons stay hidden from visitors
   until the profile URL is set in Customize → Music Pages; until then admins
   see a link to that setting instead.
+- **Spotify and YouTube** sit beside SoundCloud: brand-coloured buttons in the
+  album hero and outline chips in the follow band. Their URLs default to
+  the E.T.'s artist page and channel and can be changed (or emptied to hide
+  them) in Customize → Music Pages. Platforms are defined once in
+  `infinity_music_platforms()`. Without a SoundCloud URL the band reads
+  "Follow the E.T." and leads with the other two.
 
 ## 3.4.0
 
