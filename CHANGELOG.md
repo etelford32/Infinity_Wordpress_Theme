@@ -3,6 +3,21 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.4.0
+
+- **Property buttons wear their own brands** (`header.php`,
+  `inc/icons.php`): the two header CTAs now carry each property's real
+  artwork. Parker's Physics is back to the blue/orange nebula "P", replacing
+  the line transcription, which lost the glow and soft edges that make the
+  mark read at button size. Explore the Universe 2175 swaps its theme-drawn
+  planet for the crystal ETU wordmark from the ETU site's own repo. Labels are
+  set in Orbitron, uppercase and tracked.
+- Buttons are a size up: 52px tall, with a nebula face for Parker's and
+  deep-space cyan for ETU. On phones they shrink to marks only, sized so the
+  menu button still fits the bar from 375px up, as before.
+- The "Mega CTA" block no longer overrides the ETU header button's padding.
+  That override was what made it taller than its neighbour on mobile.
+
 ## 3.3.1
 
 - **A "send me a test email" button on the Subscribers screen**

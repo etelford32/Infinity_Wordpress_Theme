@@ -103,13 +103,13 @@
                 <div class="header-actions">
                     <?php if ($infinity_parkers_url) : ?>
                         <a class="header-cta header-cta-parkers" href="<?php echo esc_url($infinity_parkers_url); ?>" target="_blank" rel="noopener noreferrer">
-                            <?php infinity_brand_mark('parkers', 20); ?>
+                            <?php infinity_brand_mark('parkers', 34); ?>
                             <span class="header-cta-label"><?php echo esc_html(get_option('infinity_parkers_label', "Parker's Physics")); ?></span>
                         </a>
                     <?php endif; ?>
                     <?php if ($infinity_steam_url) : ?>
                         <a class="header-cta header-cta-etu" href="<?php echo esc_url($infinity_steam_url); ?>" target="_blank" rel="noopener noreferrer">
-                            <?php infinity_brand_mark('etu', 20); ?>
+                            <?php infinity_brand_mark('etu', 28); ?>
                             <span class="header-cta-label"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
                         </a>
                     <?php endif; ?>
