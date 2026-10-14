@@ -25,6 +25,12 @@ entries are in release order, newest first.
   release status, a Follow on SoundCloud button and a Wishlist link to Steam.
   Copy and cover art are set in Customize → Music Pages; with no cover
   uploaded the theme draws one. Shown only on top-level music pages.
+- **Preview track in the hero**: SoundCloud's player under the cover and
+  copy, labelled "Preview from the album · Buggin · Track 8". The track
+  URL and label are in Customize → Music Pages; short on.soundcloud.com
+  share links are followed server-side to the full soundcloud.com address
+  the player needs (tracking parameters dropped, cached for a week, short
+  link used as-is if the lookup fails).
 - **"Follow the E.T. on SoundCloud" band** (`template-parts/music/soundcloud-cta.php`)
   closes every music page. Both SoundCloud buttons stay hidden from visitors
   until the profile URL is set in Customize → Music Pages; until then admins

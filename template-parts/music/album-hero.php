@@ -19,6 +19,8 @@ $album_subtitle = get_option('infinity_album_subtitle', __('Original soundtrack 
 $album_blurb    = get_option('infinity_album_blurb', __('The score for the game: orbital ambience, battle themes and the sound of a living galaxy, written in Ableton alongside the build. Follow on SoundCloud to hear the tracks as they come out of the studio.', 'infinity'));
 $album_status   = get_option('infinity_album_status', __('Coming soon', 'infinity'));
 $album_cover    = get_option('infinity_album_cover', '');
+$track_url      = get_option('infinity_album_track_url', 'https://on.soundcloud.com/XWIguYOLgt6CuGjqbX');
+$track_label    = get_option('infinity_album_track_label', __('Buggin · Track 8', 'infinity'));
 $steam_url      = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
 ?>
 
@@ -87,5 +89,26 @@ $steam_url      = get_option('infinity_steam_url', 'https://store.steampowered.c
                 </a>
             <?php endif; ?>
         </div>
+
+        <?php if ($track_url) : ?>
+            <div class="album-hero-player">
+                <p class="album-hero-player-label">
+                    <span class="album-hero-player-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                    <span><?php esc_html_e('Preview from the album', 'infinity'); ?></span>
+                    <?php if ($track_label) : ?>
+                        <strong><?php echo esc_html($track_label); ?></strong>
+                    <?php endif; ?>
+                </p>
+                <iframe
+                    class="album-hero-player-frame"
+                    title="<?php echo esc_attr(sprintf(__('%s on SoundCloud', 'infinity'), $track_label ? $track_label : $album_title)); ?>"
+                    src="<?php echo esc_url(infinity_soundcloud_player_src($track_url)); ?>"
+                    width="100%"
+                    height="166"
+                    allow="autoplay"
+                    loading="lazy"
+                ></iframe>
+            </div>
+        <?php endif; ?>
     </div>
 </section>

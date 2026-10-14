@@ -984,6 +984,70 @@ html[data-mode="light"] body.is-music-page {
 }
 
 
+/* ---- Preview player, spanning the hero under cover and copy ---- */
+
+.is-music-page .album-hero-player {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 85, 0, 0.35);
+  border-radius: 18px;
+  background: rgba(7, 10, 22, 0.72);
+  box-shadow: 0 0 30px rgba(255, 85, 0, 0.12);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.is-music-page .album-hero-player-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  margin: 0 0 0.7rem 0.25rem;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffb27a;
+}
+
+.is-music-page .album-hero-player-label strong {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: #fff;
+}
+
+.is-music-page .album-hero-player-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.is-music-page .album-hero-player-eq i {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: #ff5500;
+  transform-origin: bottom;
+  animation: entry-eq-bounce 0.9s ease-in-out infinite;
+}
+
+.is-music-page .album-hero-player-eq i:nth-child(2) { animation-delay: -0.3s; }
+.is-music-page .album-hero-player-eq i:nth-child(3) { animation-delay: -0.6s; }
+.is-music-page .album-hero-player-eq i:nth-child(4) { animation-delay: -0.15s; }
+
+.is-music-page .album-hero-player-frame {
+  display: block;
+  width: 100%;
+  height: 166px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+}
+
 /* ---- Platform buttons, shared by the hero and the follow band ----
    Badge-style: the platform's own logo and colours, a small verb over
    a big name, a glow in the brand colour and a light sweep on hover. */
@@ -1389,6 +1453,7 @@ html[data-mode="light"] body.is-music-page {
 @media (prefers-reduced-motion: reduce) {
   .is-music-page .album-hero-disc,
   .is-music-page .album-hero-pulse,
+  .is-music-page .album-hero-player-eq i,
   .is-music-page .music-btn--soundcloud,
   .is-music-page .soundcloud-cta-wave i {
     animation: none;

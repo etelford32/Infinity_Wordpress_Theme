@@ -705,6 +705,8 @@ function infinity_customize_register($wp_customize) {
         'infinity_album_subtitle' => array('text', __('Original soundtrack by E.T.', 'infinity'), 'sanitize_text_field', __('Album subtitle', 'infinity'), ''),
         'infinity_album_blurb'    => array('textarea', __('The score for the game: orbital ambience, battle themes and the sound of a living galaxy, written in Ableton alongside the build. Follow on SoundCloud to hear the tracks as they come out of the studio.', 'infinity'), 'sanitize_textarea_field', __('Album description', 'infinity'), ''),
         'infinity_album_status'   => array('text', __('Coming soon', 'infinity'), 'sanitize_text_field', __('Release status', 'infinity'), __('e.g. "Coming soon", "Out March 2027", "Out now"', 'infinity')),
+        'infinity_album_track_url'   => array('url', 'https://on.soundcloud.com/XWIguYOLgt6CuGjqbX', 'esc_url_raw', __('Preview track (SoundCloud URL)', 'infinity'), __('A track or playlist link, played in the album hero. Short on.soundcloud.com links work. Leave empty for no player.', 'infinity')),
+        'infinity_album_track_label' => array('text', __('Buggin · Track 8', 'infinity'), 'sanitize_text_field', __('Preview track label', 'infinity'), __('Shown above the player', 'infinity')),
     );
     foreach ($music_fields as $id => $field) {
         list($type, $default, $sanitize, $label, $description) = $field;
@@ -826,6 +828,63 @@ function infinity_music_platform_url($platform) {
         return '';
     }
     return (string) get_option($platforms[$platform]['option'], $platforms[$platform]['default']);
+}
+
+/**
+ * Resolve an on.soundcloud.com share link to the soundcloud.com URL it
+ * redirects to, since SoundCloud's player wants the full address. The
+ * answer is cached for a week (an hour after a failed lookup, when the
+ * short link itself is used).
+ */
+function infinity_soundcloud_canonical_url($url) {
+    if ('on.soundcloud.com' !== wp_parse_url($url, PHP_URL_HOST)) {
+        return $url;
+    }
+
+    $key    = 'infinity_sc_' . md5($url);
+    $cached = get_transient($key);
+    if (false !== $cached) {
+        return $cached;
+    }
+
+    $resolved = $url;
+    $next     = $url;
+    for ($hop = 0; $hop < 4; $hop++) {
+        $response = wp_remote_head($next, array('redirection' => 0, 'timeout' => 4));
+        $location = is_wp_error($response) ? '' : wp_remote_retrieve_header($response, 'location');
+        if (!$location) {
+            break;
+        }
+        $next = $location;
+        if ('soundcloud.com' === preg_replace('/^(www|m)\./', '', (string) wp_parse_url($next, PHP_URL_HOST))) {
+            // drop share tracking (?si=, utm_*) but keep secret-token paths
+            $resolved = strtok($next, '?');
+            break;
+        }
+    }
+
+    set_transient($key, $resolved, $resolved === $url ? HOUR_IN_SECONDS : WEEK_IN_SECONDS);
+    return $resolved;
+}
+
+/**
+ * SoundCloud's embeddable player for a track or playlist URL
+ */
+function infinity_soundcloud_player_src($url) {
+    return add_query_arg(
+        array(
+            'url'           => rawurlencode(infinity_soundcloud_canonical_url($url)),
+            'color'         => '%23ff5500',
+            'auto_play'     => 'false',
+            'hide_related'  => 'true',
+            'show_comments' => 'false',
+            'show_user'     => 'true',
+            'show_reposts'  => 'false',
+            'show_teaser'   => 'false',
+            'visual'        => 'false',
+        ),
+        'https://w.soundcloud.com/player/'
+    );
 }
 
 /**
