@@ -983,66 +983,144 @@ html[data-mode="light"] body.is-music-page {
   margin-top: var(--spacing-xl);
 }
 
-/* Three platforms share one row beside the cover */
-.is-music-page .album-hero-actions .music-btn {
-  padding-inline: 1.15rem;
-}
 
-/* ---- Buttons shared by the hero and the SoundCloud band ---- */
+/* ---- Platform buttons, shared by the hero and the follow band ----
+   Badge-style: the platform's own logo and colours, a small verb over
+   a big name, a glow in the brand colour and a light sweep on hover. */
 
 .is-music-page .music-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.65rem;
-  min-height: 50px;
-  padding: 0.8rem 1.6rem;
-  border: 2px solid transparent;
-  border-radius: var(--radius-full);
+  gap: 0.75rem;
+  min-height: 62px;
+  padding: 0.6rem 1.5rem 0.6rem 1.15rem;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  border-radius: 16px;
   font-size: var(--font-size-base);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
+  text-align: left;
   text-decoration: none;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-base), border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+/* light sweeping across on hover */
+.is-music-page .music-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 48%, transparent 66%);
+  transform: translateX(-120%);
+  pointer-events: none;
 }
 
 .is-music-page .music-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.02);
 }
 
+.is-music-page .music-btn:hover::after {
+  transform: translateX(120%);
+  transition: transform 0.7s ease;
+}
+
+.is-music-page .music-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.is-music-page .music-btn .platform-mark {
+  flex: none;
+}
+
+.is-music-page .music-btn-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.is-music-page .music-btn-text small {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.is-music-page .music-btn-text strong {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+/* SoundCloud: white cloud on their orange */
 .is-music-page .music-btn--soundcloud {
   color: #fff;
-  background: linear-gradient(135deg, #ff8800, #ff3300);
-  box-shadow: 0 8px 24px rgba(255, 85, 0, 0.4);
+  background: linear-gradient(160deg, #ff8a1f 0%, #ff5500 55%, #f23c00 100%);
+  border-color: rgba(255, 200, 150, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 10px 28px rgba(255, 85, 0, 0.45),
+    0 0 0 0 rgba(255, 85, 0, 0.5);
+  animation: music-btn-beacon 2.8s ease-out infinite;
+}
+
+.is-music-page .music-btn--soundcloud .platform-mark path {
+  fill: #fff;
 }
 
 .is-music-page .music-btn--soundcloud:hover {
   color: #fff;
-  box-shadow: 0 12px 32px rgba(255, 85, 0, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 16px 40px rgba(255, 85, 0, 0.6);
 }
 
+/* the lead button sends out a slow ring, like a signal */
+@keyframes music-btn-beacon {
+  0%   { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 28px rgba(255, 85, 0, 0.45), 0 0 0 0 rgba(255, 85, 0, 0.55); }
+  70%  { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 28px rgba(255, 85, 0, 0.45), 0 0 0 14px rgba(255, 85, 0, 0); }
+  100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 28px rgba(255, 85, 0, 0.45), 0 0 0 0 rgba(255, 85, 0, 0); }
+}
+
+/* Spotify: their green logo on their black, as in Spotify's own badges */
 .is-music-page .music-btn--spotify {
-  color: #0b0b0b;
-  background: #1ed760;
-  box-shadow: 0 8px 24px rgba(30, 215, 96, 0.3);
+  color: #fff;
+  background: #121212;
+  border-color: rgba(30, 215, 96, 0.7);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 18px rgba(30, 215, 96, 0.25);
+}
+
+.is-music-page .music-btn--spotify .platform-mark path {
+  fill: #1ed760;
 }
 
 .is-music-page .music-btn--spotify:hover {
-  color: #0b0b0b;
-  background: #3be477;
-  box-shadow: 0 12px 30px rgba(30, 215, 96, 0.45);
+  color: #fff;
+  border-color: #1ed760;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 30px rgba(30, 215, 96, 0.5);
 }
 
+/* YouTube: the red play logo on white */
 .is-music-page .music-btn--youtube {
-  color: #fff;
-  background: #e60000;
-  box-shadow: 0 8px 24px rgba(230, 0, 0, 0.32);
+  color: #0f0f0f;
+  background: #fff;
+  border-color: #fff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 0, 0, 0.25);
+}
+
+.is-music-page .music-btn--youtube .platform-mark path {
+  fill: #ff0000;
 }
 
 .is-music-page .music-btn--youtube:hover {
-  color: #fff;
-  background: #ff1a1a;
-  box-shadow: 0 12px 30px rgba(230, 0, 0, 0.45);
+  color: #0f0f0f;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 30px rgba(255, 0, 0, 0.45);
+}
+
+.is-music-page .music-btn--youtube::after {
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 0, 0, 0.12) 48%, transparent 66%);
 }
 
 .is-music-page .album-hero-steam {
@@ -1220,37 +1298,70 @@ html[data-mode="light"] body.is-music-page {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.9rem;
-  border: 1.5px solid rgba(255, 255, 255, 0.55);
-  border-radius: var(--radius-full);
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
   font-size: var(--font-size-sm);
-  font-weight: 700;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  font-weight: 800;
   text-decoration: none;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  box-shadow: 0 6px 16px rgba(60, 0, 20, 0.3);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .is-music-page .music-chip:hover {
-  color: #fff;
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.22);
   transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(60, 0, 20, 0.4);
 }
 
-/* On an orange band the button inverts: white face, orange label */
+.is-music-page .music-chip--spotify,
+.is-music-page .music-chip--spotify:hover {
+  color: #fff;
+  background: #121212;
+  border-color: rgba(30, 215, 96, 0.6);
+}
+
+.is-music-page .music-chip--spotify .platform-mark path {
+  fill: #1ed760;
+}
+
+.is-music-page .music-chip--youtube,
+.is-music-page .music-chip--youtube:hover {
+  color: #0f0f0f;
+  background: #fff;
+}
+
+.is-music-page .music-chip--youtube .platform-mark path {
+  fill: #ff0000;
+}
+
+.is-music-page .soundcloud-cta-icon .platform-mark path {
+  fill: #fff;
+}
+
+/* On an orange band the lead button inverts: white face, orange logo */
 .is-music-page .soundcloud-cta .music-btn--soundcloud {
   flex: none;
-  min-width: 150px;
+  min-width: 220px;
   color: #ff4a00;
   background: #fff;
-  box-shadow: 0 8px 22px rgba(80, 10, 0, 0.3);
+  border-color: #fff;
+  box-shadow: 0 10px 26px rgba(80, 10, 0, 0.35);
+  animation: none;
+}
+
+.is-music-page .soundcloud-cta .music-btn--soundcloud .platform-mark path {
+  fill: #ff5500;
 }
 
 .is-music-page .soundcloud-cta .music-btn--soundcloud:hover {
   color: #e03a00;
-  box-shadow: 0 12px 30px rgba(80, 10, 0, 0.4);
+  box-shadow: 0 16px 36px rgba(80, 10, 0, 0.45);
+}
+
+.is-music-page .soundcloud-cta .music-btn--soundcloud::after {
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 85, 0, 0.15) 48%, transparent 66%);
 }
 
 .is-music-page .soundcloud-cta .music-btn--setup {
@@ -1278,7 +1389,12 @@ html[data-mode="light"] body.is-music-page {
 @media (prefers-reduced-motion: reduce) {
   .is-music-page .album-hero-disc,
   .is-music-page .album-hero-pulse,
+  .is-music-page .music-btn--soundcloud,
   .is-music-page .soundcloud-cta-wave i {
     animation: none;
+  }
+
+  .is-music-page .music-btn:hover::after {
+    transition: none;
   }
 }

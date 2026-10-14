@@ -19,12 +19,6 @@ $album_subtitle = get_option('infinity_album_subtitle', __('Original soundtrack 
 $album_blurb    = get_option('infinity_album_blurb', __('The score for the game: orbital ambience, battle themes and the sound of a living galaxy, written in Ableton alongside the build. Follow on SoundCloud to hear the tracks as they come out of the studio.', 'infinity'));
 $album_status   = get_option('infinity_album_status', __('Coming soon', 'infinity'));
 $album_cover    = get_option('infinity_album_cover', '');
-$soundcloud_url = infinity_music_platform_url('soundcloud');
-$platform_cta   = array(
-    'soundcloud' => __('Follow on SoundCloud', 'infinity'),
-    'spotify'    => __('Spotify', 'infinity'),
-    'youtube'    => __('YouTube', 'infinity'),
-);
 $steam_url      = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
 ?>
 
@@ -69,12 +63,15 @@ $steam_url      = get_option('infinity_steam_url', 'https://store.steampowered.c
             <?php endif; ?>
 
             <div class="album-hero-actions">
-                <?php foreach ($platform_cta as $platform => $label) : ?>
+                <?php foreach (infinity_music_platforms() as $platform => $info) : ?>
                     <?php $url = infinity_music_platform_url($platform); ?>
                     <?php if ($url) : ?>
                         <a class="music-btn music-btn--<?php echo esc_attr($platform); ?>" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
-                            <?php infinity_music_platform_mark($platform, 'soundcloud' === $platform ? 26 : 20); ?>
-                            <span><?php echo esc_html($label); ?></span>
+                            <?php infinity_music_platform_mark($platform, 30); ?>
+                            <span class="music-btn-text">
+                                <small><?php echo esc_html($info['verb']); ?></small>
+                                <strong><?php echo esc_html($info['label']); ?></strong>
+                            </span>
                         </a>
                     <?php elseif ('soundcloud' === $platform && current_user_can('edit_theme_options')) : ?>
                         <a class="music-btn music-btn--setup" href="<?php echo esc_url(admin_url('customize.php?autofocus[section]=infinity_music_settings')); ?>">

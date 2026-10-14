@@ -35,6 +35,14 @@ entries are in release order, newest first.
   them) in Customize → Music Pages. Platforms are defined once in
   `infinity_music_platforms()`. Without a SoundCloud URL the band reads
   "Follow the E.T." and leads with the other two.
+- **Official logos, badge-style buttons** (`assets/img/brands/`): SoundCloud,
+  Spotify and YouTube marks are now the official logos, bundled as SVG files
+  from Simple Icons (CC0) and inlined so each button can colour its mark.
+  Buttons are app-store-style badges with a small verb over the platform
+  name ("Follow on / SoundCloud"): white cloud on SoundCloud orange with a
+  slow beacon ring, Spotify's green logo on black, YouTube's red logo on
+  white. All glow in their brand colour and catch a light sweep on hover;
+  motion is off under reduced-motion.
 
 ## 3.4.0
 

@@ -52,8 +52,11 @@ $secondary = array_diff_key($links, array('soundcloud' => true));
         <div class="soundcloud-cta-actions">
             <?php if ($primary) : ?>
                 <a class="music-btn music-btn--soundcloud" href="<?php echo esc_url($links['soundcloud']); ?>" target="_blank" rel="noopener noreferrer">
-                    <?php infinity_music_platform_mark('soundcloud', 26); ?>
-                    <span><?php esc_html_e('Follow', 'infinity'); ?></span>
+                    <?php infinity_music_platform_mark('soundcloud', 28); ?>
+                    <span class="music-btn-text">
+                        <small><?php esc_html_e('Follow on', 'infinity'); ?></small>
+                        <strong>SoundCloud</strong>
+                    </span>
                 </a>
             <?php elseif ($show_setup) : ?>
                 <a class="music-btn music-btn--setup" href="<?php echo esc_url(admin_url('customize.php?autofocus[section]=infinity_music_settings')); ?>">
@@ -65,7 +68,7 @@ $secondary = array_diff_key($links, array('soundcloud' => true));
                 <div class="soundcloud-cta-more">
                     <?php foreach ($secondary as $platform => $url) : ?>
                         <a class="music-chip music-chip--<?php echo esc_attr($platform); ?>" href="<?php echo esc_url($url); ?>" target="_blank" rel="noopener noreferrer">
-                            <?php infinity_music_platform_mark($platform, 18); ?>
+                            <?php infinity_music_platform_mark($platform, 22); ?>
                             <span><?php echo esc_html(infinity_music_platforms()[$platform]['label']); ?></span>
                         </a>
                     <?php endforeach; ?>
