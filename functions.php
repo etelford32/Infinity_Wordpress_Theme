@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.4.0');
+define('INFINITY_VERSION', '3.5.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -80,6 +80,16 @@ function infinity_enqueue_scripts() {
         array(),
         null
     );
+
+    // Music pages carry their own stylesheet so their look can't leak
+    if (infinity_is_music_page()) {
+        wp_enqueue_style(
+            'infinity-music',
+            INFINITY_URI . '/assets/css/music.css',
+            array('infinity-style'),
+            INFINITY_VERSION
+        );
+    }
 
     /*
      * The React app (~270 KB JS + 38 KB CSS) only mounts on templates
@@ -677,6 +687,53 @@ function infinity_customize_register($wp_customize) {
         'section'     => 'infinity_steam_settings',
         'type'        => 'checkbox',
     ));
+
+    // Music pages: featured album hero and SoundCloud follow band
+    $wp_customize->add_section('infinity_music_settings', array(
+        'title'       => esc_html__('Music Pages', 'infinity'),
+        'description' => esc_html__('The featured album at the top of the music page and the SoundCloud follow call-to-action. Music pages are any page whose slug (or a parent\'s) contains "music".', 'infinity'),
+        'priority'    => 36,
+    ));
+
+    $music_fields = array(
+        'infinity_soundcloud_url' => array('url', 'https://soundcloud.com/elliottelford', 'esc_url_raw', __('SoundCloud profile URL', 'infinity'), __('Leave empty to hide the SoundCloud buttons', 'infinity')),
+        'infinity_spotify_url'    => array('url', 'https://open.spotify.com/artist/656cOBMdQmS3QIySIgiNc6', 'esc_url_raw', __('Spotify artist URL', 'infinity'), __('Leave empty to hide the Spotify buttons', 'infinity')),
+        'infinity_youtube_url'    => array('url', 'https://www.youtube.com/@thee.t.6444', 'esc_url_raw', __('YouTube channel URL', 'infinity'), __('Leave empty to hide the YouTube buttons', 'infinity')),
+        'infinity_album_show'     => array('checkbox', 1, 'absint', __('Show the featured album at the top of the music page', 'infinity'), ''),
+        'infinity_album_kicker'   => array('text', __('Next album · In the studio', 'infinity'), 'sanitize_text_field', __('Album kicker', 'infinity'), __('Small line above the title', 'infinity')),
+        'infinity_album_title'    => array('text', 'Explore the Universe 2175', 'sanitize_text_field', __('Album title', 'infinity'), ''),
+        'infinity_album_subtitle' => array('text', __('Original soundtrack by E.T.', 'infinity'), 'sanitize_text_field', __('Album subtitle', 'infinity'), ''),
+        'infinity_album_blurb'    => array('textarea', __('The score for the game: orbital ambience, battle themes and the sound of a living galaxy, written in Ableton alongside the build. Follow on SoundCloud to hear the tracks as they come out of the studio.', 'infinity'), 'sanitize_textarea_field', __('Album description', 'infinity'), ''),
+        'infinity_album_status'   => array('text', __('Coming soon', 'infinity'), 'sanitize_text_field', __('Release status', 'infinity'), __('e.g. "Coming soon", "Out March 2027", "Out now"', 'infinity')),
+        'infinity_album_track_url'   => array('url', 'https://on.soundcloud.com/XWIguYOLgt6CuGjqbX', 'esc_url_raw', __('Preview track (SoundCloud URL)', 'infinity'), __('A track or playlist link, played in the album hero. Short on.soundcloud.com links work. Leave empty for no player.', 'infinity')),
+        'infinity_album_track_label' => array('text', __('Buggin · Track 8', 'infinity'), 'sanitize_text_field', __('Preview track label', 'infinity'), __('Shown above the player', 'infinity')),
+    );
+    foreach ($music_fields as $id => $field) {
+        list($type, $default, $sanitize, $label, $description) = $field;
+        $wp_customize->add_setting($id, array(
+            'type'              => 'option',
+            'default'           => $default,
+            'sanitize_callback' => $sanitize,
+        ));
+        $wp_customize->add_control($id, array(
+            'label'       => $label,
+            'description' => $description,
+            'section'     => 'infinity_music_settings',
+            'type'        => $type,
+        ));
+    }
+
+    $wp_customize->add_setting('infinity_album_cover', array(
+        'type'              => 'option',
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'infinity_album_cover', array(
+        'label'       => esc_html__('Album cover art', 'infinity'),
+        'description' => esc_html__('Square works best. Leave empty for a placeholder cover drawn by the theme.', 'infinity'),
+        'section'     => 'infinity_music_settings',
+    )));
 }
 add_action('customize_register', 'infinity_customize_register');
 
@@ -699,9 +756,169 @@ function infinity_body_classes($classes) {
         $classes[] = 'user-logged-in';
     }
 
+    // Slug classes let a page be styled by name rather than by an ID
+    // that changes between staging and production
+    if (is_page()) {
+        $classes[] = 'page-slug-' . sanitize_html_class(get_post_field('post_name', get_queried_object_id()));
+    }
+
+    if (infinity_is_music_page()) {
+        $classes[] = 'is-music-page';
+    }
+
     return $classes;
 }
 add_filter('body_class', 'infinity_body_classes');
+
+/**
+ * Whether the current page is a music page: its slug or any ancestor's
+ * mentions music (etmusic, music, music/albums...). Filterable so a page
+ * with an unrelated slug can opt in.
+ */
+function infinity_is_music_page() {
+    $is_music = false;
+
+    if (is_page()) {
+        $id    = get_queried_object_id();
+        $slugs = array(get_post_field('post_name', $id));
+        foreach (get_post_ancestors($id) as $ancestor) {
+            $slugs[] = get_post_field('post_name', $ancestor);
+        }
+        $is_music = (bool) preg_grep('/music/i', $slugs);
+    }
+
+    return (bool) apply_filters('infinity_is_music_page', $is_music);
+}
+
+/**
+ * Streaming platforms linked from the music pages, in display order.
+ * Each entry: Customizer option, default URL, label, the call to action
+ * that sits above the name on a button, and its logo file in
+ * assets/img/brands/ (official marks from Simple Icons, CC0).
+ */
+function infinity_music_platforms() {
+    return array(
+        'soundcloud' => array(
+            'option'  => 'infinity_soundcloud_url',
+            'default' => 'https://soundcloud.com/elliottelford',
+            'label'   => 'SoundCloud',
+            'verb'    => __('Follow on', 'infinity'),
+        ),
+        'spotify' => array(
+            'option'  => 'infinity_spotify_url',
+            'default' => 'https://open.spotify.com/artist/656cOBMdQmS3QIySIgiNc6',
+            'label'   => 'Spotify',
+            'verb'    => __('Listen on', 'infinity'),
+        ),
+        'youtube' => array(
+            'option'  => 'infinity_youtube_url',
+            'default' => 'https://www.youtube.com/@thee.t.6444',
+            'label'   => 'YouTube',
+            'verb'    => __('Watch on', 'infinity'),
+        ),
+    );
+}
+
+/**
+ * URL for one platform, or '' when it is not set
+ */
+function infinity_music_platform_url($platform) {
+    $platforms = infinity_music_platforms();
+    if (!isset($platforms[$platform])) {
+        return '';
+    }
+    return (string) get_option($platforms[$platform]['option'], $platforms[$platform]['default']);
+}
+
+/**
+ * Resolve an on.soundcloud.com share link to the soundcloud.com URL it
+ * redirects to, since SoundCloud's player wants the full address. The
+ * answer is cached for a week (an hour after a failed lookup, when the
+ * short link itself is used).
+ */
+function infinity_soundcloud_canonical_url($url) {
+    if ('on.soundcloud.com' !== wp_parse_url($url, PHP_URL_HOST)) {
+        return $url;
+    }
+
+    $key    = 'infinity_sc_' . md5($url);
+    $cached = get_transient($key);
+    if (false !== $cached) {
+        return $cached;
+    }
+
+    $resolved = $url;
+    $next     = $url;
+    for ($hop = 0; $hop < 4; $hop++) {
+        $response = wp_remote_head($next, array('redirection' => 0, 'timeout' => 4));
+        $location = is_wp_error($response) ? '' : wp_remote_retrieve_header($response, 'location');
+        if (!$location) {
+            break;
+        }
+        $next = $location;
+        if ('soundcloud.com' === preg_replace('/^(www|m)\./', '', (string) wp_parse_url($next, PHP_URL_HOST))) {
+            // drop share tracking (?si=, utm_*) but keep secret-token paths
+            $resolved = strtok($next, '?');
+            break;
+        }
+    }
+
+    set_transient($key, $resolved, $resolved === $url ? HOUR_IN_SECONDS : WEEK_IN_SECONDS);
+    return $resolved;
+}
+
+/**
+ * SoundCloud's embeddable player for a track or playlist URL
+ */
+function infinity_soundcloud_player_src($url) {
+    return add_query_arg(
+        array(
+            'url'           => rawurlencode(infinity_soundcloud_canonical_url($url)),
+            'color'         => '%23ff5500',
+            'auto_play'     => 'false',
+            'hide_related'  => 'true',
+            'show_comments' => 'false',
+            'show_user'     => 'true',
+            'show_reposts'  => 'false',
+            'show_teaser'   => 'false',
+            'visual'        => 'false',
+        ),
+        'https://w.soundcloud.com/player/'
+    );
+}
+
+/**
+ * Print a platform's logo inline, from assets/img/brands/{platform}.svg.
+ * Inlined rather than an <img> so CSS can recolour the mark per button
+ * (fill on .platform-mark path overrides the file's brand colour).
+ */
+function infinity_music_platform_mark($platform, $size = 22) {
+    static $cache = array();
+
+    if (!isset($cache[$platform])) {
+        $cache[$platform] = '';
+        $file = INFINITY_DIR . '/assets/img/brands/' . sanitize_key($platform) . '.svg';
+        if (is_readable($file)) {
+            $svg = (string) file_get_contents($file);
+            if (preg_match('/viewBox="([^"]+)"/', $svg, $box) && preg_match_all('/<path\b[^>]*\/>/', $svg, $paths)) {
+                $cache[$platform] = array($box[1], implode('', $paths[0]));
+            }
+        }
+    }
+
+    if (!$cache[$platform]) {
+        return;
+    }
+
+    list($viewbox, $paths) = $cache[$platform];
+    printf(
+        '<svg class="platform-mark platform-mark--%1$s" width="%2$d" height="%2$d" viewBox="%3$s" aria-hidden="true" focusable="false">%4$s</svg>',
+        esc_attr($platform),
+        (int) $size,
+        esc_attr($viewbox),
+        $paths // the theme's own bundled logo files
+    );
+}
 
 /**
  * Add theme mode data attribute to body

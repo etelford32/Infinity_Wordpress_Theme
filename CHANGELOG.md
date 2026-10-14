@@ -3,6 +3,53 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.5.0
+
+- **Music pages get their own look, and only music pages** (`assets/css/music.css`,
+  `functions.php`): any page whose slug, or a parent's, contains "music" (e.g.
+  `/etmusic/`) gets `body.is-music-page` and a dedicated stylesheet that is
+  enqueued nowhere else. Every rule is also scoped to that body class, so no
+  other page changes. Detection is filterable via `infinity_is_music_page`;
+  pages also gain a `page-slug-{slug}` body class.
+- Block content on music pages gets the rhythm the global reset removed:
+  a 760px reading measure with media up to 1120px, heading accent bars, styled
+  lists, quotes, separators, buttons, captions and embeds. h4–h6 use the text
+  face (an opening one becomes an intro card), and editor "large" paragraphs
+  read as section titles. A column holding cover art plus an audio block
+  becomes a release card, collapsing to a playlist row below 782px. Ordered
+  lists become numbered tracklists. Accent is the nav's Music pink, with an
+  equalizer over the title.
+- **Featured album hero** (`template-parts/music/album-hero.php`): the top of
+  the music hub now announces *Explore the Universe 2175*, the soundtrack
+  album: cover with a vinyl sliding out behind it, kicker, title, blurb,
+  release status, a Follow on SoundCloud button and a Wishlist link to Steam.
+  Copy and cover art are set in Customize → Music Pages; with no cover
+  uploaded the theme draws one. Shown only on top-level music pages.
+- **Preview track in the hero**: SoundCloud's player under the cover and
+  copy, labelled "Preview from the album · Buggin · Track 8". The track
+  URL and label are in Customize → Music Pages; short on.soundcloud.com
+  share links are followed server-side to the full soundcloud.com address
+  the player needs (tracking parameters dropped, cached for a week, short
+  link used as-is if the lookup fails).
+- **"Follow the E.T. on SoundCloud" band** (`template-parts/music/soundcloud-cta.php`)
+  closes every music page. Both SoundCloud buttons stay hidden from visitors
+  until the profile URL is set in Customize → Music Pages; until then admins
+  see a link to that setting instead.
+- **Spotify and YouTube** sit beside SoundCloud: brand-coloured buttons in the
+  album hero and outline chips in the follow band. Their URLs default to
+  the E.T.'s artist page and channel, SoundCloud's to the E.T.'s profile,
+  and each can be changed (or emptied to hide it) in Customize → Music Pages. Platforms are defined once in
+  `infinity_music_platforms()`. Without a SoundCloud URL the band reads
+  "Follow the E.T." and leads with the other two.
+- **Official logos, badge-style buttons** (`assets/img/brands/`): SoundCloud,
+  Spotify and YouTube marks are now the official logos, bundled as SVG files
+  from Simple Icons (CC0) and inlined so each button can colour its mark.
+  Buttons are app-store-style badges with a small verb over the platform
+  name ("Follow on / SoundCloud"): white cloud on SoundCloud orange with a
+  slow beacon ring, Spotify's green logo on black, YouTube's red logo on
+  white. All glow in their brand colour and catch a light sweep on hover;
+  motion is off under reduced-motion.
+
 ## 3.4.0
 
 - **Property buttons wear their own brands** (`header.php`,

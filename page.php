@@ -14,8 +14,15 @@ get_header();
         <?php
         while (have_posts()) :
             the_post();
+
+            if (infinity_is_music_page()) {
+                get_template_part('template-parts/music/album-hero');
+            }
         ?>
             <header class="entry-header">
+                <?php if (infinity_is_music_page()) : ?>
+                    <span class="entry-eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                <?php endif; ?>
                 <?php the_title('<h1 class="entry-title">', '</h1>'); ?>
             </header>
 
@@ -35,6 +42,12 @@ get_header();
                 ));
                 ?>
             </div>
+
+            <?php
+            if (infinity_is_music_page()) {
+                get_template_part('template-parts/music/soundcloud-cta');
+            }
+            ?>
 
             <?php if (get_edit_post_link()) : ?>
                 <footer class="entry-footer">
