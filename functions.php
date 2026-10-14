@@ -696,7 +696,7 @@ function infinity_customize_register($wp_customize) {
     ));
 
     $music_fields = array(
-        'infinity_soundcloud_url' => array('url', '', 'esc_url_raw', __('SoundCloud profile URL', 'infinity'), __('e.g. https://soundcloud.com/your-name. Until this is set the follow buttons are hidden from visitors.', 'infinity')),
+        'infinity_soundcloud_url' => array('url', 'https://on.soundcloud.com/9rnXg7xGBlMWNsTxgv', 'esc_url_raw', __('SoundCloud profile URL', 'infinity'), __('Leave empty to hide the SoundCloud buttons', 'infinity')),
         'infinity_spotify_url'    => array('url', 'https://open.spotify.com/artist/656cOBMdQmS3QIySIgiNc6', 'esc_url_raw', __('Spotify artist URL', 'infinity'), __('Leave empty to hide the Spotify buttons', 'infinity')),
         'infinity_youtube_url'    => array('url', 'https://www.youtube.com/@thee.t.6444', 'esc_url_raw', __('YouTube channel URL', 'infinity'), __('Leave empty to hide the YouTube buttons', 'infinity')),
         'infinity_album_show'     => array('checkbox', 1, 'absint', __('Show the featured album at the top of the music page', 'infinity'), ''),
@@ -798,7 +798,7 @@ function infinity_music_platforms() {
     return array(
         'soundcloud' => array(
             'option'  => 'infinity_soundcloud_url',
-            'default' => '',
+            'default' => 'https://on.soundcloud.com/9rnXg7xGBlMWNsTxgv',
             'label'   => 'SoundCloud',
             'verb'    => __('Follow on', 'infinity'),
         ),

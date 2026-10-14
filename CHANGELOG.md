@@ -31,8 +31,8 @@ entries are in release order, newest first.
   see a link to that setting instead.
 - **Spotify and YouTube** sit beside SoundCloud: brand-coloured buttons in the
   album hero and outline chips in the follow band. Their URLs default to
-  the E.T.'s artist page and channel and can be changed (or emptied to hide
-  them) in Customize → Music Pages. Platforms are defined once in
+  the E.T.'s artist page and channel, SoundCloud's to the E.T.'s profile,
+  and each can be changed (or emptied to hide it) in Customize → Music Pages. Platforms are defined once in
   `infinity_music_platforms()`. Without a SoundCloud URL the band reads
   "Follow the E.T." and leads with the other two.
 - **Official logos, badge-style buttons** (`assets/img/brands/`): SoundCloud,
