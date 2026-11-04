@@ -4,11 +4,7 @@
 
     <footer id="colophon" class="site-footer" role="contentinfo">
         <div class="container">
-            <?php if (is_active_sidebar('footer-1')) : ?>
-                <aside class="footer-widgets">
-                    <?php dynamic_sidebar('footer-1'); ?>
-                </aside>
-            <?php endif; ?>
+            <?php infinity_footer_widgets(); ?>
 
             <nav class="footer-navigation" role="navigation" aria-label="<?php esc_attr_e('Footer Menu', 'infinity'); ?>">
                 <?php
@@ -23,23 +19,19 @@
                 ?>
             </nav>
 
-            <?php $footer_urls = infinity_property_urls(); ?>
-            <nav class="footer-sites" aria-label="<?php esc_attr_e('More from Elliot Telford', 'infinity'); ?>">
-                <span class="footer-sites-label"><?php esc_html_e('The Telford universe:', 'infinity'); ?></span>
-                <a href="<?php echo esc_url($footer_urls['parkers']); ?>" target="_blank" rel="noopener"><?php esc_html_e("Parker's Physics", 'infinity'); ?></a>
-                <a href="<?php echo esc_url($footer_urls['etu']); ?>" target="_blank" rel="noopener"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></a>
-                <a href="<?php echo esc_url($footer_urls['steam']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('The game on Steam', 'infinity'); ?></a>
-                <a href="<?php echo esc_url($footer_urls['landscaping']); ?>" target="_blank" rel="noopener"><?php esc_html_e('Telford Landscaping', 'infinity'); ?></a>
-            </nav>
+            <?php if (get_theme_mod('infinity_footer_family_links', true)) : ?>
+                <?php $footer_urls = infinity_property_urls(); ?>
+                <nav class="footer-sites" aria-label="<?php esc_attr_e('More from Elliot Telford', 'infinity'); ?>">
+                    <span class="footer-sites-label"><?php esc_html_e('The Telford universe:', 'infinity'); ?></span>
+                    <a href="<?php echo esc_url($footer_urls['parkers']); ?>" target="_blank" rel="noopener"><?php esc_html_e("Parker's Physics", 'infinity'); ?></a>
+                    <a href="<?php echo esc_url($footer_urls['etu']); ?>" target="_blank" rel="noopener"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></a>
+                    <a href="<?php echo esc_url($footer_urls['steam']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('The game on Steam', 'infinity'); ?></a>
+                    <a href="<?php echo esc_url($footer_urls['landscaping']); ?>" target="_blank" rel="noopener"><?php esc_html_e('Telford Landscaping', 'infinity'); ?></a>
+                </nav>
+            <?php endif; ?>
 
             <div class="site-info">
-                <p>
-                    &copy; <?php echo esc_html(date('Y')); ?> <?php bloginfo('name'); ?>.
-                    <?php esc_html_e('Powered by', 'infinity'); ?>
-                    <a href="<?php echo esc_url(__('https://wordpress.org/', 'infinity')); ?>">WordPress</a>
-                    <?php esc_html_e('and', 'infinity'); ?>
-                    <a href="<?php echo esc_url('https://threejs.org/'); ?>">Three.js</a>
-                </p>
+                <?php infinity_footer_credit(); ?>
             </div>
         </div>
     </footer>

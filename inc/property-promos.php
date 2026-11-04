@@ -297,6 +297,20 @@ function infinity_landscaping_promo_card() {
 }
 
 /**
+ * Widget options shared by the property widgets.
+ *
+ * show_instance_in_rest lets the block-based widget editor read and
+ * save their settings (and offer a live preview), and selective refresh
+ * lets the Customizer update them without reloading the whole preview.
+ */
+function infinity_property_widget_options($options) {
+    return array_merge(array(
+        'customize_selective_refresh' => true,
+        'show_instance_in_rest'       => true,
+    ), $options);
+}
+
+/**
  * Widget wrapper: shared base for the three property widgets.
  */
 abstract class Infinity_Property_Widget extends WP_Widget {
@@ -330,9 +344,9 @@ abstract class Infinity_Property_Widget extends WP_Widget {
 
 class Infinity_ETU_Widget extends Infinity_Property_Widget {
     public function __construct() {
-        parent::__construct('infinity_etu', esc_html__('Infinity: Explore the Universe 2175', 'infinity'), array(
+        parent::__construct('infinity_etu', esc_html__('Infinity: Explore the Universe 2175', 'infinity'), infinity_property_widget_options(array(
             'description' => esc_html__('Promo card for the game — Steam wishlist + sign-up link.', 'infinity'),
-        ));
+        )));
     }
     protected function render_card() {
         infinity_etu_promo_card();
@@ -341,9 +355,9 @@ class Infinity_ETU_Widget extends Infinity_Property_Widget {
 
 class Infinity_Parkers_Widget extends Infinity_Property_Widget {
     public function __construct() {
-        parent::__construct('infinity_parkers', esc_html__("Infinity: Parker's Physics", 'infinity'), array(
+        parent::__construct('infinity_parkers', esc_html__("Infinity: Parker's Physics", 'infinity'), infinity_property_widget_options(array(
             'description' => esc_html__('Promo card driving visitors into the simulation sandbox.', 'infinity'),
-        ));
+        )));
     }
     protected function render_card() {
         infinity_parkers_promo_card();
@@ -352,9 +366,9 @@ class Infinity_Parkers_Widget extends Infinity_Property_Widget {
 
 class Infinity_Landscaping_Widget extends Infinity_Property_Widget {
     public function __construct() {
-        parent::__construct('infinity_landscaping', esc_html__('Infinity: Telford Landscaping', 'infinity'), array(
+        parent::__construct('infinity_landscaping', esc_html__('Infinity: Telford Landscaping', 'infinity'), infinity_property_widget_options(array(
             'description' => esc_html__('Promo card linking to TelfordLandscaping.com.', 'infinity'),
-        ));
+        )));
     }
     protected function render_card() {
         infinity_landscaping_promo_card();

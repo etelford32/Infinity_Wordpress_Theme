@@ -32,6 +32,11 @@ get_header();
                 </div>
             <?php endif; ?>
 
+            <?php $infinity_sidebar = infinity_sidebar_layout('page'); ?>
+            <?php if ($infinity_sidebar) : ?>
+                <div class="<?php echo esc_attr(infinity_entry_layout_classes($infinity_sidebar)); ?>">
+            <?php endif; ?>
+
             <div class="entry-content">
                 <?php
                 the_content();
@@ -42,6 +47,11 @@ get_header();
                 ));
                 ?>
             </div>
+
+            <?php if ($infinity_sidebar) : ?>
+                    <?php get_sidebar(null, array('area' => $infinity_sidebar['area'])); ?>
+                </div>
+            <?php endif; ?>
 
             <?php
             if (infinity_is_music_page()) {

@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.5.0
+Version: 3.6.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -1530,12 +1530,7 @@ body.mobile-menu-open .sticky-header {
   margin-top: auto;
 }
 
-.footer-widgets {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
-}
+/* Footer widget columns: see 13.5 Widget Areas */
 
 .footer-navigation {
   margin-bottom: var(--spacing-lg);
@@ -2442,15 +2437,7 @@ body.mobile-menu-open .sticky-header {
   background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
 }
 
-/* Widget-area titles wrapping promo cards */
-.post-sidebar .widget-title {
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-  margin: 0 0 var(--spacing-sm);
-}
+/* Widget titles: see 13.5 Widget Areas */
 
 /* Property strip on the front page */
 .fp-properties {
@@ -2547,6 +2534,320 @@ body.mobile-menu-open .sticky-header {
 
 .footer-sites a:hover {
   color: var(--color-accent-primary);
+}
+
+/* ==========================================================================
+   13.5 Widget Areas (post/page sidebars, footer columns, block widgets)
+   ========================================================================== */
+
+/* Content + sidebar layout. Position comes from Customize → Sidebar & Footer. */
+.entry-layout.has-sidebar {
+  display: grid;
+  grid-template-columns: minmax(0, 800px) minmax(260px, 340px);
+  gap: var(--spacing-2xl);
+  align-items: start;
+}
+
+.entry-layout.sidebar-left {
+  grid-template-columns: minmax(260px, 340px) minmax(0, 800px);
+}
+
+.entry-layout.sidebar-left > .post-sidebar {
+  order: -1;
+}
+
+.entry-layout .post-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+}
+
+.entry-layout.sidebar-sticky .post-sidebar {
+  position: sticky;
+  top: var(--spacing-lg);
+}
+
+/* Clear the fixed header when it is switched on */
+body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar {
+  top: calc(var(--spacing-lg) + 80px);
+}
+
+@media (max-width: 1024px) {
+  .entry-layout.has-sidebar,
+  .entry-layout.sidebar-left {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Content first on small screens, wherever the sidebar sits on desktop */
+  .entry-layout.sidebar-left > .post-sidebar {
+    order: 0;
+  }
+
+  .entry-layout.sidebar-sticky .post-sidebar {
+    position: static;
+  }
+
+  .entry-layout .post-sidebar {
+    max-width: 480px;
+  }
+}
+
+/* Footer columns */
+.footer-widgets {
+  display: grid;
+  grid-template-columns: repeat(var(--footer-cols, 3), minmax(0, 1fr));
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--color-bg-tertiary);
+}
+
+.footer-widgets-cols-1 { --footer-cols: 1; }
+.footer-widgets-cols-2 { --footer-cols: 2; }
+.footer-widgets-cols-3 { --footer-cols: 3; }
+.footer-widgets-cols-4 { --footer-cols: 4; }
+
+.footer-widget-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .footer-widgets-cols-3,
+  .footer-widgets-cols-4 {
+    --footer-cols: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-widgets {
+    --footer-cols: 1;
+  }
+}
+
+/*
+ * Widgets, classic and block alike. Block widgets have no title wrapper
+ * of their own, so a heading block at the top of a widget gets the same
+ * look as a classic widget title instead of the 2.25rem page h2.
+ */
+.widget-area .widget {
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.widget-area .widget-title,
+.widget-area .widget > .wp-block-heading:first-child,
+.widget-area .widget > .wp-block-group > .wp-block-heading:first-child,
+.widget-area .widget > .wp-block-group > .wp-block-group__inner-container > .wp-block-heading:first-child {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacing-sm);
+}
+
+:where(.widget-area .widget) h2,
+:where(.widget-area .widget) h3,
+:where(.widget-area .widget) h4 {
+  font-size: var(--font-size-lg);
+}
+
+:where(.widget-area .widget) p {
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+:where(.widget-area .widget) p:last-child {
+  margin-bottom: 0;
+}
+
+:where(.widget-area .widget) a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+:where(.widget-area .widget) a:hover,
+:where(.widget-area .widget) a:focus-visible {
+  color: var(--color-accent-primary);
+}
+
+.widget-area .widget > .promo-card:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists: menus, recent posts, categories, archives, pages */
+:where(.widget-area .widget) ul,
+:where(.widget-area .widget) ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+:where(.widget-area .widget) li {
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-bg-tertiary) 70%, transparent);
+  line-height: 1.5;
+}
+
+:where(.widget-area .widget) li:last-child {
+  border-bottom: 0;
+}
+
+:where(.widget-area .widget) li ul,
+:where(.widget-area .widget) li ol {
+  margin-top: 6px;
+  padding-left: var(--spacing-md);
+}
+
+.widget-area .widget .wp-block-latest-posts__post-date,
+.widget-area .widget .post-date,
+.widget-area .widget .wp-block-latest-comments__comment-date {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.widget-area .widget .wp-block-latest-posts__featured-image img {
+  border-radius: var(--radius-md);
+}
+
+/* Search */
+.widget-area .wp-block-search__label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-secondary);
+}
+
+.widget-area .wp-block-search__inside-wrapper,
+.widget-area .search-form {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.widget-area .wp-block-search__input,
+.widget-area .search-field,
+.widget-area select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-bg-tertiary);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.widget-area .wp-block-search__button,
+.widget-area .search-submit {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.widget-area .wp-block-search__button:hover,
+.widget-area .search-submit:hover {
+  background: var(--color-accent-secondary);
+}
+
+/* Tag cloud */
+.widget-area .wp-block-tag-cloud,
+.widget-area .tagcloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.widget-area .wp-block-tag-cloud a,
+.widget-area .tagcloud a {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-bg-tertiary);
+  font-size: var(--font-size-xs) !important;
+}
+
+.widget-area .wp-block-tag-cloud a:hover,
+.widget-area .tagcloud a:hover {
+  border-color: var(--color-accent-primary);
+}
+
+/* Calendar */
+.widget-area .wp-block-calendar table,
+.widget-area .calendar_wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+}
+
+.widget-area .wp-block-calendar th,
+.widget-area .wp-block-calendar td,
+.widget-area .calendar_wrap th,
+.widget-area .calendar_wrap td {
+  padding: 4px;
+  text-align: center;
+  border: 1px solid var(--color-bg-tertiary);
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+/* Buttons, images, social icons, groups */
+.widget-area .wp-block-button__link {
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+}
+
+.widget-area .widget .wp-block-button__link:hover {
+  color: #fff;
+}
+
+:where(.widget-area .widget) img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.widget-area .wp-block-social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  padding: 0;
+}
+
+.widget-area .wp-block-social-links li {
+  border-bottom: 0;
+  padding: 0;
+}
+
+.widget-area .widget .wp-block-social-link a {
+  color: inherit;
+}
+
+/* A group with a background colour reads as a card */
+.widget-area .wp-block-group.has-background {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+}
+
+/* Footer widgets sit on the footer's background, so lists drop their rules */
+.site-footer :where(.widget-area .widget) li {
+  border-bottom: 0;
+  padding: 3px 0;
 }
 
 /* ==========================================================================
