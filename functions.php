@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.5.0');
+define('INFINITY_VERSION', '3.5.1');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -73,10 +73,11 @@ function infinity_enqueue_scripts() {
     // Main stylesheet
     wp_enqueue_style('infinity-style', get_stylesheet_uri(), array(), INFINITY_VERSION);
 
-    // Orbitron display face for headings and the wordmark
+    // Orbitron display face for headings and the wordmark; Oxanium's
+    // chamfered caps carry the ETU 2175 lettering on the wishlist CTA
     wp_enqueue_style(
         'infinity-orbitron',
-        'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap',
+        'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Oxanium:wght@700;800&display=swap',
         array(),
         null
     );

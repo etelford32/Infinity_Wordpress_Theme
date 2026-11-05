@@ -3,6 +3,19 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.5.1
+
+- **Steam wishlist CTA in the ETU 2175 lettering** (`inc/property-promos.php`,
+  `style.css`, `assets/img/etu-type.webp`): a new `infinity_etu_wishlist_cta()`
+  renders a chamfered steel plate with a hex-plated face, the ETU logotype as
+  its emblem, and "Wishlist on Steam" set in Oxanium with a hex-cell steel/cyan
+  fill, an extruded edge, a cyan seam flare and drifting sparks. It replaces
+  the plain Steam button in the homepage band and the ETU promo card, and adds
+  a full-width button under the hero's Steam widget. Each placement tags its
+  link with its own `utm_campaign` (`homepage_hero`, `homepage_band`,
+  `promo_card`). A card size (`'size' => 'md'`) scales with its container.
+- Oxanium 700/800 joins Orbitron in the existing Google Fonts request.
+
 ## 3.5.0
 
 - **Music pages get their own look, and only music pages** (`assets/css/music.css`,
