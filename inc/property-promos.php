@@ -227,6 +227,53 @@ function infinity_steam_app_id() {
 }
 
 /**
+ * The Steam wishlist call to action, set in the game's own typography.
+ *
+ * Your ETU lettering (chamfered, hex-plated steel lit from inside with
+ * cyan) is the emblem; the label beside it borrows the same treatment
+ * in type — Oxanium's cut corners, a hex-cell steel fill, an extruded
+ * edge and a cyan bloom — so the button reads as a piece of the game
+ * rather than a generic Steam badge.
+ *
+ * @param array $args {
+ *     @type string $size     'lg' (default) or 'md' for tighter cards.
+ *     @type string $campaign utm_campaign tag, so each placement's
+ *                            wishlists can be told apart in Steamworks.
+ * }
+ */
+function infinity_etu_wishlist_cta($args = array()) {
+    $args = wp_parse_args($args, array(
+        'size'     => 'lg',
+        'campaign' => 'site',
+    ));
+    $urls  = infinity_property_urls();
+    $href  = add_query_arg(array(
+        'utm_source'   => 'elliottelford.com',
+        'utm_medium'   => 'wishlist_cta',
+        'utm_campaign' => sanitize_key($args['campaign']),
+    ), $urls['steam']);
+    $label = __('Wishlist on Steam', 'infinity');
+    $size  = 'md' === $args['size'] ? 'md' : 'lg';
+    ?>
+    <a class="etu-wishlist etu-wishlist-<?php echo esc_attr($size); ?>" href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener noreferrer">
+        <span class="etu-wishlist-plate">
+            <img class="etu-wishlist-emblem" src="<?php echo esc_url(INFINITY_URI . '/assets/img/etu-type.webp'); ?>" alt="" width="480" height="200" loading="lazy" decoding="async">
+            <span class="etu-wishlist-copy">
+                <span class="etu-type" aria-hidden="true">
+                    <span class="etu-type-depth"><?php echo esc_html($label); ?></span>
+                    <span class="etu-type-face"><?php echo esc_html($label); ?></span>
+                </span>
+                <span class="screen-reader-text"><?php echo esc_html($label); ?>: </span>
+                <span class="etu-wishlist-sub"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></span>
+            </span>
+            <svg class="etu-wishlist-steam" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><circle cx="15.5" cy="8.5" r="3.1" fill="currentColor"/><circle cx="7.5" cy="16.5" r="2.1" fill="currentColor"/><path d="M9.2 15.1l4.1-4.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            <span class="etu-wishlist-sparks" aria-hidden="true"></span>
+        </span>
+    </a>
+    <?php
+}
+
+/**
  * Explore the Universe 2175 promo card.
  */
 function infinity_etu_promo_card() {
@@ -241,10 +288,7 @@ function infinity_etu_promo_card() {
         <p class="promo-copy">
             <?php esc_html_e('Command your own ship in a living galaxy. The year is 2175 — the frontier is open, and the first wave of pilots is signing up now.', 'infinity'); ?>
         </p>
-        <a class="promo-btn promo-btn-steam" href="<?php echo esc_url($urls['steam']); ?>" target="_blank" rel="noopener noreferrer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><circle cx="15.5" cy="8.5" r="3.1" fill="currentColor"/><circle cx="7.5" cy="16.5" r="2.1" fill="currentColor"/><path d="M9.2 15.1l4.1-4.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-            <?php esc_html_e('Wishlist on Steam', 'infinity'); ?>
-        </a>
+        <?php infinity_etu_wishlist_cta(array('size' => 'md', 'campaign' => 'promo_card')); ?>
         <a class="promo-btn promo-btn-outline" href="<?php echo esc_url($urls['etu']); ?>" target="_blank" rel="noopener">
             <?php esc_html_e('Sign up free — join the first wave', 'infinity'); ?>
         </a>

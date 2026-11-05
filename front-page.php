@@ -157,6 +157,9 @@ $infinity_etu_video   = infinity_etu_video_url();
                             title="<?php esc_attr_e('Explore the Universe 2175 on Steam', 'infinity'); ?>"
                         ></iframe>
                     </div>
+                    <div class="hero-steam-card-cta">
+                        <?php infinity_etu_wishlist_cta(array('campaign' => 'homepage_hero')); ?>
+                    </div>
                     <p class="hero-steam-card-note"><?php esc_html_e('Every wishlist boosts launch visibility', 'infinity'); ?></p>
                 </aside>
                 <?php endif; ?>
@@ -410,16 +413,7 @@ $infinity_etu_video   = infinity_etu_video_url();
                         <?php esc_html_e('The year is 2175 and the frontier is open. Command your own ship in a living galaxy built on real orbital mechanics — the same physics running in the simulations on this site. Wishlist it on Steam, then create a free account to follow development and fly with the first wave of pilots.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
-                        <a class="header-steam-cta" href="<?php echo esc_url($steam_url); ?>" target="_blank" rel="noopener noreferrer">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/>
-                                <circle cx="15.5" cy="8.5" r="3.1" fill="currentColor"/>
-                                <circle cx="7.5" cy="16.5" r="2.1" fill="currentColor"/>
-                                <path d="M9.2 15.1l4.1-4.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                            </svg>
-                            <span><?php esc_html_e('Wishlist on Steam', 'infinity'); ?></span>
-                        </a>
-                        <a class="fp-btn-secondary" href="<?php echo esc_url($etu_site_url); ?>" target="_blank" rel="noopener">
+                        <?php infinity_etu_wishlist_cta(array('campaign' => 'homepage_band')); ?>                        <a class="fp-btn-secondary" href="<?php echo esc_url($etu_site_url); ?>" target="_blank" rel="noopener">
                             <?php esc_html_e('Sign up at ExploreTheUniverse2175.com', 'infinity'); ?>
                         </a>
                     </div>

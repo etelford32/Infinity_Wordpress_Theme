@@ -4553,3 +4553,329 @@ html[data-mode="light"] .theme-toggle-knob {
 .bh-armed button * {
   cursor: pointer;
 }
+
+/* ==========================================================================
+   18.0 ETU wishlist CTA — the Steam ask, in the game's own lettering
+   ========================================================================== */
+
+/* The plate is a chamfered slab of steel with a deep-space face set
+   into it, like the ETU letters themselves: cut corners, hex-cell
+   plating, light leaking out through the seams in cyan. The chamfer is
+   a clip-path, so the glow and the solid lip under the slab are
+   drop-shadows on the link — a filter on the unclipped parent follows
+   the cut corners where a box-shadow would square them off. */
+.etu-wishlist {
+  --ch: 14px;              /* corner cut */
+  --etu-cyan: #22d3ee;
+  --etu-lip: #06303f;
+  --etu-glow: rgba(34, 211, 238, 0.42);
+  --etu-emblem-h: 48px;
+  --etu-type-size: clamp(1rem, 0.78rem + 1vw, 1.32rem);
+
+  display: inline-flex;
+  max-width: 100%;
+  color: #e6f9ff;
+  text-decoration: none;
+  filter:
+    drop-shadow(0 4px 0 var(--etu-lip))
+    drop-shadow(0 0 16px var(--etu-glow))
+    drop-shadow(0 12px 16px rgba(0, 0, 0, 0.5));
+  transform: translateY(0);
+  transition:
+    transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1),
+    filter 150ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.etu-wishlist:hover,
+.etu-wishlist:focus-visible {
+  color: #fff;
+  transform: translateY(-2px);
+  filter:
+    drop-shadow(0 6px 0 var(--etu-lip))
+    drop-shadow(0 0 26px rgba(34, 211, 238, 0.62))
+    drop-shadow(0 18px 20px rgba(0, 0, 0, 0.5));
+}
+
+.etu-wishlist:active {
+  transform: translateY(4px);
+  filter:
+    drop-shadow(0 0 0 var(--etu-lip))
+    drop-shadow(0 0 10px var(--etu-glow))
+    drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+  transition-duration: 70ms;
+}
+
+.etu-wishlist:focus-visible {
+  outline: 2px solid var(--etu-cyan);
+  outline-offset: 5px;
+}
+
+.etu-wishlist-plate {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 22px 12px 14px;
+  overflow: hidden;
+  /* the steel frame: bright bevel top-left, dark weld across the middle */
+  background: linear-gradient(160deg, #eef3f6 0%, #8a98a3 20%, #26313b 46%, #a9b8c2 68%, #33404b 100%);
+  clip-path: polygon(
+    var(--ch) 0, 100% 0, 100% calc(100% - var(--ch)),
+    calc(100% - var(--ch)) 100%, 0 100%, 0 var(--ch)
+  );
+}
+
+/* The face, inset 2px into the frame with its own (slightly smaller)
+   cut, so the steel edge runs unbroken around the chamfers */
+.etu-wishlist-plate::before {
+  --ci: calc(var(--ch) - 1px);
+  content: '';
+  position: absolute;
+  inset: 2px;
+  z-index: -2;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10.4' height='18' viewBox='0 0 10.4 18'%3E%3Cpath d='M5.2 0L10.4 3v6L5.2 12L0 9V3zM5.2 12v6' fill='none' stroke='%2367e8f9' stroke-opacity='0.13' stroke-width='0.8'/%3E%3C/svg%3E") 0 0 / 14px 24px,
+    radial-gradient(70% 120% at 12% 50%, rgba(34, 211, 238, 0.28) 0%, transparent 60%),
+    radial-gradient(60% 140% at 100% 0%, rgba(23, 103, 184, 0.45) 0%, transparent 65%),
+    linear-gradient(135deg, #020617 0%, #07142a 50%, #0b3550 100%);
+  clip-path: polygon(
+    var(--ci) 0, 100% 0, 100% calc(100% - var(--ci)),
+    calc(100% - var(--ci)) 100%, 0 100%, 0 var(--ci)
+  );
+}
+
+/* A cyan flare racing along the seam — the horizontal light leaks
+   that cut across the ETU letters */
+.etu-wishlist-plate::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  z-index: -1;
+  margin-top: -1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(103, 232, 249, 0) 35%, rgba(186, 246, 255, 0.95) 50%, rgba(103, 232, 249, 0) 65%, transparent 100%);
+  background-size: 300% 100%;
+  background-position: 150% 0;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+  opacity: 0.85;
+  animation: etu-flare 4.2s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes etu-flare {
+  0%, 50%   { background-position: 150% 0; }
+  80%, 100% { background-position: -50% 0; }
+}
+
+/* Your ETU lettering, black ground screened away so only the lit
+   steel and cyan sit on the face */
+.etu-wishlist-emblem {
+  display: block;
+  height: var(--etu-emblem-h);
+  width: auto;
+  mix-blend-mode: screen;
+  transition: filter 150ms ease;
+}
+
+.etu-wishlist:hover .etu-wishlist-emblem,
+.etu-wishlist:focus-visible .etu-wishlist-emblem {
+  filter: brightness(1.18) saturate(1.15);
+}
+
+.etu-wishlist-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding-left: 14px;
+  border-left: 1px solid rgba(103, 232, 249, 0.35);
+}
+
+/* The label, set like the ETU letters: Oxanium's chamfered caps, a
+   hex-plated fill that runs steel -> cyan -> steel, and an extruded
+   edge underneath. Face and depth share one grid cell so the edge
+   sits exactly under the face. */
+.etu-type {
+  display: grid;
+  font-family: "Oxanium", var(--font-family-display);
+  font-size: var(--etu-type-size);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.etu-type > span {
+  grid-area: 1 / 1;
+}
+
+.etu-type-depth {
+  color: #56646f;
+  text-shadow:
+    0 1px 0 #3a4752,
+    0 2px 0 #26313b,
+    0 3px 0 #151d25,
+    0 0 14px rgba(34, 211, 238, 0.5);
+}
+
+.etu-type-face {
+  color: #eaf6fb; /* fallback where background-clip: text is missing */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10.4' height='18' viewBox='0 0 10.4 18'%3E%3Cpath d='M5.2 0L10.4 3v6L5.2 12L0 9V3zM5.2 12v6' fill='none' stroke='%23031421' stroke-opacity='0.45' stroke-width='0.9'/%3E%3C/svg%3E") 0 0 / 6px 10.4px,
+    linear-gradient(100deg, #f4f7fa 0%, #c3ced6 14%, #59dcf3 28%, #1a6fc0 38%, #8fe3f7 48%, #eef2f5 58%, #b7c3cb 70%, #2cc3eb 84%, #f2f5f7 100%) 0 0 / 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: etu-type-sheen 7s ease-in-out infinite alternate;
+}
+
+@keyframes etu-type-sheen {
+  from { background-position: 0 0, 0% 0; }
+  to   { background-position: 0 0, 100% 0; }
+}
+
+.etu-wishlist-sub {
+  margin-top: 6px;
+  font-family: var(--font-family-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #8be9fb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.etu-wishlist-steam {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.7));
+  transition: transform 150ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.etu-wishlist:hover .etu-wishlist-steam,
+.etu-wishlist:focus-visible .etu-wishlist-steam {
+  transform: rotate(-14deg) scale(1.08);
+}
+
+/* Cyan dust drifting off the plate, as around the letters */
+.etu-wishlist-sparks {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1.5px 1.5px at 8% 22%, #a5f3fc 50%, transparent 100%),
+    radial-gradient(1px 1px at 19% 78%, #67e8f9 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 41% 14%, #cffafe 50%, transparent 100%),
+    radial-gradient(1px 1px at 57% 86%, #67e8f9 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 74% 20%, #a5f3fc 50%, transparent 100%),
+    radial-gradient(1px 1px at 88% 70%, #cffafe 50%, transparent 100%),
+    radial-gradient(1px 1px at 96% 30%, #67e8f9 50%, transparent 100%);
+  animation: etu-sparks 3.1s ease-in-out infinite alternate;
+}
+
+@keyframes etu-sparks {
+  from { opacity: 0.25; transform: translateY(1px); }
+  to   { opacity: 0.95; transform: translateY(-1px); }
+}
+
+/* Card-sized: the promo widget and other narrow columns */
+/* Sidebars run anywhere from ~240px to ~360px, so the lettering scales
+   with the card it sits in rather than the viewport */
+.etu-wishlist-md {
+  --ch: 11px;
+  --etu-emblem-h: 30px;
+  --etu-type-size: 0.88rem;
+  container-type: inline-size;
+  display: flex;
+  width: 100%;
+}
+
+@supports (width: 1cqi) {
+  .etu-wishlist-md {
+    --etu-emblem-h: clamp(24px, 11cqi, 38px);
+    --etu-type-size: clamp(0.68rem, 5cqi, 1.05rem);
+  }
+}
+
+/* no room for the Steam mark at card width — the label already says it */
+.etu-wishlist-md .etu-wishlist-plate {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 11px;
+  padding: 10px 14px 10px 12px;
+}
+
+.etu-wishlist-md .etu-wishlist-steam {
+  display: none;
+}
+
+.etu-wishlist-md .etu-wishlist-copy {
+  padding-left: 11px;
+}
+
+.etu-wishlist-md .etu-wishlist-sub {
+  font-size: 0.5rem;
+  font-size: clamp(0.44rem, 2.6cqi, 0.56rem);
+  letter-spacing: 0.1em;
+}
+
+.etu-wishlist + .promo-btn {
+  margin-top: var(--spacing-md);
+}
+
+/* In the hero the button spans the Steam card, right under the widget */
+.hero-steam-card-cta {
+  margin-top: var(--spacing-md);
+}
+
+.hero-steam-card-cta .etu-wishlist {
+  display: flex;
+  width: 100%;
+}
+
+@media (max-width: 479.98px) {
+  .etu-wishlist {
+    --etu-emblem-h: 34px;
+  }
+
+  .etu-wishlist-plate {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 14px 10px 10px;
+  }
+
+  .etu-wishlist-copy {
+    padding-left: 10px;
+  }
+
+  .etu-wishlist-steam {
+    display: none;
+  }
+
+  .etu-wishlist-sub {
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .etu-wishlist,
+  .etu-wishlist-steam,
+  .etu-wishlist-emblem {
+    transition: none;
+  }
+
+  .etu-wishlist-plate::after,
+  .etu-type-face,
+  .etu-wishlist-sparks {
+    animation: none;
+  }
+}
