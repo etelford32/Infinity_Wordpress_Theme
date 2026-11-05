@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.5.1');
+define('INFINITY_VERSION', '3.6.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -389,31 +389,10 @@ function infinity_custom_image_sizes() {
 }
 add_action('after_setup_theme', 'infinity_custom_image_sizes');
 
-/**
- * Register Widget Areas
+/*
+ * Widget areas, sidebar/footer layout options and default widgets
+ * live in inc/widgets.php.
  */
-function infinity_widgets_init() {
-    register_sidebar(array(
-        'name'          => esc_html__('Sidebar', 'infinity'),
-        'id'            => 'sidebar-1',
-        'description'   => esc_html__('Add widgets here to appear in your sidebar.', 'infinity'),
-        'before_widget' => '<section id="%1$s" class="widget %2$s">',
-        'after_widget'  => '</section>',
-        'before_title'  => '<h2 class="widget-title">',
-        'after_title'   => '</h2>',
-    ));
-
-    register_sidebar(array(
-        'name'          => esc_html__('Footer', 'infinity'),
-        'id'            => 'footer-1',
-        'description'   => esc_html__('Add widgets here to appear in your footer.', 'infinity'),
-        'before_widget' => '<section id="%1$s" class="widget %2$s">',
-        'after_widget'  => '</section>',
-        'before_title'  => '<h2 class="widget-title">',
-        'after_title'   => '</h2>',
-    ));
-}
-add_action('widgets_init', 'infinity_widgets_init');
 
 /**
  * Add Theme Customizer Settings
@@ -940,6 +919,7 @@ require_once INFINITY_DIR . '/inc/api-endpoints.php';
 require_once INFINITY_DIR . '/inc/stripe-api.php';
 require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 require_once INFINITY_DIR . '/inc/property-promos.php';
+require_once INFINITY_DIR . '/inc/widgets.php';
 require_once INFINITY_DIR . '/inc/mailer.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';

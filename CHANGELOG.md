@@ -3,6 +3,34 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.6.0
+
+- **Sidebar widgets are now fully editable** (`inc/widgets.php`, `sidebar.php`):
+  the post sidebar used to print the three property promo cards from PHP
+  whenever it was empty, so they showed on the site but not in
+  Appearance → Widgets and could not be moved or removed. On theme
+  activation (or the first admin load after updating) they are placed
+  into the sidebar once as real widgets. After that the widget area is
+  the only source of truth, and clearing it hides the sidebar.
+- **New widget areas**: *Page Sidebar* (beside regular pages, full width
+  while empty, never on music pages) and *Footer Column 1–4*. The old
+  *Footer* area keeps its id as Footer Column 1, so existing footer
+  widgets stay put.
+- **Customize → Sidebar & Footer**: post and page sidebar position (right,
+  left or hidden), sticky sidebar on/off, footer column count (automatic
+  or 1–4), the "Telford universe" footer links on/off, and a custom footer
+  credit line (`{year}` and `{site}` placeholders, live preview).
+- **Block widgets look right**: headings, lists, latest posts, search,
+  tag cloud, calendar, buttons, images, social icons and groups are
+  styled in both sidebars and the footer. A heading block at the top of a
+  widget is styled like a classic widget title instead of a 2.25rem
+  page heading. Footer columns collapse to two, then one, on small screens.
+- The property promo widgets expose their settings to the block widget
+  editor (`show_instance_in_rest`) and support Customizer selective
+  refresh, so they edit and preview in place.
+- Content + sidebar layout CSS moved from an inline `<style>` in
+  `single.php` into `style.css` (section 13.5).
+
 ## 3.5.1
 
 - **Steam wishlist CTA in the ETU 2175 lettering** (`inc/property-promos.php`,

@@ -56,7 +56,8 @@ get_header();
             </div>
         <?php endif; ?>
 
-        <div class="entry-layout container">
+        <?php $infinity_sidebar = infinity_sidebar_layout('post'); ?>
+        <div class="<?php echo esc_attr(infinity_entry_layout_classes($infinity_sidebar)); ?> container">
             <div class="entry-content">
                 <?php
                 the_content();
@@ -67,7 +68,11 @@ get_header();
                 ));
                 ?>
             </div>
-            <?php get_sidebar(); ?>
+            <?php
+            if ($infinity_sidebar) {
+                get_sidebar(null, array('area' => $infinity_sidebar['area']));
+            }
+            ?>
         </div>
 
         <footer class="entry-footer container">
@@ -185,32 +190,6 @@ get_header();
     height: auto;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
-}
-
-.entry-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 800px) 340px;
-    gap: var(--spacing-2xl);
-    align-items: start;
-}
-
-.entry-layout .post-sidebar {
-    position: sticky;
-    top: var(--spacing-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-}
-
-@media (max-width: 1024px) {
-    .entry-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .entry-layout .post-sidebar {
-        position: static;
-        max-width: 480px;
-    }
 }
 
 .single-post .entry-content {

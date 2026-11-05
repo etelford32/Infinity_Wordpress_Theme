@@ -2,9 +2,13 @@
 /**
  * Sidebar template
  *
- * Renders the sidebar-1 widget area. When no widgets are configured
- * yet, falls back to the property promo cards so the conversion
- * surface works out of the box.
+ * Renders one sidebar widget area. Pass the area id through
+ * get_sidebar(null, array('area' => 'sidebar-page')); it defaults to
+ * the Post Sidebar (sidebar-1).
+ *
+ * The built-in promo cards print only on a site whose default widgets
+ * have not been placed yet (see infinity_seed_default_widgets()); after
+ * that, the widget area is exactly what Appearance → Widgets shows.
  *
  * @package Infinity
  * @since 1.2.0
@@ -13,12 +17,14 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+
+$infinity_area = (isset($args['area']) && is_string($args['area'])) ? $args['area'] : 'sidebar-1';
 ?>
 
-<aside class="post-sidebar" role="complementary" aria-label="<?php esc_attr_e('Sidebar', 'infinity'); ?>">
-    <?php if (is_active_sidebar('sidebar-1')) : ?>
-        <?php dynamic_sidebar('sidebar-1'); ?>
-    <?php else : ?>
+<aside class="post-sidebar widget-area" id="secondary-<?php echo esc_attr($infinity_area); ?>" role="complementary" aria-label="<?php esc_attr_e('Sidebar', 'infinity'); ?>">
+    <?php if (is_active_sidebar($infinity_area)) : ?>
+        <?php dynamic_sidebar($infinity_area); ?>
+    <?php elseif (infinity_sidebar_uses_fallback($infinity_area)) : ?>
         <?php
         infinity_etu_promo_card();
         infinity_parkers_promo_card();
