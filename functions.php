@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.7.0');
+define('INFINITY_VERSION', '3.14.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -925,6 +925,7 @@ require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';
 require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 require_once INFINITY_DIR . '/inc/analytics-rum.php';
+require_once INFINITY_DIR . '/inc/analytics-hero.php';
 
 if (is_admin()) {
     require_once INFINITY_DIR . '/inc/admin-posts.php';
@@ -1398,6 +1399,67 @@ function infinity_fp_query($slugs_csv, $count = 3, $exclude = array(), $rotate =
 }
 
 /**
+ * The homepage pillars and their category slug lists, keyed by pillar.
+ *
+ * The slug lists are the Customizer options under Homepage Content, so
+ * this is the one place their defaults are spelled out for code that
+ * needs to know which pillar a post belongs to.
+ */
+function infinity_pillar_slugs() {
+    return array(
+        'health'  => get_option('infinity_pillar_health_slugs', 'anatomy,osteology,health,nutrition,fitness,medicine,wellness,body'),
+        'space'   => get_option('infinity_pillar_space_slugs', 'space,astronomy,astrophysics,simulations,physics,cosmos,universe,satellites,black-holes'),
+        'mind'    => get_option('infinity_pillar_mind_slugs', 'philosophy,religion,buddhism,hinduism,yoga,mind,meditation,spirituality,psychology'),
+        'science' => get_option('infinity_pillar_science_slugs', 'science,biology,nature,technology,research,mushrooms,fungi,discovery'),
+        'travel'  => get_option('infinity_pillar_travel_slugs', 'travel,experiences,adventures,journeys,field-notes,life,blog'),
+    );
+}
+
+/**
+ * Which homepage pillar a post belongs to: health, space, mind,
+ * science or travel, or '' when none of its categories match.
+ *
+ * Categories are tried in the post's own order, so its primary
+ * category decides; the hero uses this to grade the black hole.
+ */
+function infinity_post_pillar($post = null) {
+    $post = get_post($post);
+    if (!$post) {
+        return '';
+    }
+    $map = array();
+    foreach (infinity_pillar_slugs() as $pillar => $csv) {
+        foreach (array_filter(array_map('trim', explode(',', (string) $csv))) as $slug) {
+            if (!isset($map[$slug])) {
+                $map[$slug] = $pillar;
+            }
+        }
+    }
+    foreach ((array) get_the_category($post->ID) as $cat) {
+        if (isset($map[$cat->slug])) {
+            return $map[$cat->slug];
+        }
+    }
+    return '';
+}
+
+/**
+ * Estimated reading time in whole minutes (225 wpm, minimum 1).
+ *
+ * Same word rule as the admin Length column, so the homepage and the
+ * post list never disagree about how long an article is.
+ */
+function infinity_reading_minutes($post = null) {
+    $post = get_post($post);
+    if (!$post) {
+        return 1;
+    }
+    $text  = wp_strip_all_tags(strip_shortcodes((string) $post->post_content));
+    $words = preg_match_all('/[\p{L}\p{N}][\p{L}\p{N}\'’-]*/u', $text);
+    return max(1, (int) round(((int) $words) / 225));
+}
+
+/**
  * Get the archive link for the first existing category in a slug list.
  */
 function infinity_fp_first_category_link($slugs_csv) {
@@ -1416,6 +1478,14 @@ function infinity_fp_first_category_link($slugs_csv) {
 /**
  * Homepage Content customizer settings
  */
+/**
+ * Hero holdout share, clamped to 0–50 so the interactive arm is never
+ * the minority.
+ */
+function infinity_sanitize_holdout($value) {
+    return max(0, min(50, absint($value)));
+}
+
 function infinity_front_page_customize_register($wp_customize) {
     $wp_customize->add_section('infinity_front_page', array(
         'title'       => esc_html__('Homepage Content', 'infinity'),
@@ -1426,9 +1496,16 @@ function infinity_front_page_customize_register($wp_customize) {
     $fields = array(
         'infinity_featured_post_id' => array(
             'label'       => esc_html__('Featured Post ID', 'infinity'),
-            'description' => esc_html__('Post ID to feature at the top (e.g. the mushroom article). Leave 0 for the most recent post.', 'infinity'),
+            'description' => esc_html__('Post ID for the Featured slot below the hero (e.g. the mushroom article). The hero always leads with the newest article; leave 0 to feature the newest sticky post instead, or nothing if there is none.', 'infinity'),
             'default'     => 0,
             'sanitize'    => 'absint',
+            'type'        => 'number',
+        ),
+        'infinity_hero_holdout' => array(
+            'label'       => esc_html__('Hero experiment: holdout %', 'infinity'),
+            'description' => esc_html__('Share of visitor sessions (0–50) that get the black hole without its interactions — no stirring, feeding, lens or read transition — so Analytics → Homepage Hero can measure whether the effects help or hurt clicks on the lead article. 0 turns the experiment off.', 'infinity'),
+            'default'     => 0,
+            'sanitize'    => 'infinity_sanitize_holdout',
             'type'        => 'number',
         ),
         'infinity_pillar_health_slugs' => array(

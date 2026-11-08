@@ -15,6 +15,9 @@
  *   click     — outbound link or [data-rum] element click
  *   seen      — a tracked element scrolled into view (subscribe band)
  *   subscribe — successful signup through the subscribe form
+ *   hero      — a homepage hero interaction; target is the action
+ *               (see infinity_rum_hero_actions()) and variant is the
+ *               session's hero experiment arm (fx, calm or static)
  *
  * @package Infinity
  * @since 3.1.0
@@ -24,7 +27,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('INFINITY_RUM_DB_VERSION', '1');
+define('INFINITY_RUM_DB_VERSION', '2');
 define('INFINITY_RUM_RETENTION_DAYS', 90);
 
 function infinity_rum_table() {
@@ -36,6 +39,28 @@ function infinity_rum_table() {
  * Create/upgrade the events table. Version-checked on admin_init so
  * existing installs pick it up without a theme re-activation.
  */
+/**
+ * Hero actions the collector may record. Anything else is dropped at
+ * ingest, so the target column for hero rows is always one of these.
+ */
+function infinity_rum_hero_actions() {
+    return array(
+        'impression', // hero rendered (once per pageview)
+        'stir',       // pointer reached the hole (once)
+        'lens',       // pointer lens held over the sky for 1.5s (once)
+        'orbit',      // dragged (or arrow-keyed) the spin / camera (once)
+        'galaxy',     // grabbed, tapped or keyed the lensed galaxy (once)
+        'feed',       // backdrop click / tap
+        'feed-btn',   // the "Feed the black hole" button
+        'read-fall',  // read transition played on the way to the article
+        'lead-click', // the lead article opened, by any kind of click
+        'lead-cat',   // the lead article's category link
+        'also-new',   // one of the "Also new" links
+        'pillar-nav', // a section link under the hero
+        'wishlist',   // the Steam wishlist CTA in the hero
+    );
+}
+
 function infinity_rum_create_table() {
     global $wpdb;
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -59,6 +84,7 @@ function infinity_rum_create_table() {
         inp SMALLINT UNSIGNED NULL,
         scroll_pct TINYINT UNSIGNED NULL,
         engaged SMALLINT UNSIGNED NULL,
+        variant VARCHAR(8) NOT NULL DEFAULT '',
         PRIMARY KEY  (id),
         KEY ts (ts),
         KEY event (event, ts),
@@ -156,8 +182,19 @@ function infinity_rum_ingest(WP_REST_Request $request) {
     }
 
     $event = isset($data['e']) ? (string) $data['e'] : '';
-    if (!in_array($event, array('view', 'exit', 'click', 'seen', 'subscribe'), true)) {
+    if (!in_array($event, array('view', 'exit', 'click', 'seen', 'subscribe', 'hero'), true)) {
         return new WP_REST_Response(null, 400);
+    }
+
+    $variant = '';
+    if ('hero' === $event) {
+        if (!in_array(isset($data['t']) ? $data['t'] : '', infinity_rum_hero_actions(), true)) {
+            return new WP_REST_Response(null, 400);
+        }
+        $variant = isset($data['v']) ? (string) $data['v'] : '';
+        if (!in_array($variant, array('fx', 'calm', 'static'), true)) {
+            $variant = '';
+        }
     }
 
     $clamp = function ($v, $max) {
@@ -198,6 +235,7 @@ function infinity_rum_ingest(WP_REST_Request $request) {
         'inp'        => $clamp(isset($data['inp']) ? $data['inp'] : null, 65000),
         'scroll_pct' => $clamp(isset($data['sc']) ? $data['sc'] : null, 100),
         'engaged'    => $clamp(isset($data['eng']) ? $data['eng'] : null, 7200),
+        'variant'    => $variant,
     ));
 
     return new WP_REST_Response(null, 204);

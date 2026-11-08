@@ -5,7 +5,8 @@
  *
  * Beacons JSON to /wp-json/infinity/v1/rum. Keys are terse to keep
  * beacons under the sendBeacon size limit: e=event, p=path, r=referrer,
- * d=device, s=session, t=target, sc=scroll %, eng=engaged seconds.
+ * d=device, s=session, t=target, sc=scroll %, eng=engaged seconds,
+ * v=hero experiment arm.
  */
 (function () {
   'use strict';
@@ -131,6 +132,27 @@
   document.addEventListener('infinity:subscribe', function (e) {
     send({ e: 'subscribe', d: device, t: (e.detail && e.detail.source) || 'subscribe-form' });
   });
+
+  /* ---- Homepage hero ----------------------------------------------- */
+
+  // blackhole.js queues hero actions on window.infinityHeroQ (it may
+  // run before this deferred script). Drain the queue, then replace it
+  // with a live push. Per-pageview caps keep a visitor hammering the
+  // hole, or re-opening the lead article, from swamping the table.
+  var HERO_CAP = { feed: 10, 'feed-btn': 10, 'lead-click': 3, 'lead-cat': 3, 'also-new': 5, 'pillar-nav': 5, wishlist: 3 };
+  var heroCount = {};
+  function hero(item) {
+    if (!item || typeof item.action !== 'string') return;
+    var a = item.action;
+    heroCount[a] = (heroCount[a] || 0) + 1;
+    if (heroCount[a] > (HERO_CAP[a] || 1)) return;
+    var data = { e: 'hero', d: device, t: a, v: item.variant || '' };
+    if (typeof item.sec === 'number' && isFinite(item.sec)) data.eng = Math.round(item.sec);
+    send(data);
+  }
+  var heroQueued = window.infinityHeroQ;
+  window.infinityHeroQ = { push: hero };
+  if (heroQueued && heroQueued.length) heroQueued.forEach(hero);
 
   /* ---- Beacons ----------------------------------------------------- */
 

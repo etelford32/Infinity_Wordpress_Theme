@@ -3,6 +3,244 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.14.0
+
+- **Removed the Kerr readout panel** from the hero (the stats beside the
+  hole, including the μ<sub>gal</sub> row) and its CSS. The "✦ galaxy ·
+  drag me" tag stays, now on its own timing: a few seconds when the page
+  loads, and again whenever the pointer is near the hole. The arrow-key
+  announcement now gives only the spin.
+- **Particles now move the plasma** (`assets/js/blackhole.js`): a new
+  plasma field couples the particles to the disk.
+  - **The field:** a 512×128 RGBA8 texture in the disk's polar
+    coordinates, swapped between two buffers each frame. Its red channel
+    holds heat and its green channel holds turbulence.
+  - **What feeds it:** every spark, and every twistor particle where it
+    crosses the disk plane, deposits heat and turbulence where it
+    passes. These splats run through the same orbit functions as the
+    drawn particles, so the wakes line up exactly with what you see.
+  - **How it evolves:** each frame the field is carried along with the
+    gas under Keplerian differential rotation, Ω ∝ r^−3/2 (the sparks'
+    own orbital law). On a polar grid that is just a radius-dependent
+    shift in angle, so wakes shear into trailing spirals on their own.
+    The field also drifts slowly inward and fades over about 2.4 s.
+  - **What the disk does with it:** the disk samples the field in every
+    slice. Heated gas burns brighter and whiter, and turbulence warps the
+    filaments, so the plasma visibly bends around each particle's path.
+    Feeding raises the deposits.
+  - **The cursor stirs it too:** pointer motion over the disk is mapped
+    onto the disk plane and injects heat and turbulence in proportion to
+    speed, so a still cursor stirs nothing.
+  - **Fallbacks:** the field is off under reduced motion, and it switches
+    itself off if a framebuffer can't be created.
+- The spark and twistor-particle orbits now live in shared GLSL
+  functions, `sparkOrbit()` and `twParticle()`.
+
+## 3.13.0
+
+- **Drag the galaxy behind the hole** (`assets/js/blackhole.js`):
+  - **Grabbing it:** the lensed background galaxy can be grabbed with a
+    mouse or pen. Each press is back-traced through the same lens map
+    the shader uses (the frame-dragging twist, then the unclamped lens
+    equation), so grabbing works on any image of the galaxy: the
+    primary image, the counter-image or an arc.
+  - **Dragging it:** the galaxy's source-plane position follows the
+    back-traced cursor, so the image you hold stays under your pointer.
+    Dragging onto the Einstein radius brings the galaxy into alignment
+    and closes the ring.
+  - **Letting go:** a release throws it with inertia, after which it
+    rejoins its slow drift. Releasing it gently near alignment parks it
+    for 10 seconds.
+  - **Touch and keyboard:** on touch, tapping the galaxy flies it into
+    alignment. The G key on the "Feed the black hole" button does the
+    same and announces it.
+  - **Cursors:** the cursor shows grab over the galaxy and grabbing while
+    you hold it. The pointer lens steps aside while you hold the galaxy,
+    so it doesn't bend the galaxy into a ring of its own.
+- **Kerr readout**: a new μ<sub>gal</sub> row shows the galaxy's total
+  point-lens magnification, (u² + 2) / (u√(u² + 4)), and reads "ring" at
+  alignment. During the readout's intro, a "✦ galaxy · drag me" tag
+  marks the galaxy's primary image (placed by the new `galaxyImage()`,
+  which solves the lens equation forward).
+- The galaxy starts just short of the hole, so a first visit catches
+  the arcs forming. It is drawn a little softer, so at rest it looks
+  like a galaxy rather than a white disc.
+- **Analytics**: a new `galaxy` hero action, counted as playing with
+  the hole.
+
+## 3.12.0
+
+Black hole physics, round three (`assets/js/blackhole.js`):
+
+- **Plasma on the twistor field**: a new particle pass moves sparks
+  along the Hopf fibres of the Robinson congruence (its null flow),
+  frame-dragged with it. Over a slow cycle each spark drifts across the
+  tori. Most keep circulating. Some move onto the near-axis fibres and
+  are flung out along the spin axis, which is jet launching in the
+  Blandford–Znajek spirit. The rest drift onto the core ring and plunge,
+  heating from cyan to gold. Feeding tips the mix toward the jet, and
+  both spin and feeding speed the flow up. Line and particle passes now
+  share a single fibre function, so the particles always sit exactly
+  on the threads.
+- **Disk dynamics**:
+  - two-armed logarithmic spiral density waves (m = 2), turning at a
+    slower pattern speed than the gas so they shear;
+  - accretion ripples drifting inward;
+  - inner-disk QPOs at two incommensurate frequencies.
+- **More lensing**:
+  - A **background galaxy** drifts behind the hole about every 64s and
+    is imaged by inverse ray-shooting through the unclamped lens
+    equation. Arcs, the counter-image, magnification and the Einstein
+    ring at alignment all come from the physics rather than being
+    painted. Its Einstein radius is set wider than the starfield's,
+    since a more distant source has a larger one.
+  - **Frame-dragging twist**: the background sky near the hole is
+    swirled in proportion to a*/b², so winding the spin up visibly
+    twists the stars and nebula.
+  - **Photon-ring echoes**: the hot spot's higher-order image circulates
+    the photon ring half a turn behind the spot, brightest in the
+    second-order ring. The ring singularity and the ergosphere sit inside
+    the shadow and cannot be seen directly, so this is their observable
+    signature.
+- Fixed: the new particle colours were premultiplied by alpha and then
+  blended by alpha again, which squared their brightness.
+
+## 3.11.0
+
+- **Twistor dynamics for the black hole** (`assets/js/blackhole.js`): a
+  new render pass draws the hole's principal null congruence as a
+  Robinson congruence. That is the linked, twisting light rays of
+  Penrose's twistor picture, which the Kerr theorem identifies with a
+  spinning hole's shear-free null congruence. It is built from
+  stereographically projected Hopf fibres on three nested tori around
+  the spin axis, with the ring radius tracking a*. The field is
+  frame-dragged at a spin-dependent rate, light pulses run along every
+  fibre (faster with spin and when feeding), and threads that pass
+  behind the hole are point-lensed around the shadow. It is drawn as
+  cool cyan-violet threads at night and as ink on paper.
+- **Drag to spin and tilt**: dragging the backdrop horizontally with a
+  mouse or pen winds the spin a* from 0 to 0.998, and dragging
+  vertically tilts the camera. A press without a drag still feeds.
+  Touch is unchanged (a tap feeds, a drag scrolls). The spin relaxes
+  over ~20s and the tilt springs back in about 2s. Arrow keys on the
+  "Feed the black hole" button do the same, and the new spin is
+  announced.
+- **Kerr geometry**: the shadow flattens into the Kerr "D" on the
+  approaching side (scaled by a*² and how edge-on the view is), the
+  disk's inner edge follows the spin-dependent ISCO, and the disk
+  rotates faster as the spin rises.
+- **Live Kerr readout** on wide screens: a*, inclination, r₊, prograde
+  r_ph and r_isco, and thin-disk efficiency η, using exact formulas
+  (Bardeen, Press & Teukolsky 1972). It shows while you interact and
+  for a few seconds when the page loads.
+- **Scroll tilt**: the disk lays toward edge-on as the hero scrolls out
+  of view.
+- **3D sparks**: the swarm uses the disk's exact camera, so it tilts
+  with the view, and sparks behind the hole are lensed around the
+  shadow instead of being drawn on top of it.
+- The camera (`u_elev`, `u_phi`) and spin (`u_kerr`) are now driven from
+  JS. The new config options are `cfg.twistor`, `cfg.scrollTilt`,
+  `cfg.kerr` and `cfg.onState`, and the handle gains `nudge()` and
+  `spinTarget()`.
+- **Analytics**: a new `orbit` hero action (spin or tilt by drag or
+  keys) counts as playing with the hole on Analytics → Homepage Hero.
+
+## 3.10.0
+
+- **Hero engagement metrics** (`assets/js/rum.js`, `inc/analytics-rum.php`):
+  homepage hero actions are recorded as a new `hero` event type
+  (impression, stir, lens, feed, feed button, read transition, lead
+  click, lead category, "Also new", section links, wishlist).
+  `blackhole.js` only pushes onto `window.infinityHeroQ`, and the
+  collector drains it, so nothing is recorded for logged-in users or
+  without the collector. Caps apply per pageview (feed 10, one-off
+  actions 1).
+- **Interactive-vs-calm experiment**: Customize → Homepage Content →
+  Hero experiment: holdout % (0–50, off by default). Holdout sessions
+  get the animated black hole with none of its interactions. The arm
+  stays fixed for the life of the tab and is stored in a new `variant`
+  column (the RUM table upgrades itself to DB version 2).
+  Reduced-motion and no-WebGL visitors are recorded as `static` and
+  kept out of the comparison.
+- **Analytics → Homepage Hero** (`inc/analytics-hero.php`): lead-article
+  CTR per arm, measured in sessions; a two-proportion z-test with 95%
+  confidence interval and relative lift (shown once each arm has 100
+  sessions; filter `infinity_hero_min_sessions`); an action breakdown;
+  players vs non-players (labelled as descriptive); how often the read
+  transition plays; median time to open the lead article; and daily CTR.
+- **Black hole visuals**:
+  - The disk now reaches in close to the shadow, as the ISCO does in a
+    real image, which removes the dark "eye" gaps on either side of the
+    hole.
+  - A hot spot orbits just outside the inner edge, stretched along its
+    orbit, Doppler-beamed and waxing and waning; feeding makes it flare.
+  - A luminance-based filmic shoulder keeps detail in the core instead
+    of clipping it to white (night mode only).
+  - A faint corona glows around the inner disk.
+  - Dithering removes banding in the dark gradients.
+  - Spark tails now draw as continuous streaks instead of dotted rows.
+
+## 3.9.0
+
+Hero interactions, phase 1 of `HERO_ROADMAP.md`:
+
+- **"Feed the black hole" button** (`front-page.php`,
+  `assets/js/blackhole.js`): a keyboard and screen-reader route to the
+  backdrop's click-to-feed, with a polite live-region announcement. It
+  appears only when the scene is interactive (WebGL available and motion
+  allowed). On screens 1100px and wider it floats just above the hole;
+  on narrower screens it sits under the section links.
+- **Read transition**: left-clicking the lead article's title or image
+  feeds the hole and pulls the card into it, stretched along the line
+  to the hole, then navigates after 340ms. Modifier clicks, middle
+  clicks and new-tab links behave normally, and the card resets when
+  the page is restored from the back/forward cache.
+- **Pillar tint**: the lead article's section grades the disk palette
+  (teal for health, green for science, violet for mind, gold for travel;
+  space is unchanged). New helpers in `functions.php`:
+  `infinity_pillar_slugs()` and `infinity_post_pillar()`.
+- **Pointer lens**: in night mode, a faint gravitational lens follows
+  the mouse across the sky, bending the stars and nebula and showing a
+  soft Einstein ring. It fades out near the hole.
+- `infinityBlackhole()` now returns a small handle
+  (`{ interactive, feed(strength), hole() }`). `cfg.tint`
+  (`[r, g, b, amount]`) and `cfg.probe` are new options.
+
+## 3.8.0
+
+- **Homepage hero leads with the newest article** (`front-page.php`):
+  the latest post now sits above the fold in a lead card with its
+  thumbnail, category, a "New" badge for posts under a week old, date,
+  reading time and excerpt. The whole card is the click target. The
+  next two posts follow as "Also new" links, then the section nav. The
+  hero is sized to the viewport (up to 960px tall) so the card is always
+  in the first screen. The lead thumbnail is now the eager,
+  high-priority image; the Featured section's image loads lazily.
+- **No duplicate posts**: the Featured slot below the hero now shows only
+  a deliberate pick (the Customizer's Featured Post ID, or else the
+  newest sticky post) and is skipped when neither is set. The bottom
+  "Latest from the blog" list leaves out the three posts the hero shows.
+- **`infinity_reading_minutes()`** helper in `functions.php`, using the
+  same word rule as the admin Length column.
+- **Black hole, redesigned** (`assets/js/blackhole.js`): the far inner
+  disk is now lensed over the top of the shadow, and the disk's
+  underside shows as a thin arc beneath it. The photon rings are
+  Doppler-beamed (brighter on the approaching side), emissivity falls
+  steeply with radius so the inner disk carries the image, the outer
+  disk cools to dusky rose instead of a saturated violet band, and there
+  is a second star layer plus a faint nebula that is lensed with the
+  stars (night mode only).
+- **Hole layout**: on wide screens the hole is the centrepiece of the
+  right column, above the Steam card. Zoom is solved for a target disk
+  radius, so the disk keeps its size relative to the column instead of
+  growing with the section height on tall phone screens. `cfg.zoom` and
+  `cfg.center` now accept functions of the canvas width and height.
+- **Interaction**: hovering or focusing the lead card holds the disk at
+  a gentle stir. Pressing links, the article card or the Steam widget no
+  longer triggers a feeding event.
+- **`HERO_ROADMAP.md`**: a phased plan for more interactive features in
+  the hero.
+
 ## 3.7.0
 
 - **Adjustable post list columns** (`inc/admin-posts.php`,

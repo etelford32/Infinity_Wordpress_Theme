@@ -48,13 +48,30 @@ if ($infinity_etu_over) {
 }
 $infinity_etu_onerror = "var q=(this.dataset.alt||'').split('|').filter(Boolean);if(q.length){this.dataset.alt=q.slice(1).join('|');this.src=q[0];}else{this.remove();}";
 $infinity_etu_video   = infinity_etu_video_url();
+
+/*
+ * The newest article leads the page: it sits in the hero, above the
+ * fold, with the next two as quick links beneath it. Sticky posts are
+ * ignored here so "latest" always means the most recent; a sticky or
+ * hand-picked post gets the Featured slot further down instead.
+ */
+$infinity_lead_query = new WP_Query(array(
+    'post_type'           => 'post',
+    'posts_per_page'      => 3,
+    'ignore_sticky_posts' => true,
+    'no_found_rows'       => true,
+));
+$infinity_lead_ids = array_map('intval', wp_list_pluck($infinity_lead_query->posts, 'ID'));
+// The lead article's pillar grades the black hole's palette
+$infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead_ids[0]) : '';
 ?>
 
 <div class="front-page">
 
     <!-- ================= Hero: black hole ================= -->
     <section class="fp-hero fp-hero-blackhole">
-        <canvas id="fp-blackhole" aria-hidden="true"></canvas>
+        <canvas id="fp-blackhole" aria-hidden="true" data-bh-holdout="<?php echo (int) get_option('infinity_hero_holdout', 0); ?>"<?php if ($infinity_lead_pillar) : ?> data-bh-tint="<?php echo esc_attr($infinity_lead_pillar); ?>"<?php endif; ?>></canvas>
+        <p class="screen-reader-text" aria-live="polite" data-bh-live data-msg="<?php esc_attr_e("Accretion flare: the black hole is feeding.", 'infinity'); ?>"></p>
         <div class="container">
             <div class="fp-hero-inner">
                 <div class="fp-hero-copy">
@@ -122,6 +139,68 @@ $infinity_etu_video   = infinity_etu_video_url();
                         echo esc_html($tagline ? $tagline : __('Anatomy, science, and stories from the field — plus a universe to explore.', 'infinity'));
                         ?>
                     </p>
+                    <?php if ($infinity_lead_query->have_posts()) : ?>
+                        <?php
+                        $infinity_lead_query->the_post();
+                        $infinity_lead_age  = time() - (int) get_post_time('U', true);
+                        $infinity_lead_new  = $infinity_lead_age < 7 * DAY_IN_SECONDS;
+                        $infinity_lead_cats = get_the_category();
+                        $infinity_lead_min  = infinity_reading_minutes(get_post());
+                        ?>
+                        <article class="fp-lead<?php echo has_post_thumbnail() ? ' fp-lead-has-media' : ''; ?>" aria-labelledby="fp-lead-title" data-bh-stir>
+                            <?php if (has_post_thumbnail()) : ?>
+                                <a class="fp-lead-media" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
+                                    <?php
+                                    // The hero image is the LCP candidate now,
+                                    // so it loads eagerly and at high priority
+                                    the_post_thumbnail('medium_large', array(
+                                        'loading'       => 'eager',
+                                        'decoding'      => 'async',
+                                        'fetchpriority' => 'high',
+                                        'sizes'         => '(min-width: 1100px) 300px, (min-width: 640px) 40vw, 100vw',
+                                    ));
+                                    ?>
+                                </a>
+                            <?php endif; ?>
+                            <div class="fp-lead-body">
+                                <p class="fp-lead-meta">
+                                    <span class="fp-lead-badge<?php echo $infinity_lead_new ? ' is-new' : ''; ?>">
+                                        <span class="fp-lead-dot" aria-hidden="true"></span>
+                                        <?php echo $infinity_lead_new ? esc_html__('New article', 'infinity') : esc_html__('Latest article', 'infinity'); ?>
+                                    </span>
+                                    <?php if ($infinity_lead_cats) : ?>
+                                        <a class="fp-lead-cat" href="<?php echo esc_url(get_category_link($infinity_lead_cats[0])); ?>"><?php echo esc_html($infinity_lead_cats[0]->name); ?></a>
+                                    <?php endif; ?>
+                                </p>
+                                <h2 class="fp-lead-title" id="fp-lead-title">
+                                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                                </h2>
+                                <p class="fp-lead-excerpt"><?php echo esc_html(wp_trim_words(get_the_excerpt(), 28, '…')); ?></p>
+                                <p class="fp-lead-foot">
+                                    <time datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date()); ?></time>
+                                    <span aria-hidden="true">&middot;</span>
+                                    <span>
+                                        <?php
+                                        /* translators: %s: estimated reading time in minutes */
+                                        echo esc_html(sprintf(_n('%s min read', '%s min read', $infinity_lead_min, 'infinity'), number_format_i18n($infinity_lead_min)));
+                                        ?>
+                                    </span>
+                                    <span class="fp-lead-cta" aria-hidden="true"><?php esc_html_e('Read', 'infinity'); ?> &rarr;</span>
+                                </p>
+                            </div>
+                        </article>
+
+                        <?php if ($infinity_lead_query->have_posts()) : ?>
+                            <div class="fp-hero-latest">
+                                <span class="fp-hero-latest-label"><?php esc_html_e('Also new', 'infinity'); ?></span>
+                                <?php while ($infinity_lead_query->have_posts()) : $infinity_lead_query->the_post(); ?>
+                                    <a class="fp-hero-latest-pill" href="<?php the_permalink(); ?>"><?php echo esc_html(wp_trim_words(get_the_title(), 7, '…')); ?></a>
+                                <?php endwhile; ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php wp_reset_postdata(); ?>
+                    <?php endif; ?>
+
                     <nav class="fp-pillar-nav" aria-label="<?php esc_attr_e('Site sections', 'infinity'); ?>">
                         <a href="#health-anatomy"><?php esc_html_e('Health & Anatomy', 'infinity'); ?></a>
                         <a href="#space-simulations"><?php esc_html_e('Space & Simulations', 'infinity'); ?></a>
@@ -131,20 +210,14 @@ $infinity_etu_video   = infinity_etu_video_url();
                         <a href="#landscaping"><?php esc_html_e('Landscaping', 'infinity'); ?></a>
                     </nav>
                     <?php
-                    // Push readers straight into the freshest writing
-                    $infinity_hero_latest = new WP_Query(array(
-                        'posts_per_page'      => 3,
-                        'ignore_sticky_posts' => true,
-                    ));
-                    if ($infinity_hero_latest->have_posts()) :
+                    // Keyboard / screen-reader route to the backdrop's
+                    // click-to-feed. Revealed by blackhole.js only when
+                    // the scene is interactive (WebGL, motion allowed).
                     ?>
-                        <div class="fp-hero-latest">
-                            <span class="fp-hero-latest-label"><?php esc_html_e('Fresh articles', 'infinity'); ?></span>
-                            <?php while ($infinity_hero_latest->have_posts()) : $infinity_hero_latest->the_post(); ?>
-                                <a class="fp-hero-latest-pill" href="<?php the_permalink(); ?>"><?php echo esc_html(wp_trim_words(get_the_title(), 7, '…')); ?></a>
-                            <?php endwhile; wp_reset_postdata(); ?>
-                        </div>
-                    <?php endif; ?>
+                    <button type="button" class="bh-feed-btn" data-bh-feed hidden aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown G" title="<?php esc_attr_e('Arrow keys: spin and tilt. G: move the galaxy behind the hole.', 'infinity'); ?>">
+                        <span class="bh-feed-icon" aria-hidden="true"></span>
+                        <?php esc_html_e('Feed the black hole', 'infinity'); ?>
+                    </button>
                 </div>
 
                 <?php $infinity_hero_app = infinity_steam_app_id(); if ($infinity_hero_app) : ?>
@@ -241,15 +314,29 @@ $infinity_etu_video   = infinity_etu_video_url();
 
     <!-- ================= Featured article ================= -->
     <?php
-    $featured_id    = (int) get_option('infinity_featured_post_id', 0);
+    /*
+     * The hero already carries the newest posts, so this slot is only
+     * for something chosen on purpose: the Customizer's Featured Post
+     * ID, else the newest sticky post. Neither may repeat a hero post,
+     * and with neither set the section is skipped entirely.
+     */
+    $infinity_shown_ids = $infinity_lead_ids;
+    $featured_id        = (int) get_option('infinity_featured_post_id', 0);
+    $featured_pick      = array();
+    if ($featured_id && !in_array($featured_id, $infinity_lead_ids, true)) {
+        $featured_pick = array($featured_id);
+    } elseif (!$featured_id) {
+        $featured_pick = array_values(array_diff(array_map('intval', (array) get_option('sticky_posts', array())), $infinity_lead_ids));
+    }
     $featured_query = new WP_Query(array(
         'post_type'           => 'post',
         'posts_per_page'      => 1,
-        'ignore_sticky_posts' => false,
-        'post__in'            => $featured_id ? array($featured_id) : array(),
+        'ignore_sticky_posts' => true,
+        'no_found_rows'       => true,
+        // array(0) matches nothing, so an empty pick renders no section
+        'post__in'            => $featured_pick ? $featured_pick : array(0),
         'orderby'             => $featured_id ? 'post__in' : 'date',
     ));
-    $infinity_shown_ids = array();
     if ($featured_query->have_posts()) :
         while ($featured_query->have_posts()) : $featured_query->the_post();
             $infinity_shown_ids[] = get_the_ID();
@@ -260,7 +347,7 @@ $infinity_etu_video   = infinity_etu_video_url();
             <article class="fp-featured-card">
                 <?php if (has_post_thumbnail()) : ?>
                     <a class="fp-featured-media" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-                        <?php the_post_thumbnail('large', array('loading' => 'eager', 'decoding' => 'async', 'fetchpriority' => 'high')); ?>
+                        <?php the_post_thumbnail('large', array('loading' => 'lazy', 'decoding' => 'async')); ?>
                     </a>
                 <?php endif; ?>
                 <div class="fp-featured-body">
@@ -484,6 +571,8 @@ $infinity_etu_video   = infinity_etu_video_url();
     $latest = new WP_Query(array(
         'post_type'      => 'post',
         'posts_per_page' => 6,
+        // the hero already lists the three newest
+        'post__not_in'   => $infinity_lead_ids,
     ));
     if ($latest->have_posts()) :
     ?>
