@@ -1,0 +1,196 @@
+/**
+ * Infinity admin post lists
+ * Loaded on edit.php only (inc/admin-posts.php).
+ */
+
+/* ---- Resizable / reorderable headers -------------------------------- */
+
+@media screen and (min-width: 783px) {
+    /* Sticky header under the admin bar (sticky also anchors the resizer) */
+    .wp-list-table thead th,
+    .wp-list-table thead td {
+        position: sticky;
+        top: 32px;
+        z-index: 2;
+        background: #fff;
+        box-shadow: inset 0 -1px 0 #c3c4c7;
+    }
+
+    .infinity-col-resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 3;
+        touch-action: none;
+    }
+
+    .infinity-col-resizer::after {
+        content: "";
+        position: absolute;
+        top: 25%;
+        bottom: 25%;
+        right: 0;
+        width: 2px;
+        border-radius: 1px;
+        background: #c3c4c7;
+        opacity: 0;
+        transition: opacity 0.15s, background-color 0.15s;
+    }
+
+    .wp-list-table thead tr:hover .infinity-col-resizer::after {
+        opacity: 1;
+    }
+
+    .infinity-col-resizer:hover::after,
+    .infinity-col-resizer:focus-visible::after,
+    .infinity-resizing .infinity-col-resizer::after {
+        opacity: 1;
+        background: var(--wp-admin-theme-color, #2271b1);
+    }
+
+    .infinity-col-resizer:focus-visible {
+        outline: 2px solid var(--wp-admin-theme-color, #2271b1);
+        outline-offset: -2px;
+    }
+
+    /* Sticky headers each form a stacking context, so the handle sits
+       fully inside its own header rather than overhanging the next one. */
+    .rtl .infinity-col-resizer {
+        right: auto;
+        left: 0;
+    }
+
+    .rtl .infinity-col-resizer::after {
+        right: auto;
+        left: 0;
+    }
+
+    .infinity-draggable {
+        cursor: grab;
+    }
+
+    .infinity-dragging {
+        opacity: 0.45;
+    }
+
+    .infinity-drop-before {
+        box-shadow: inset 3px 0 0 var(--wp-admin-theme-color, #2271b1), inset 0 -1px 0 #c3c4c7 !important;
+    }
+
+    .infinity-drop-after {
+        box-shadow: inset -3px 0 0 var(--wp-admin-theme-color, #2271b1), inset 0 -1px 0 #c3c4c7 !important;
+    }
+
+    body.infinity-resizing,
+    body.infinity-resizing * {
+        cursor: col-resize !important;
+        user-select: none;
+    }
+
+    /* Long titles wrap instead of pushing the table wider */
+    .wp-list-table td,
+    .wp-list-table th {
+        overflow-wrap: anywhere;
+    }
+}
+
+@media screen and (max-width: 782px) {
+    .infinity-col-resizer {
+        display: none;
+    }
+}
+
+/* ---- Default widths for the theme's columns ------------------------- */
+
+.fixed .column-infinity_thumb { width: 52px; }
+.fixed .column-infinity_words { width: 8em; }
+.fixed .column-infinity_modified { width: 10em; }
+.fixed .column-infinity_id { width: 4.5em; }
+
+.column-infinity_thumb .dashicons {
+    color: #8c8f94;
+}
+
+.infinity-list-thumb {
+    display: block;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #f0f0f1;
+}
+
+.infinity-list-thumb.is-empty {
+    border: 1px dashed #c3c4c7;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.infinity-muted {
+    color: #646970;
+    font-size: 12px;
+}
+
+@media screen and (max-width: 782px) {
+    /* The thumbnail cell is noise in the stacked mobile layout */
+    .wp-list-table .column-infinity_thumb { display: none !important; }
+}
+
+/* ---- Status edge: drafts, pending, scheduled, private ---------------- */
+
+.wp-list-table tr.status-draft > .check-column,
+.wp-list-table tr.status-pending > .check-column,
+.wp-list-table tr.status-future > .check-column,
+.wp-list-table tr.status-private > .check-column {
+    box-shadow: inset 4px 0 0 var(--infinity-status, transparent);
+}
+
+.wp-list-table tr.status-draft   { --infinity-status: #8c8f94; }
+.wp-list-table tr.status-pending { --infinity-status: #dba617; }
+.wp-list-table tr.status-future  { --infinity-status: #2271b1; }
+.wp-list-table tr.status-private { --infinity-status: #8c3fbf; }
+
+/* ---- Compact rows ---------------------------------------------------- */
+
+.infinity-compact-rows .wp-list-table tbody td,
+.infinity-compact-rows .wp-list-table tbody th {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.infinity-compact-rows .wp-list-table tbody .check-column {
+    padding-top: 6px;
+}
+
+.infinity-compact-rows .wp-list-table .row-actions {
+    padding-top: 0;
+}
+
+.infinity-compact-rows .infinity-list-thumb {
+    width: 28px;
+    height: 28px;
+}
+
+/* ---- Row actions / Screen Options ----------------------------------- */
+
+.row-actions .infinity-copy-link {
+    color: var(--wp-admin-theme-color, #2271b1);
+    font-size: 13px;
+    vertical-align: baseline;
+}
+
+.infinity-list-prefs button {
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+.infinity-list-prefs .description {
+    margin: 6px 0 0;
+}
+
+#infinity-filter-author {
+    max-width: 14rem;
+}
