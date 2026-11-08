@@ -3,6 +3,43 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.12.0
+
+Black hole physics, round three (`assets/js/blackhole.js`):
+
+- **Plasma on the twistor field**: a new particle pass moves sparks
+  along the Hopf fibres of the Robinson congruence (its null flow),
+  frame-dragged with it. Over a slow cycle each spark drifts across the
+  tori. Most keep circulating. Some move onto the near-axis fibres and
+  are flung out along the spin axis, which is jet launching in the
+  Blandford–Znajek spirit. The rest drift onto the core ring and plunge,
+  heating from cyan to gold. Feeding tips the mix toward the jet, and
+  both spin and feeding speed the flow up. Line and particle passes now
+  share a single fibre function, so the particles always sit exactly
+  on the threads.
+- **Disk dynamics**:
+  - two-armed logarithmic spiral density waves (m = 2), turning at a
+    slower pattern speed than the gas so they shear;
+  - accretion ripples drifting inward;
+  - inner-disk QPOs at two incommensurate frequencies.
+- **More lensing**:
+  - A **background galaxy** drifts behind the hole about every 64s and
+    is imaged by inverse ray-shooting through the unclamped lens
+    equation. Arcs, the counter-image, magnification and the Einstein
+    ring at alignment all come from the physics rather than being
+    painted. Its Einstein radius is set wider than the starfield's,
+    since a more distant source has a larger one.
+  - **Frame-dragging twist**: the background sky near the hole is
+    swirled in proportion to a*/b², so winding the spin up visibly
+    twists the stars and nebula.
+  - **Photon-ring echoes**: the hot spot's higher-order image circulates
+    the photon ring half a turn behind the spot, brightest in the
+    second-order ring. The ring singularity and the ergosphere sit inside
+    the shadow and cannot be seen directly, so this is their observable
+    signature.
+- Fixed: the new particle colours were premultiplied by alpha and then
+  blended by alpha again, which squared their brightness.
+
 ## 3.11.0
 
 - **Twistor dynamics for the black hole** (`assets/js/blackhole.js`): a

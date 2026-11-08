@@ -342,6 +342,18 @@ function infinityBlackhole(canvas, cfg) {
     '    spot *= (0.55 + 0.45 * sin(u_time * 0.23)) * (1.0 + 1.6 * u_feed);',
     '    e += spot * 1.5 * exp(-k * k * 1.6);',
     '',
+    '    /* Spiral density waves: a two-armed logarithmic spiral, the m = 2',
+    '       mode that tidal and magnetorotational turbulence excite in real',
+    '       disks. Its pattern turns at about half the gas speed, so the gas',
+    '       streams through the arms and they shear rather than ride along. */',
+    '    float arms = 0.72 + 0.28 * cos(2.0 * (as - u_spin * 0.28) + 7.5 * log(max(rrs, 0.05)));',
+    '',
+    '    /* Accretion ripples: density rings drifting inward - phase constant',
+    '       along decreasing radius as time runs - the slow radial inflow',
+    '       that feeds the hole, made visible. */',
+    '    float ripple = 1.0 + 0.10 * sin(rrs * 58.0 + u_spin * 2.4);',
+    '    e *= arms * ripple;',
+    '',
     '    bright += e * trans;',
     '    topFace += e * trans * max(k, 0.0);',
     '    trans *= 1.0 - clamp(e * 0.62, 0.0, 0.80);',
@@ -355,6 +367,12 @@ function infinityBlackhole(canvas, cfg) {
     '  /* The upper face is what the light leaves by, so it reads brighter',
     '     than the column beneath it — the cue that says "this has a top". */',
     '  bright += topFace * 0.20;',
+    '',
+    '  /* Quasi-periodic oscillations: the inner disk breathes at two',
+    '     incommensurate frequencies, as the X-ray light curves of accreting',
+    '     holes do (a fast high-frequency QPO and a slow low-frequency one),',
+    '     fading out by mid-disk where the oscillation modes live no longer. */',
+    '  bright *= 1.0 + (0.09 * sin(u_time * 2.9) + 0.06 * sin(u_time * 0.71 + 1.0)) * smoothstep(0.52, 0.20, rr);',
     '',
     '  /* Radial profile of the midplane, still wanted for the inner rim */',
     '  float disk = smoothstep(0.155 * iscoK, 0.26 * iscoK, rr) * (1.0 - smoothstep(0.5, 0.95, rr));',
@@ -402,6 +420,19 @@ function infinityBlackhole(canvas, cfg) {
     '     It is what makes the ring read as a stack of images of the disk',
     '     rather than a circle somebody drew. */',
     '  float photon2 = exp(-pow((rc - 0.1335) * 250.0, 2.0)) * (0.5 + 1.0 * u_feed) * ringBeam;',
+    '',
+    '  /* Photon-ring echoes. Light from the hot spot that loops the hole',
+    '     once more before escaping lands on the photon ring, on the far',
+    '     side and late by the extra orbit - so a bright knot circulates the',
+    '     ring half a turn behind the spot itself, brightest in the thinner',
+    '     second-order ring. The ring shows what the horizon hides: this is',
+    '     the observable face of the region around the singularity. */',
+    '  float echoAng = u_spin * 0.95 + 1.3 - 0.85 + 3.14159;',
+    '  vec2 echoDir = normalize(cos(echoAng) * nodeDir - sin(echoAng) * sinE * vec2(cp, sp) + 1e-5);',
+    '  float echoCos = dot(uv / max(length(uv), 1e-4), echoDir);',
+    '  float echo = exp((echoCos - 1.0) * 9.0) * (0.55 + 0.45 * sin(u_time * 0.23)) * (1.0 + 1.6 * u_feed);',
+    '  photon *= 1.0 + 1.3 * echo;',
+    '  photon2 *= 1.0 + 2.4 * echo;',
     '  float arc = exp(-pow((rc - 0.185) * 34.0, 2.0)) * smoothstep(-0.3, 0.55, a0 / max(rc, 0.001));',
     '  arc *= 0.55 + 0.45 * fbm(vec2(atan(uv.y, uv.x) * 2.5 - u_spin * 0.35, rc * 18.0));',
     '',
@@ -515,6 +546,16 @@ function infinityBlackhole(canvas, cfg) {
     '    /* lumpy, as the light behind it is: arcs, not a drawn circle */',
     '    probeRing *= 0.4 + 0.6 * noise(vec2(atan(dP.y, dP.x) * 2.2 + 5.0, u_time * 0.35));',
     '  }',
+    '  /* Frame dragging twists the sky. A spinning lens does not just pull',
+    '     background light inward, it drags it round with the spin, more',
+    '     steeply the closer the ray passes - so the starfield and nebula',
+    '     near the hole are swirled, and winding the spin up visibly twists',
+    '     them. The twist ~ a / b^2 is a stylised version of the Kerr',
+    '     lensing asymmetry; it is static for a steady spin, as a',
+    '     stationary spacetime should be. */',
+    '  float rTw = length(skyUv);',
+    '  float twist = min(u_kerr * 0.0062 / (rTw * rTw + 0.0022), 1.6);',
+    '  skyUv = mat2(cos(twist), sin(twist), -sin(twist), cos(twist)) * skyUv;',
     '  float rskyL = max(length(skyUv), 1e-4);',
     '',
     '  float thetaE = 0.175;',
@@ -555,6 +596,35 @@ function infinityBlackhole(canvas, cfg) {
     '    vec3 nebCol = mix(vec3(0.20, 0.26, 0.55), vec3(0.50, 0.24, 0.46), noise(sky * 1.7 + 11.0));',
     '    c += nebCol * neb * 0.9;',
     '    alpha += neb * 0.10;',
+    '  }',
+    '',
+    '  /* A background galaxy drifting behind the hole, imaged by inverse',
+    '     ray-shooting: every pixel asks where its ray came from in the',
+    '     source plane and samples the galaxy there. Nothing is drawn as an',
+    '     arc - the arcs, the counter-image inside the Einstein radius on',
+    '     the far side, their magnification and, at near-perfect alignment,',
+    '     the full Einstein ring all fall out of the lens equation. The',
+    '     unclamped map beta = theta (1 - thetaE^2 / theta^2) is used here,',
+    '     unlike the starfield\'s, because the secondary image lives exactly',
+    '     where that clamp cuts. Night only. */',
+    '  /* The Einstein radius grows with how far behind the lens a source',
+    '     sits, thetaE^2 ~ 4GM D_ls / (c^2 D_l D_s), and for anything truly',
+    '     distant it dwarfs the shadow. The galaxy is the most distant thing',
+    '     in the picture, so it gets the widest ring, out in dark sky beyond',
+    '     the disk, where its arcs can be seen. */',
+    '  if (u_light < 0.999) {',
+    '    float thetaG = 0.40;',
+    '    vec2 srcG = skyUv * (1.0 - thetaG * thetaG / max(rskyL * rskyL, 1e-4));',
+    '    float gT = fract(u_time / 64.0);',
+    '    vec2 gPos = vec2(mix(-1.6, 1.6, gT), 0.03 + 0.04 * sin(u_time * 0.07));',
+    '    vec2 gd = srcG - gPos;',
+    '    float gc = cos(0.6), gs = sin(0.6);',
+    '    gd = vec2(gc * gd.x - gs * gd.y, gs * gd.x + gc * gd.y);',
+    '    float galCore = exp(-(gd.x * gd.x / 0.0011 + gd.y * gd.y / 0.00035));',
+    '    float galDisk = exp(-(gd.x * gd.x / 0.009 + gd.y * gd.y / 0.0024)) * 0.42;',
+    '    float gal = (galCore + galDisk) * (1.0 - horizon) * (1.0 - u_light);',
+    '    c += mix(vec3(0.62, 0.74, 1.0), vec3(1.0, 0.90, 0.74), galCore / (gal + 1e-4)) * gal * 1.25;',
+    '    alpha += gal * 0.65;',
     '  }',
     '',
     '  c += vec3(0.62, 0.72, 1.0) * probeRing * 1.3 * (1.0 - horizon);',
@@ -803,42 +873,51 @@ function infinityBlackhole(canvas, cfg) {
   var TW_FIBRES = 14;
   var TW_SEGS = 128;
 
+  /* One point of the congruence in world space, shared by the line
+     pass and the particles that ride it, so the two can never drift
+     apart. Returns xyz; w is the fade for far-flung arcs. */
+  var TW_FN = [
+    'uniform float u_time;',
+    'uniform float u_spin;',
+    'uniform float u_kerr;',
+    'vec4 twistorPoint(float th, float ph, float ps) {',
+    '  float h = 0.5 * th + 0.04 * sin(u_time * 0.31 + ph * 2.0);',
+    '  vec4 q = vec4(cos(h) * cos(ps), cos(h) * sin(ps), sin(h) * cos(ps + ph), sin(h) * sin(ps + ph));',
+    '  float den = 1.0 - q.w;',
+    '  vec3 P = q.xyz / max(den, 0.06);',
+    '  float fade = smoothstep(0.06, 0.32, den) / (1.0 + 0.10 * dot(P, P));',
+    '  P *= 0.13 + 0.12 * u_kerr;',
+    '  float g = u_spin * (0.08 + 0.42 * u_kerr);',
+    '  P.xy = mat2(cos(g), sin(g), -sin(g), cos(g)) * P.xy;',
+    '  return vec4(P, fade);',
+    '}'
+  ].join('\n');
+
   var TW_VERT = [
     'precision highp float;',
     'attribute vec3 a_tw; /* th, ph, psi */',
     'uniform vec2 u_res;',
     'uniform vec2 u_center;',
     'uniform float u_zoom;',
-    'uniform float u_time;',
-    'uniform float u_spin;',
-    'uniform float u_kerr;',
     'uniform float u_feed;',
     'varying float v_a;',
     'varying float v_pulse;',
     'varying float v_depth;',
     'varying float v_torus;',
     PROJ_GLSL,
+    TW_FN,
     '',
     'void main() {',
     '  float th = a_tw.x;',
     '  float ph = a_tw.y;',
     '  float ps = a_tw.z;',
-    '  float h = 0.5 * th + 0.04 * sin(u_time * 0.31 + ph * 2.0);',
-    '  vec4 q = vec4(cos(h) * cos(ps), cos(h) * sin(ps), sin(h) * cos(ps + ph), sin(h) * sin(ps + ph));',
-    '  float den = 1.0 - q.w;',
-    '  vec3 P = q.xyz / max(den, 0.06);',
-    '',
-    '  /* far-flung arcs (den -> 0 runs off to infinity) fade out */',
-    '  v_a = smoothstep(0.06, 0.32, den) / (1.0 + 0.10 * dot(P, P));',
-    '',
     '  /* The ring radius tracks a*, as Kerr\'s ring does, but is drawn',
     '     out at the inner disk rather than at its true size (inside the',
-    '     horizon), where the structure can actually be seen. */',
-    '  P *= 0.13 + 0.12 * u_kerr;',
-    '',
-    '  /* frame dragging: the congruence turns with the spacetime */',
-    '  float g = u_spin * (0.08 + 0.42 * u_kerr);',
-    '  P.xy = mat2(cos(g), sin(g), -sin(g), cos(g)) * P.xy;',
+    '     horizon), where the structure can be seen; the congruence is',
+    '     frame-dragged about the axis; far-flung arcs fade. */',
+    '  vec4 tp = twistorPoint(th, ph, ps);',
+    '  vec3 P = tp.xyz;',
+    '  v_a = tp.w;',
     '',
     '  vec3 pr = projectDisk(P);',
     '  v_depth = pr.z;',
@@ -880,6 +959,103 @@ function infinityBlackhole(canvas, cfg) {
     '  float a = u_tw * v_a * depthK * (0.20 + 1.25 * v_pulse) * (1.0 + 1.2 * u_feed);',
     '  vec3 ink = mix(vec3(0.16, 0.20, 0.52), vec3(0.62, 0.30, 0.06), v_pulse);',
     '  gl_FragColor = vec4(mix(col, ink, u_light), clamp(a * mix(1.0, 0.8, u_light), 0.0, 1.0));',
+    '}'
+  ].join('\n');
+
+  /* ---------- twistor particles: plasma riding the congruence ----------
+
+     Charged plasma in a black-hole magnetosphere is tied to the field
+     and streams along it, so these sparks travel along the Hopf fibres
+     themselves - the null flow of the congruence - frame-dragged with
+     it. Over a slow cycle each one also drifts across the tori, and
+     which way decides its fate:
+       circulate (most) - stay on their torus, looping the hole
+       jet       - drift onto the near-axis fibres, which stereographic
+                   projection stretches up the spin axis, and are flung
+                   out along it: jet launching, in the Blandford-Znajek
+                   spirit
+       plunge    - drift onto the core ring and spiral in, heating
+     Feeding tips the balance toward the jet and speeds everything up,
+     as does spin. Stateless like the spark pass: every position is a
+     function of time and a seed, and a tail is the same path sampled
+     a little earlier. */
+  var TWP_VERT = [
+    'precision highp float;',
+    'attribute vec2 a_tp; /* x: seed, y: tail segment */',
+    'uniform vec2 u_res;',
+    'uniform vec2 u_center;',
+    'uniform float u_zoom;',
+    'uniform float u_feed;',
+    'uniform float u_tail;',
+    'varying float v_fade;',
+    'varying float v_kind;',
+    'varying float v_heat;',
+    PROJ_GLSL,
+    TW_FN,
+    '',
+    'void main() {',
+    '  float sd = a_tp.x * 97.31;',
+    '  float seg = a_tp.y;',
+    '  float pick = fract(sd * 0.173);',
+    '  float jetCut = 0.62 - 0.30 * u_feed;',
+    '  float kind = pick < jetCut ? 0.0 : (pick < 0.86 ? 1.0 : 2.0);',
+    '',
+    '  float pace = 1.0 + 0.7 * u_kerr + 2.2 * u_feed;',
+    '  float cyc = fract(u_time * (0.030 + 0.025 * fract(sd * 0.61)) * pace + fract(sd * 0.37));',
+    '  cyc = max(cyc - seg * 0.0035, 0.0);',
+    '',
+    '  float th0 = mix(0.36, 0.70, fract(sd * 0.53)) * 3.14159265;',
+    '  float ph = fract(sd * 0.917) * 6.2831853;',
+    '  float drift = smoothstep(0.0, 1.0, cyc);',
+    '  float th = th0;',
+    '  if (kind > 0.5 && kind < 1.5) { th = mix(th0, 0.975 * 3.14159265, drift); }',
+    '  if (kind > 1.5) { th = mix(th0, 0.05 * 3.14159265, pow(cyc, 1.4)); }',
+    '',
+    '  /* along the fibre: the null flow, racing with spin and feeding */',
+    '  float ps = fract(sd * 0.29) * 6.2831853 + u_time * (0.55 + 0.9 * u_kerr + 1.8 * u_feed) - seg * 0.034;',
+    '',
+    '  vec4 tp = twistorPoint(th, ph, ps);',
+    '  vec3 P = tp.xyz;',
+    '  /* plungers are swallowed: pulled in toward the hole as they go */',
+    '  if (kind > 1.5) { P *= mix(1.0, 0.30, pow(cyc, 3.0)); }',
+    '',
+    '  vec3 pr = projectDisk(P);',
+    '  vec2 scr = lensBehind(pr.xy, pr.z);',
+    '  gl_Position = toClip(scr, u_res, u_center, u_zoom);',
+    '',
+    '  float life = sin(3.14159265 * cyc);',
+    '  float tail = 1.0 - seg / u_tail;',
+    '  /* jets keep their far-flung light: they are meant to leave */',
+    '  float far = kind > 0.5 && kind < 1.5 ? max(tp.w, 0.35 * smoothstep(0.4, 1.0, drift)) : tp.w;',
+    '  v_fade = life * tail * tail * clamp(far * 3.0, 0.0, 1.0);',
+    '  v_fade *= mix(0.35, 1.0, smoothstep(0.11, 0.19, length(scr * vec2(1.0, 1.12))));',
+    '  v_kind = kind;',
+    '  v_heat = kind > 1.5 ? pow(cyc, 1.5) : 0.0;',
+    '  gl_PointSize = max(u_res.y * (0.0085 + 0.003 * u_feed - seg * 0.0007), 1.0);',
+    '}'
+  ].join('\n');
+
+  var TWP_FRAG = [
+    'precision mediump float;',
+    'uniform float u_light;',
+    'uniform float u_tw;',
+    'varying float v_fade;',
+    'varying float v_kind;',
+    'varying float v_heat;',
+    '',
+    'void main() {',
+    '  float d = length(gl_PointCoord - 0.5);',
+    '  float a = smoothstep(0.5, 0.0, d);',
+    '  a *= a * v_fade * clamp(u_tw * 1.6, 0.0, 1.0);',
+    '  /* circulating: electric cyan; jet: blue-white; plunging: heats',
+    '     from cyan through gold as it falls */',
+    '  vec3 col = v_kind < 0.5 ? vec3(0.35, 0.86, 1.0)',
+    '          : (v_kind < 1.5 ? vec3(0.78, 0.90, 1.0) : mix(vec3(0.40, 0.85, 1.0), vec3(1.0, 0.78, 0.40), v_heat));',
+    '  vec3 ink = v_kind < 1.5 ? vec3(0.10, 0.26, 0.62) : mix(vec3(0.10, 0.30, 0.62), vec3(0.70, 0.30, 0.04), v_heat);',
+    '  /* straight colour: the blend (SRC_ALPHA, ONE at night) applies a',
+    '     once. Premultiplying here as well squared it - a 0.25 core came',
+    '     out at 0.06 and the swarm all but vanished. */',
+    '  gl_FragColor = vec4(mix(col, ink, u_light), clamp(a * 1.5, 0.0, 1.0));',
     '}'
   ].join('\n');
 
@@ -989,6 +1165,34 @@ function infinityBlackhole(canvas, cfg) {
       twLoc[n] = gl.getUniformLocation(twProg, n);
     });
     twLoc.attr = gl.getAttribLocation(twProg, 'a_tw');
+  }
+
+  /* Particles riding the congruence */
+  var twpProg = (twProg && cfg.twistorParticles) ? program(TWP_VERT, TWP_FRAG) : null;
+  var twpCount = 0;
+  var twpBuf = null;
+  var twpLoc = {};
+  var TWP_TAIL = 1;
+  if (twpProg) {
+    var TWP_N = cfg.twistorParticles.n;
+    TWP_TAIL = cfg.twistorParticles.tail;
+    var tpts = new Float32Array(TWP_N * TWP_TAIL * 2);
+    for (var tq = 0; tq < TWP_N; tq++) {
+      for (var ts = 0; ts < TWP_TAIL; ts++) {
+        var tk = (tq * TWP_TAIL + ts) * 2;
+        tpts[tk] = (tq + 0.5) / TWP_N;
+        tpts[tk + 1] = ts;
+      }
+    }
+    twpCount = TWP_N * TWP_TAIL;
+    twpBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, twpBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, tpts, gl.STATIC_DRAW);
+    ['u_res', 'u_center', 'u_zoom', 'u_time', 'u_spin', 'u_kerr', 'u_feed', 'u_elev', 'u_phi',
+     'u_tw', 'u_light', 'u_tail'].forEach(function (n) {
+      twpLoc[n] = gl.getUniformLocation(twpProg, n);
+    });
+    twpLoc.attr = gl.getAttribLocation(twpProg, 'a_tp');
   }
 
   gl.enable(gl.BLEND);
@@ -1236,6 +1440,28 @@ function infinityBlackhole(canvas, cfg) {
       gl.uniform4f(twLoc.u_tint, tint[0], tint[1], tint[2], tint[3]);
       gl.drawArrays(gl.LINES, 0, twCount);
       gl.disableVertexAttribArray(twLoc.attr);
+    }
+
+    if (twpProg && twCur > 0.003) {
+      gl.blendFunc(gl.SRC_ALPHA, lightCur > 0.5 ? gl.ONE_MINUS_SRC_ALPHA : gl.ONE);
+      gl.useProgram(twpProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, twpBuf);
+      gl.enableVertexAttribArray(twpLoc.attr);
+      gl.vertexAttribPointer(twpLoc.attr, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(twpLoc.u_res, canvas.width, canvas.height);
+      gl.uniform2f(twpLoc.u_center, cx, cy);
+      gl.uniform1f(twpLoc.u_zoom, zoom);
+      gl.uniform1f(twpLoc.u_time, t);
+      gl.uniform1f(twpLoc.u_spin, spin);
+      gl.uniform1f(twpLoc.u_kerr, kerr);
+      gl.uniform1f(twpLoc.u_feed, feedCur);
+      gl.uniform1f(twpLoc.u_elev, elev);
+      gl.uniform1f(twpLoc.u_phi, phiNow);
+      gl.uniform1f(twpLoc.u_tw, twCur);
+      gl.uniform1f(twpLoc.u_light, lightCur);
+      gl.uniform1f(twpLoc.u_tail, TWP_TAIL);
+      gl.drawArrays(gl.POINTS, 0, twpCount);
+      gl.disableVertexAttribArray(twpLoc.attr);
     }
 
     /* Particle pass: sparks add light at night, ink on paper */
@@ -1976,6 +2202,8 @@ function infinityHeroControls(section, bh) {
       onAction: function (name) { infinityHeroTrack(name); },
       onState: function (st) { infinityHeroHud(st); },
       twistor: true,
+      /* plasma on the congruence: the phone budget gets the smaller swarm */
+      twistorParticles: small ? { n: 36, tail: 6 } : { n: 110, tail: 9 },
       scrollTilt: true,
       tint: INFINITY_BH_TINTS[hero.getAttribute('data-bh-tint')] || INFINITY_BH_TINTS.space,
       probe: true,

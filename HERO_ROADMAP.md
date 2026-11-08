@@ -26,6 +26,7 @@ interactive. Every item is scoped to fit the current constraints:
 | Controls never feed (new) | Pressing a link, the card, or the Steam widget no longer triggers a feeding event. |
 | Phase 1 (3.9.0) | Feed button + live region, read transition, pillar tint, pointer lens. See below. |
 | Twistor dynamics (3.11.0) | Robinson-congruence field, drag to spin/tilt, Kerr shadow and ISCO, live Kerr readout, scroll tilt. See below. |
+| Physics round 3 (3.12.0) | Plasma on the congruence (circulate / jet / plunge), spiral density waves, ripples, QPOs, lensed background galaxy, frame-drag sky twist, photon-ring echoes. |
 | Theme crossfade | Night ↔ paper palette follows the site toggle. |
 
 ## Phase 1: shipped in 3.9.0
