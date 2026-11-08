@@ -3,6 +3,38 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.13.0
+
+- **Drag the galaxy behind the hole** (`assets/js/blackhole.js`):
+  - **Grabbing it:** the lensed background galaxy can be grabbed with a
+    mouse or pen. Each press is back-traced through the same lens map
+    the shader uses (the frame-dragging twist, then the unclamped lens
+    equation), so grabbing works on any image of the galaxy: the
+    primary image, the counter-image or an arc.
+  - **Dragging it:** the galaxy's source-plane position follows the
+    back-traced cursor, so the image you hold stays under your pointer.
+    Dragging onto the Einstein radius brings the galaxy into alignment
+    and closes the ring.
+  - **Letting go:** a release throws it with inertia, after which it
+    rejoins its slow drift. Releasing it gently near alignment parks it
+    for 10 seconds.
+  - **Touch and keyboard:** on touch, tapping the galaxy flies it into
+    alignment. The G key on the "Feed the black hole" button does the
+    same and announces it.
+  - **Cursors:** the cursor shows grab over the galaxy and grabbing while
+    you hold it. The pointer lens steps aside while you hold the galaxy,
+    so it doesn't bend the galaxy into a ring of its own.
+- **Kerr readout**: a new μ<sub>gal</sub> row shows the galaxy's total
+  point-lens magnification, (u² + 2) / (u√(u² + 4)), and reads "ring" at
+  alignment. During the readout's intro, a "✦ galaxy · drag me" tag
+  marks the galaxy's primary image (placed by the new `galaxyImage()`,
+  which solves the lens equation forward).
+- The galaxy starts just short of the hole, so a first visit catches
+  the arcs forming. It is drawn a little softer, so at rest it looks
+  like a galaxy rather than a white disc.
+- **Analytics**: a new `galaxy` hero action, counted as playing with
+  the hole.
+
 ## 3.12.0
 
 Black hole physics, round three (`assets/js/blackhole.js`):

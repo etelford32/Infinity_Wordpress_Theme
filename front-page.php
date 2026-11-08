@@ -214,7 +214,7 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                     // click-to-feed. Revealed by blackhole.js only when
                     // the scene is interactive (WebGL, motion allowed).
                     ?>
-                    <button type="button" class="bh-feed-btn" data-bh-feed hidden>
+                    <button type="button" class="bh-feed-btn" data-bh-feed hidden aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown G" title="<?php esc_attr_e('Arrow keys: spin and tilt. G: move the galaxy behind the hole.', 'infinity'); ?>">
                         <span class="bh-feed-icon" aria-hidden="true"></span>
                         <?php esc_html_e('Feed the black hole', 'infinity'); ?>
                     </button>

@@ -72,6 +72,11 @@ function infinityBlackhole(canvas, cfg) {
     return (1.49 / sum).toFixed(4);
   })();
 
+  /* Einstein radius of the lensed background galaxy, shared by the
+     shader and the JS that back-traces the cursor through the lens to
+     let visitors grab it. */
+  var GAL_THETA = 0.40;
+
   var QUAD_VERT = [
     'attribute vec2 a_pos;',
     'void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }'
@@ -93,6 +98,7 @@ function infinityBlackhole(canvas, cfg) {
     'uniform float u_elev;',  /* camera elevation above the disk plane (rad) */
     'uniform float u_phi;',   /* precession azimuth of the disk normal (rad) */
     'uniform float u_kerr;',  /* dimensionless spin a* = a/M, 0..0.998 */
+    'uniform vec2 u_gal;',    /* lensed galaxy\'s true (source-plane) position */
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -613,18 +619,20 @@ function infinityBlackhole(canvas, cfg) {
     '     in the picture, so it gets the widest ring, out in dark sky beyond',
     '     the disk, where its arcs can be seen. */',
     '  if (u_light < 0.999) {',
-    '    float thetaG = 0.40;',
+    '    float thetaG = ' + GAL_THETA.toFixed(3) + ';',
     '    vec2 srcG = skyUv * (1.0 - thetaG * thetaG / max(rskyL * rskyL, 1e-4));',
-    '    float gT = fract(u_time / 64.0);',
-    '    vec2 gPos = vec2(mix(-1.6, 1.6, gT), 0.03 + 0.04 * sin(u_time * 0.07));',
-    '    vec2 gd = srcG - gPos;',
+    '    /* where the galaxy truly sits; JS drifts it, and visitors can',
+    '       grab and drag it (see the galaxy section of the input code) */',
+    '    vec2 gd = srcG - u_gal;',
     '    float gc = cos(0.6), gs = sin(0.6);',
     '    gd = vec2(gc * gd.x - gs * gd.y, gs * gd.x + gc * gd.y);',
     '    float galCore = exp(-(gd.x * gd.x / 0.0011 + gd.y * gd.y / 0.00035));',
     '    float galDisk = exp(-(gd.x * gd.x / 0.009 + gd.y * gd.y / 0.0024)) * 0.42;',
     '    float gal = (galCore + galDisk) * (1.0 - horizon) * (1.0 - u_light);',
-    '    c += mix(vec3(0.62, 0.74, 1.0), vec3(1.0, 0.90, 0.74), galCore / (gal + 1e-4)) * gal * 1.25;',
-    '    alpha += gal * 0.65;',
+    '    /* a warm bulge in a cool disk, kept below white so it reads as a',
+    '       galaxy rather than a moon; magnified arcs still blaze */',
+    '    c += mix(vec3(0.55, 0.68, 1.0), vec3(1.0, 0.86, 0.66), galCore / (gal + 1e-4)) * gal * 1.0;',
+    '    alpha += gal * 0.62;',
     '  }',
     '',
     '  c += vec3(0.62, 0.72, 1.0) * probeRing * 1.3 * (1.0 - horizon);',
@@ -1109,6 +1117,7 @@ function infinityBlackhole(canvas, cfg) {
   var dElev = gl.getUniformLocation(diskProg, 'u_elev');
   var dPhi = gl.getUniformLocation(diskProg, 'u_phi');
   var dKerr = gl.getUniformLocation(diskProg, 'u_kerr');
+  var dGal = gl.getUniformLocation(diskProg, 'u_gal');
 
   /* Particles: each has a head + tail segments along its orbit */
   var PART_N = cfg.particles.n;
@@ -1272,6 +1281,27 @@ function infinityBlackhole(canvas, cfg) {
   var elevNow = 0.31;
   var stateAt = 0;
 
+  /* ---- the lensed galaxy ----
+     galX/galY is its true position in the source plane (shader uv
+     units, relative to the hole). Left alone it drifts left to right
+     and wraps; it starts just short of the hole so the first visit
+     catches the arcs forming. A visitor can grab it (mouse / pen),
+     throw it, tap it into alignment (touch) or press G on the feed
+     button. Released near alignment, it parks for a while so the
+     Einstein ring can be admired. */
+  var GAL_DRIFT = 0.04;
+  var galX = -0.36;
+  var galY = 0.035;
+  var galVX = GAL_DRIFT;
+  var galVY = 0;
+  var galDrag = false;
+  var galId = -1;
+  var galOffX = 0;
+  var galOffY = 0;
+  var galParkUntil = 0;
+  var galAlign = false;
+  var galLastT = 0;
+
   function settling() {
     return lightCur !== lightTarget || hoverCur !== hoverTarget || feedCur > 0 || probeCur !== probeTarget ||
       kerr !== kerrTarget || dragElev !== 0 || dragging;
@@ -1384,9 +1414,47 @@ function infinityBlackhole(canvas, cfg) {
       : 0;
     twCur += (twTarget - twCur) * Math.min(1, dt * 4);
 
+    if (cfg.galaxy && !galDrag) {
+      var nowG = performance.now();
+      if (galAlign) {
+        /* flying into alignment: ease the source onto the axis */
+        galX += (0 - galX) * Math.min(1, dt * 2.4);
+        galY += (0 - galY) * Math.min(1, dt * 2.4);
+        if (galX * galX + galY * galY < 0.00004) {
+          galAlign = false;
+          galX = 0;
+          galY = 0;
+          galVX = 0;
+          galVY = 0;
+          galParkUntil = nowG + 10000;
+        }
+      } else if (nowG >= galParkUntil) {
+        /* coast: a throw decays into the slow drift */
+        galVX += (GAL_DRIFT - galVX) * Math.min(1, dt / 3);
+        galVY += (0 - galVY) * Math.min(1, dt / 3);
+        galX += galVX * dt;
+        galY += galVY * dt;
+        galY += (0.035 - galY) * Math.min(1, dt / 14);
+        galY = Math.max(-1.1, Math.min(1.1, galY));
+        if (galX > 1.05) {
+          galX = -1.35;
+          galY = 0.035 + 0.08 * (Math.random() - 0.5);
+        } else if (galX < -1.8) {
+          galX = 1.0;
+        }
+      }
+    }
+
     if (typeof cfg.onState === 'function' && (t - stateAt > 0.1 || reduced)) {
       stateAt = t;
-      cfg.onState({ kerr: kerr, elev: elev, dragging: dragging, hover: hoverCur, feed: feedCur });
+      /* galaxy magnification for a point lens: u = beta / thetaE,
+         mu = (u^2 + 2) / (u sqrt(u^2 + 4)) - the sum of both images */
+      var gu = Math.sqrt(galX * galX + galY * galY) / GAL_THETA;
+      cfg.onState({
+        kerr: kerr, elev: elev, dragging: dragging || galDrag, hover: hoverCur, feed: feedCur,
+        galU: (cfg.galaxy && !lightTarget) ? gu : null,
+        galMu: (gu > 1e-3) ? (gu * gu + 2) / (gu * Math.sqrt(gu * gu + 4)) : Infinity
+      });
     }
 
     var c = cfg.center(canvas.clientWidth, canvas.clientHeight);
@@ -1417,6 +1485,7 @@ function infinityBlackhole(canvas, cfg) {
     gl.uniform1f(dElev, elev);
     gl.uniform1f(dPhi, phiNow);
     gl.uniform1f(dKerr, kerr);
+    gl.uniform2f(dGal, cfg.galaxy ? galX : 99, cfg.galaxy ? galY : 99);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     /* Twistor pass, between the disk and the sparks */
@@ -1578,6 +1647,15 @@ function infinityBlackhole(canvas, cfg) {
     probeTX = dx;
     probeTY = -dy;
     probeTarget = (cfg.probe && !lightTarget) ? smooth(0.32, 0.62, dist) : 0;
+    if (cfg.galaxy && host && host.classList) {
+      var onGal = galDrag || overGalaxy(ev.clientX, ev.clientY);
+      host.classList.toggle('bh-over-galaxy', onGal && !galDrag);
+      /* the cursor's own lens would bend the very galaxy being reached
+         for into a little ring; it steps aside while you hold it */
+      if (onGal) {
+        probeTarget = 0;
+      }
+    }
     arm(near > 0.5);
     if (near > 0.5) {
       emit('stir', true);
@@ -1650,6 +1728,113 @@ function infinityBlackhole(canvas, cfg) {
     return !!(el && el.closest && el.closest('p, h1, h2, h3, li, svg, .fp-hero-latest-label'));
   }
 
+  /* Cursor -> the shader's own uv for that pixel: hole-relative,
+     y up, zoom applied, then the frame's fixed cant - exactly what the
+     fragment shader computes, so the back-trace below is the shader's. */
+  function pointerUv(clientX, clientY) {
+    var rc = canvas.getBoundingClientRect();
+    if (!rc.width || !rc.height) {
+      return null;
+    }
+    var ctr = cfg.center(rc.width, rc.height);
+    var z = zoomFor(rc.width, rc.height);
+    var x = (clientX - (rc.left + ctr[0] * rc.width)) / rc.height * z;
+    var y = -(clientY - (rc.top + (1 - ctr[1]) * rc.height)) / rc.height * z;
+    var c0 = Math.cos(-0.10);
+    var s0 = Math.sin(-0.10);
+    return { x: c0 * x + s0 * y, y: -s0 * x + c0 * y };
+  }
+
+  /* Trace the ray under the cursor back to the source plane: the
+     frame-dragging twist, then the galaxy's lens equation, unclamped.
+     The pointer lens is centred on the cursor itself, so it does not
+     deflect the ray through the cursor's own pixel. */
+  function backTrace(u) {
+    var r2 = u.x * u.x + u.y * u.y;
+    var tw = Math.min(kerr * 0.0062 / (r2 + 0.0022), 1.6);
+    var x = Math.cos(tw) * u.x - Math.sin(tw) * u.y;
+    var y = Math.sin(tw) * u.x + Math.cos(tw) * u.y;
+    var k = 1 - GAL_THETA * GAL_THETA / Math.max(x * x + y * y, 1e-4);
+    return { x: x * k, y: y * k };
+  }
+
+  /* Is the cursor over any image of the galaxy - primary, counter-image
+     or arc? Equivalent to: does the ray under it land on the galaxy?
+     The shadow itself never counts: nothing comes back from there. */
+  function overGalaxy(clientX, clientY) {
+    if (!cfg.galaxy || lightTarget) {
+      return false;
+    }
+    var u = pointerUv(clientX, clientY);
+    if (!u || u.x * u.x + u.y * u.y < 0.16 * 0.16) {
+      return false;
+    }
+    var b = backTrace(u);
+    var dx = b.x - galX;
+    var dy = b.y - galY;
+    return dx * dx + dy * dy < 0.075 * 0.075;
+  }
+
+  function alignGalaxy() {
+    if (!cfg.galaxy) {
+      return;
+    }
+    galAlign = true;
+    emit('galaxy', true);
+  }
+
+  function onGalaxyMove(ev) {
+    if (ev.pointerId !== galId) {
+      return;
+    }
+    var u = pointerUv(ev.clientX, ev.clientY);
+    if (!u) {
+      return;
+    }
+    /* keep the held ray out of the shadow, where the map is meaningless */
+    var r = Math.sqrt(u.x * u.x + u.y * u.y);
+    if (r < 0.165) {
+      var sc = 0.165 / Math.max(r, 1e-4);
+      u = { x: u.x * sc, y: u.y * sc };
+    }
+    var b = backTrace(u);
+    var nx = b.x + galOffX;
+    var ny = b.y + galOffY;
+    var now = performance.now();
+    var dts = Math.max((now - galLastT) / 1000, 0.008);
+    /* smoothed velocity, kept for the throw */
+    galVX += ((nx - galX) / dts - galVX) * 0.35;
+    galVY += ((ny - galY) / dts - galVY) * 0.35;
+    galLastT = now;
+    galX = nx;
+    galY = ny;
+    if (!raf) {
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
+  function onGalaxyEnd(ev) {
+    if (ev.pointerId !== galId) {
+      return;
+    }
+    galId = -1;
+    galDrag = false;
+    host.classList.remove('bh-grab-galaxy');
+    var speed = Math.sqrt(galVX * galVX + galVY * galVY);
+    var cap = 0.6;
+    if (speed > cap) {
+      galVX *= cap / speed;
+      galVY *= cap / speed;
+      speed = cap;
+    }
+    /* let go gently, near alignment: park it on the ring */
+    if (Math.sqrt(galX * galX + galY * galY) < 0.07 && speed < 0.18) {
+      galVX = 0;
+      galVY = 0;
+      galParkUntil = performance.now() + 10000;
+    }
+  }
+
   function onDragMove(ev) {
     if (ev.pointerId !== dragId) {
       return;
@@ -1701,6 +1886,23 @@ function infinityBlackhole(canvas, cfg) {
         emit('feed');
         return;
       }
+      if (overGalaxy(ev.clientX, ev.clientY)) {
+        /* grabbed the galaxy: hold the ray under the cursor */
+        var u = pointerUv(ev.clientX, ev.clientY);
+        var b = backTrace(u);
+        galOffX = galX - b.x;
+        galOffY = galY - b.y;
+        galId = ev.pointerId;
+        galDrag = true;
+        galAlign = false;
+        galParkUntil = 0;
+        galVX = 0;
+        galVY = 0;
+        galLastT = performance.now();
+        host.classList.add('bh-grab-galaxy');
+        emit('galaxy', true);
+        return;
+      }
       dragId = ev.pointerId;
       dragLX = ev.clientX;
       dragLY = ev.clientY;
@@ -1727,8 +1929,14 @@ function infinityBlackhole(canvas, cfg) {
     }
     tapId = -1;
     if (performance.now() - tapAt <= TAP_MS && tapMoved <= TAP_SLOP) {
-      feed(1);
-      emit('feed');
+      if (overGalaxy(tapX, tapY)) {
+        /* a finger can't drag it without scrolling: a tap sends it
+           behind the hole instead */
+        alignGalaxy();
+      } else {
+        feed(1);
+        emit('feed');
+      }
     }
   }
 
@@ -1767,6 +1975,9 @@ function infinityBlackhole(canvas, cfg) {
       host.addEventListener('pointerup', onPointerUp, { passive: true });
       host.addEventListener('pointercancel', onPointerCancel, { passive: true });
       window.addEventListener('pointermove', onDragMove, { passive: true });
+      window.addEventListener('pointermove', onGalaxyMove, { passive: true });
+      window.addEventListener('pointerup', onGalaxyEnd, { passive: true });
+      window.addEventListener('pointercancel', onGalaxyEnd, { passive: true });
       window.addEventListener('pointerup', onDragEnd, { passive: true });
       window.addEventListener('pointercancel', onDragEnd, { passive: true });
       /* stop a backdrop drag from starting a text selection */
@@ -1807,6 +2018,39 @@ function infinityBlackhole(canvas, cfg) {
       if (!raf) {
         raf = requestAnimationFrame(frame);
       }
+    },
+    alignGalaxy: function () {
+      if (interactive) {
+        alignGalaxy();
+      }
+    },
+    /* Where the galaxy's primary image is on screen right now, in
+       client pixels: the lens equation solved forward, theta+ =
+       (beta + sqrt(beta^2 + 4 thetaE^2)) / 2 along the source direction,
+       then the sky twist and frame cant undone. */
+    galaxyImage: function () {
+      var b = Math.sqrt(galX * galX + galY * galY);
+      var th = 0.5 * (b + Math.sqrt(b * b + 4 * GAL_THETA * GAL_THETA));
+      var ux = b > 1e-6 ? galX / b * th : th;
+      var uy = b > 1e-6 ? galY / b * th : 0;
+      var tw = Math.min(kerr * 0.0062 / (th * th + 0.0022), 1.6);
+      var x = Math.cos(tw) * ux + Math.sin(tw) * uy;
+      var y = -Math.sin(tw) * ux + Math.cos(tw) * uy;
+      var c0 = Math.cos(-0.10);
+      var s0 = Math.sin(-0.10);
+      var sx = c0 * x - s0 * y;
+      var sy = s0 * x + c0 * y;
+      var rc = canvas.getBoundingClientRect();
+      var ctr = cfg.center(rc.width, rc.height);
+      var z = zoomFor(rc.width, rc.height);
+      return {
+        x: rc.left + ctr[0] * rc.width + sx * rc.height / z,
+        y: rc.top + (1 - ctr[1]) * rc.height - sy * rc.height / z,
+        source: { x: galX, y: galY }
+      };
+    },
+    galaxyEnabled: function () {
+      return !!cfg.galaxy && !lightTarget;
     },
     spinTarget: function () {
       return kerrTarget;
@@ -1961,6 +2205,7 @@ var infinityHeroBh = null;
 var infinityHudEl = null;
 var infinityHudRows = null;
 var infinityHudSeen = -1e9;
+var infinityGalTag = null;
 
 /* The readout floats beside the hole on wide screens while the visitor
    is playing with it - pointer close, dragging, or a feed in progress -
@@ -1984,12 +2229,12 @@ function infinityHeroHud(st) {
     infinityHudEl = document.createElement('div');
     infinityHudEl.className = 'bh-hud';
     infinityHudEl.setAttribute('aria-hidden', 'true');
-    var rows = [['a', 'a<sub>*</sub>'], ['i', 'i'], ['rp', 'r<sub>+</sub>'], ['rph', 'r<sub>ph</sub>'], ['isco', 'r<sub>isco</sub>'], ['eta', '\u03B7']];
+    var rows = [['a', 'a<sub>*</sub>'], ['i', 'i'], ['rp', 'r<sub>+</sub>'], ['rph', 'r<sub>ph</sub>'], ['isco', 'r<sub>isco</sub>'], ['eta', '\u03B7'], ['mu', '\u03BC<sub>gal</sub>']];
     var html = '<p class="bh-hud-title">Kerr metric</p><dl>';
     rows.forEach(function (r) {
       html += '<dt>' + r[1] + '</dt><dd data-k="' + r[0] + '"></dd>';
     });
-    html += '</dl><p class="bh-hud-hint">drag \u2194 spin \u00B7 \u2195 tilt \u00B7 click to feed</p>';
+    html += '</dl><p class="bh-hud-hint">drag \u2194 spin \u00B7 \u2195 tilt \u00B7 click to feed<br>grab the galaxy \u2726 and drag it behind the hole</p>';
     infinityHudEl.innerHTML = html;
     section.appendChild(infinityHudEl);
     /* introduce it: shown for a few seconds as the hero arrives, so
@@ -2007,6 +2252,32 @@ function infinityHeroHud(st) {
   }
   var on = now - infinityHudSeen < 2200;
   infinityHudEl.classList.toggle('is-on', on);
+
+  /* Point at the galaxy while the readout is up, so "grab the galaxy"
+     has something to grab: tagged at its primary image, hidden near
+     alignment (it is the ring by then) and when off the section. */
+  if (bh.galaxyEnabled && bh.galaxyEnabled()) {
+    if (!infinityGalTag) {
+      infinityGalTag = document.createElement('div');
+      infinityGalTag.className = 'bh-gal-tag';
+      infinityGalTag.setAttribute('aria-hidden', 'true');
+      infinityGalTag.innerHTML = '<span class="bh-gal-ring"></span><span class="bh-gal-label">\u2726 galaxy \u00B7 drag me</span>';
+      infinityHudEl.parentNode.appendChild(infinityGalTag);
+    }
+    var gi = bh.galaxyImage();
+    var pr = infinityHudEl.parentNode.getBoundingClientRect();
+    var gx = gi.x - pr.left;
+    var gy = gi.y - pr.top;
+    var showTag = on && !st.dragging && st.galU !== null && st.galU > 0.55 &&
+      gx > 20 && gx < pr.width - 20 && gy > 20 && gy < pr.height - 20;
+    infinityGalTag.classList.toggle('is-on', showTag);
+    if (showTag) {
+      infinityGalTag.style.transform = 'translate(' + Math.round(gx) + 'px,' + Math.round(gy) + 'px)';
+    }
+  } else if (infinityGalTag) {
+    infinityGalTag.classList.remove('is-on');
+  }
+
   if (!on) {
     return;
   }
@@ -2018,6 +2289,15 @@ function infinityHeroHud(st) {
   infinityHudRows.rph.textContent = k.rph.toFixed(2) + ' M';
   infinityHudRows.isco.textContent = k.isco.toFixed(2) + ' M';
   infinityHudRows.eta.textContent = (k.eta * 100).toFixed(1) + '%';
+  /* the galaxy's total magnification: only meaningful while it is
+     near the lens; at alignment it is formally infinite (the ring) */
+  if (st.galU === null || st.galU > 3) {
+    infinityHudRows.mu.textContent = '\u2014';
+  } else if (!isFinite(st.galMu) || st.galMu > 999) {
+    infinityHudRows.mu.textContent = 'ring';
+  } else {
+    infinityHudRows.mu.textContent = '\u00D7' + st.galMu.toFixed(st.galMu < 10 ? 2 : 1);
+  }
 
   /* upper right of the disk, in open sky, kept inside the section */
   var parent = infinityHudEl.parentNode.getBoundingClientRect();
@@ -2103,6 +2383,17 @@ function infinityHeroControls(section, bh) {
     btn.addEventListener('keydown', function (ev) {
       var dk = 0;
       var de = 0;
+      if ((ev.key === 'g' || ev.key === 'G') && bh.galaxyEnabled()) {
+        ev.preventDefault();
+        bh.alignGalaxy();
+        if (live) {
+          live.textContent = '';
+          setTimeout(function () {
+            live.textContent = 'Galaxy moving behind the black hole: its light is bent into an Einstein ring.';
+          }, 30);
+        }
+        return;
+      }
       if (ev.key === 'ArrowRight') { dk = 0.05; }
       else if (ev.key === 'ArrowLeft') { dk = -0.05; }
       else if (ev.key === 'ArrowUp') { de = 0.06; }
@@ -2205,6 +2496,7 @@ function infinityHeroControls(section, bh) {
       /* plasma on the congruence: the phone budget gets the smaller swarm */
       twistorParticles: small ? { n: 36, tail: 6 } : { n: 110, tail: 9 },
       scrollTilt: true,
+      galaxy: true,
       tint: INFINITY_BH_TINTS[hero.getAttribute('data-bh-tint')] || INFINITY_BH_TINTS.space,
       probe: true,
       zoom: function (w, h) {

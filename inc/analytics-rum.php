@@ -49,6 +49,7 @@ function infinity_rum_hero_actions() {
         'stir',       // pointer reached the hole (once)
         'lens',       // pointer lens held over the sky for 1.5s (once)
         'orbit',      // dragged (or arrow-keyed) the spin / camera (once)
+        'galaxy',     // grabbed, tapped or keyed the lensed galaxy (once)
         'feed',       // backdrop click / tap
         'feed-btn',   // the "Feed the black hole" button
         'read-fall',  // read transition played on the way to the article

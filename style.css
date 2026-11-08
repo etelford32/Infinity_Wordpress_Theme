@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.12.0
+Version: 3.13.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -5395,4 +5395,67 @@ html[data-mode="light"] .theme-toggle-knob {
 
 @media (prefers-reduced-motion: reduce) {
   .bh-hud { transition: none; }
+}
+
+/* The lensed galaxy can be grabbed: any of its images, arcs included */
+.bh-over-galaxy,
+.bh-over-galaxy.bh-armed {
+  cursor: grab;
+}
+
+.bh-grab-galaxy,
+.bh-grab-galaxy * {
+  cursor: grabbing !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Marker on the lensed galaxy's primary image, shown with the readout */
+.bh-gal-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+
+.bh-gal-tag.is-on {
+  opacity: 1;
+}
+
+.bh-gal-ring {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px dashed rgba(143, 196, 255, 0.6);
+  animation: bh-gal-spin 9s linear infinite;
+}
+
+.bh-gal-label {
+  position: absolute;
+  left: 28px;
+  top: -8px;
+  white-space: nowrap;
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+  color: #a9d2ff;
+  text-shadow: 0 1px 6px rgba(5, 8, 18, 0.95);
+}
+
+@keyframes bh-gal-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1099px) {
+  .bh-gal-tag { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bh-gal-tag { transition: none; }
+  .bh-gal-ring { animation: none; }
 }

@@ -27,6 +27,7 @@ interactive. Every item is scoped to fit the current constraints:
 | Phase 1 (3.9.0) | Feed button + live region, read transition, pillar tint, pointer lens. See below. |
 | Twistor dynamics (3.11.0) | Robinson-congruence field, drag to spin/tilt, Kerr shadow and ISCO, live Kerr readout, scroll tilt. See below. |
 | Physics round 3 (3.12.0) | Plasma on the congruence (circulate / jet / plunge), spiral density waves, ripples, QPOs, lensed background galaxy, frame-drag sky twist, photon-ring echoes. |
+| Draggable galaxy (3.13.0) | Grab any image of the lensed galaxy (back-traced through the lens), drag it into an Einstein ring, throw it, or park it; tap or G on touch/keyboard; live μ readout. |
 | Theme crossfade | Night ↔ paper palette follows the site toggle. |
 
 ## Phase 1: shipped in 3.9.0
