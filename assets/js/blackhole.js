@@ -99,6 +99,8 @@ function infinityBlackhole(canvas, cfg) {
     'uniform float u_phi;',   /* precession azimuth of the disk normal (rad) */
     'uniform float u_kerr;',  /* dimensionless spin a* = a/M, 0..0.998 */
     'uniform vec2 u_gal;',    /* lensed galaxy\'s true (source-plane) position */
+    'uniform sampler2D u_plasma;', /* particle-driven heat (r) and turbulence (g), polar */
+    'uniform float u_plasmaOn;',
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -275,6 +277,7 @@ function infinityBlackhole(canvas, cfg) {
     '',
     '  float bright = 0.0;',
     '  float trans = 1.0;',
+    '  float heatAcc = 0.0;',
     '  float topFace = 0.0;',
     '',
     '  for (int i = 0; i < ' + SLICES + '; i++) {',
@@ -319,12 +322,17 @@ function infinityBlackhole(canvas, cfg) {
     '    vec2 ps = vec2(mm * bS, -sinE * mm * aS - cosE * uu * ca);',
     '    float rs = length(ps);',
     '    float as = atan(ps.y, ps.x);',
+    '    /* what the particles have done to the gas here: heat and stirring',
+    '       from the plasma field, in the same polar disk coordinates */',
+    '    vec2 pl = u_plasmaOn > 0.5 ? texture2D(u_plasma, vec2(as / 6.2831853, rs)).rg : vec2(0.0);',
     '    float rrs = rs - 0.02 / max(rs, 0.06);',
     '',
     '    /* Differential rotation. Driven by u_spin, an accumulated clock',
     '       the JS warps on hover — scaling wall time here instead would',
     '       teleport the phase every time the rate changed. */',
     '    float sw = as - u_spin * 0.55 - 1.4 / (0.25 + rrs * rrs);',
+    '    /* stirred gas: the filaments are pushed about where turbulence is */',
+    '    sw += pl.g * 1.1 * sin(rs * 70.0 + as * 5.0 + u_time * 2.6) * sin(as * 13.0 - rs * 31.0 + u_time * 1.3);',
     '',
     '    /* Seam-free filaments: blend across the atan wrap at +-PI */',
     '    float wSeam = smoothstep(2.4, 3.14159, abs(as)) * 0.5;',
@@ -334,6 +342,9 @@ function infinityBlackhole(canvas, cfg) {
     '',
     '    float diskS = smoothstep(0.155 * iscoK, 0.26 * iscoK, rrs) * (1.0 - smoothstep(0.5, 0.95, rrs));',
     '    float e = diskS * (0.24 + 1.3 * streakS) * exp(-k * k * 0.95);',
+    '    /* heated gas glows: wakes burn brighter along the particle paths */',
+    '    e *= 1.0 + 4.0 * pl.r;',
+    '    heatAcc += pl.r * trans * exp(-k * k);',
     '',
     '    /* Orbiting hot spot: a compact flare just outside the ISCO, the',
     '       kind seen circling Sgr A* in the infrared. It orbits faster than',
@@ -493,6 +504,8 @@ function infinityBlackhole(canvas, cfg) {
     '  vec3 col = mix(hot, gold, smoothstep(0.17, 0.34, rr));',
     '  col = mix(col, ember, smoothstep(0.34, 0.60, rr));',
     '  col = mix(col, viol, smoothstep(0.72, 1.06, rr));',
+    '  /* heated wakes run whiter than the gas around them */',
+    '  col = mix(col, hot, clamp(heatAcc * 0.8, 0.0, 0.7));',
     '',
     '  /* Relativistic color shift */',
     '  float dop = clamp(b0 / max(r, 0.001), -1.0, 1.0);',
@@ -770,11 +783,39 @@ function infinityBlackhole(canvas, cfg) {
     '}'
   ].join('\n');
 
+  /* One spark's orbit, shared by the spark pass and the plasma
+     splats, so what deposits heat in the disk is exactly what is drawn.
+     Returns (theta, r, fade, heat) in the disk plane; the including
+     shader declares u_spin and u_feed. */
+  var SPARK_FN = [
+    'vec4 sparkOrbit(float pt, float seg) {',
+    '  float seed = pt * 123.717;',
+    '  /* Keplerian orbit params per particle */',
+    '  float aAxis = mix(0.3, 0.95, fract(seed * 0.731));',
+    '  float ecc   = mix(0.04, 0.42, fract(seed * 0.567));',
+    '  float peri  = seed * 6.2831853;',
+    '  float n     = 0.5 / pow(aAxis, 1.5); /* mean motion: inner = faster */',
+    '  /* a fifth of the swarm is on doomed inspiral orbits, most of it',
+    '     once the hole starts feeding */',
+    '  float doomed = step(0.8 - 0.5 * u_feed, fract(seed * 0.293));',
+    '  float cycle = fract(u_spin * 0.05 / aAxis + fract(seed * 3.137));',
+    '  /* tail: the same orbit at an earlier phase, spaced near the sprite',
+    '     size so a tail reads as a streak rather than a row of dots */',
+    '  float theta = peri + u_spin * n - seg * 0.048;',
+    '  float shrink = mix(1.0, mix(1.0, 0.16 / aAxis, pow(cycle, 1.6)), doomed);',
+    '  float r = aAxis * shrink * (1.0 - ecc * ecc) / (1.0 + ecc * cos(theta - peri));',
+    '  r = max(r, 0.125);',
+    '  float heat = clamp((0.22 + 0.12 * u_feed) / r - 0.15, 0.0, 1.0) * (1.0 - seg * 0.08);',
+    '  float tailFade = 1.0 - seg / 8.0;',
+    '  float doomFade = mix(1.0, sin(cycle * 3.14159), doomed);',
+    '  return vec4(theta, r, tailFade * tailFade * doomFade, heat);',
+    '}'
+  ].join('\n');
+
   var PART_VERT = [
     'precision highp float;',
     'attribute vec2 a_pt; /* x: particle seed, y: tail segment */',
     'uniform vec2 u_res;',
-    'uniform float u_time;',
     'uniform vec2 u_center;',
     'uniform float u_zoom;',
     'uniform float u_spin;',
@@ -782,48 +823,16 @@ function infinityBlackhole(canvas, cfg) {
     'varying float v_heat;',
     'varying float v_fade;',
     PROJ_GLSL,
+    SPARK_FN,
     '',
     'void main() {',
-    '  float seed = a_pt.x * 123.717;',
-    '  float seg = a_pt.y; /* 0 = head, grows toward tail */',
-    '',
-    '  /* Keplerian orbit params per particle */',
-    '  float aAxis = mix(0.3, 0.95, fract(seed * 0.731));',
-    '  float ecc   = mix(0.04, 0.42, fract(seed * 0.567));',
-    '  float peri  = seed * 6.2831853;',
-    '  float n     = 0.5 / pow(aAxis, 1.5); /* mean motion: inner = faster */',
-    '',
-    '  /* A fifth of the swarm is on doomed inspiral orbits — most of it',
-    '     once the hole starts feeding */',
-    '  float doomed = step(0.8 - 0.5 * u_feed, fract(seed * 0.293));',
-    '  float cycle = fract(u_spin * 0.05 / aAxis + fract(seed * 3.137));',
-    '',
-    '  /* Tail: sample the SAME orbit at earlier phase. On the warped',
-    '     clock, so the swarm speeds up with the disk. */',
-    '  /* segment spacing close to the sprite size, so a tail reads as a',
-    '     streak rather than a row of dots */',
-    '  float theta = peri + u_spin * n - seg * 0.048;',
-    '',
-    '  /* Conic section radius; inspiral shrinks the whole orbit */',
-    '  float shrink = mix(1.0, mix(1.0, 0.16 / aAxis, pow(cycle, 1.6)), doomed);',
-    '  float r = aAxis * shrink * (1.0 - ecc * ecc) / (1.0 + ecc * cos(theta - peri));',
-    '  r = max(r, 0.125);',
-    '',
-    '  /* Real 3D now: the same camera as the disk, so the swarm tilts',
-    '     with a drag and goes edge-on with the scroll; sparks behind',
-    '     the hole are lensed around the shadow rather than drawn on it. */',
-    '  vec3 pr = projectDisk(vec3(cos(theta) * r, sin(theta) * r, 0.0));',
+    '  vec4 o = sparkOrbit(a_pt.x, a_pt.y);',
+    '  /* the disk\'s own camera; sparks behind the hole are lensed round it */',
+    '  vec3 pr = projectDisk(vec3(cos(o.x) * o.y, sin(o.x) * o.y, 0.0));',
     '  gl_Position = toClip(lensBehind(pr.xy, pr.z), u_res, u_center, u_zoom);',
-    '',
-    '  /* Heat rises as radius falls; head hotter than tail */',
-    '  v_heat = clamp((0.22 + 0.12 * u_feed) / r - 0.15, 0.0, 1.0) * (1.0 - seg * 0.08);',
-    '',
-    '  /* Tail fades along its length; doomed ones flare then vanish */',
-    '  float tailFade = 1.0 - seg / 8.0;',
-    '  float doomFade = mix(1.0, sin(cycle * 3.14159), doomed);',
-    '  v_fade = tailFade * tailFade * doomFade;',
-    '',
-    '  gl_PointSize = max(u_res.y * (0.011 + 0.004 * u_feed - seg * 0.0011), 1.0);',
+    '  v_fade = o.z;',
+    '  v_heat = o.w;',
+    '  gl_PointSize = max(u_res.y * (0.011 + 0.004 * u_feed - a_pt.y * 0.0011), 1.0);',
     '}'
   ].join('\n');
 
@@ -987,59 +996,164 @@ function infinityBlackhole(canvas, cfg) {
      as does spin. Stateless like the spark pass: every position is a
      function of time and a seed, and a tail is the same path sampled
      a little earlier. */
-  var TWP_VERT = [
-    'precision highp float;',
-    'attribute vec2 a_tp; /* x: seed, y: tail segment */',
-    'uniform vec2 u_res;',
-    'uniform vec2 u_center;',
-    'uniform float u_zoom;',
+  /* One twistor-borne particle, shared by its draw pass and its
+     plasma splat. Returns world position and life/far fade; kind is
+     0 circulate, 1 jet, 2 plunge; heat rises as plungers fall. */
+  var TWP_FN = [
     'uniform float u_feed;',
-    'uniform float u_tail;',
-    'varying float v_fade;',
-    'varying float v_kind;',
-    'varying float v_heat;',
-    PROJ_GLSL,
-    TW_FN,
-    '',
-    'void main() {',
-    '  float sd = a_tp.x * 97.31;',
-    '  float seg = a_tp.y;',
+    'vec4 twParticle(float pt, float seg, out float kind, out float heat) {',
+    '  float sd = pt * 97.31;',
     '  float pick = fract(sd * 0.173);',
     '  float jetCut = 0.62 - 0.30 * u_feed;',
-    '  float kind = pick < jetCut ? 0.0 : (pick < 0.86 ? 1.0 : 2.0);',
-    '',
+    '  kind = pick < jetCut ? 0.0 : (pick < 0.86 ? 1.0 : 2.0);',
     '  float pace = 1.0 + 0.7 * u_kerr + 2.2 * u_feed;',
     '  float cyc = fract(u_time * (0.030 + 0.025 * fract(sd * 0.61)) * pace + fract(sd * 0.37));',
     '  cyc = max(cyc - seg * 0.0035, 0.0);',
-    '',
     '  float th0 = mix(0.36, 0.70, fract(sd * 0.53)) * 3.14159265;',
     '  float ph = fract(sd * 0.917) * 6.2831853;',
     '  float drift = smoothstep(0.0, 1.0, cyc);',
     '  float th = th0;',
     '  if (kind > 0.5 && kind < 1.5) { th = mix(th0, 0.975 * 3.14159265, drift); }',
     '  if (kind > 1.5) { th = mix(th0, 0.05 * 3.14159265, pow(cyc, 1.4)); }',
-    '',
     '  /* along the fibre: the null flow, racing with spin and feeding */',
     '  float ps = fract(sd * 0.29) * 6.2831853 + u_time * (0.55 + 0.9 * u_kerr + 1.8 * u_feed) - seg * 0.034;',
-    '',
     '  vec4 tp = twistorPoint(th, ph, ps);',
     '  vec3 P = tp.xyz;',
     '  /* plungers are swallowed: pulled in toward the hole as they go */',
     '  if (kind > 1.5) { P *= mix(1.0, 0.30, pow(cyc, 3.0)); }',
-    '',
-    '  vec3 pr = projectDisk(P);',
-    '  vec2 scr = lensBehind(pr.xy, pr.z);',
-    '  gl_Position = toClip(scr, u_res, u_center, u_zoom);',
-    '',
-    '  float life = sin(3.14159265 * cyc);',
-    '  float tail = 1.0 - seg / u_tail;',
     '  /* jets keep their far-flung light: they are meant to leave */',
     '  float far = kind > 0.5 && kind < 1.5 ? max(tp.w, 0.35 * smoothstep(0.4, 1.0, drift)) : tp.w;',
-    '  v_fade = life * tail * tail * clamp(far * 3.0, 0.0, 1.0);',
+    '  heat = kind > 1.5 ? pow(cyc, 1.5) : 0.0;',
+    '  return vec4(P, sin(3.14159265 * cyc) * clamp(far * 3.0, 0.0, 1.0));',
+    '}'
+  ].join('\n');
+
+  var TWP_VERT = [
+    'precision highp float;',
+    'attribute vec2 a_tp; /* x: seed, y: tail segment */',
+    'uniform vec2 u_res;',
+    'uniform vec2 u_center;',
+    'uniform float u_zoom;',
+    'uniform float u_tail;',
+    'varying float v_fade;',
+    'varying float v_kind;',
+    'varying float v_heat;',
+    PROJ_GLSL,
+    TW_FN,
+    TWP_FN,
+    '',
+    'void main() {',
+    '  float kind;',
+    '  float heat;',
+    '  vec4 q = twParticle(a_tp.x, a_tp.y, kind, heat);',
+    '  vec3 pr = projectDisk(q.xyz);',
+    '  vec2 scr = lensBehind(pr.xy, pr.z);',
+    '  gl_Position = toClip(scr, u_res, u_center, u_zoom);',
+    '  float tail = 1.0 - a_tp.y / u_tail;',
+    '  v_fade = q.w * tail * tail;',
     '  v_fade *= mix(0.35, 1.0, smoothstep(0.11, 0.19, length(scr * vec2(1.0, 1.12))));',
     '  v_kind = kind;',
-    '  v_heat = kind > 1.5 ? pow(cyc, 1.5) : 0.0;',
-    '  gl_PointSize = max(u_res.y * (0.0085 + 0.003 * u_feed - seg * 0.0007), 1.0);',
+    '  v_heat = heat;',
+    '  gl_PointSize = max(u_res.y * (0.0085 + 0.003 * u_feed - a_tp.y * 0.0007), 1.0);',
+    '}'
+  ].join('\n');
+
+  /* ---------- the plasma field: particles that move the disk ----------
+
+     The sparks and twistor plasma used to fly through the disk without
+     touching it. Now they deposit into a field the disk reads back:
+     a 512 x 128 texture in the disk's own polar coordinates (angle
+     across, radius up), ping-ponged every frame.
+
+       R  heat        - brightens and whitens the gas where it lies
+       G  turbulence  - warps the filaments, so the plasma visibly
+                        bends round a particle's path
+
+     Each frame the field is advected with the gas: Keplerian
+     differential rotation, Omega = 0.5 r^-3/2 on the spin clock (the
+     sparks' own orbital law), which on a polar grid is simply a shift
+     in angle that depends on radius. A wake therefore shears into a
+     trailing spiral by itself, the way a disturbance in a real disk
+     does. It also drifts slowly inward with the accretion flow and
+     decays over a couple of seconds. The cursor stirs it too.
+
+     RGBA8 is renderable everywhere WebGL1 runs; decay subtracts a
+     fraction of a step as well, so small values never get stuck at
+     one quantum. */
+  var PLASMA_W = 512;
+  var PLASMA_H = 128;
+
+  var PLASMA_UPDATE_FRAG = [
+    'precision highp float;',
+    'uniform sampler2D u_prev;',
+    'uniform vec2 u_size;',
+    'uniform float u_dspin;',
+    'uniform float u_dt;',
+    'uniform vec3 u_stir;',
+    'void main() {',
+    '  vec2 uv = gl_FragCoord.xy / u_size;',
+    '  float r = uv.y;',
+    '  float om = 0.5 / pow(max(r, 0.13), 1.5);',
+    '  vec2 src = vec2(uv.x - om * u_dspin / 6.2831853, uv.y + 0.006 * u_dspin);',
+    '  vec2 v = texture2D(u_prev, src).rg;',
+    '  v = max(v * exp(-u_dt / 2.4) - 0.6 / 255.0, 0.0);',
+    '  if (u_stir.z > 0.001) {',
+    '    float a = uv.x * 6.2831853;',
+    '    vec2 d = r * vec2(cos(a), sin(a)) - u_stir.xy;',
+    '    float g = exp(-dot(d, d) / 0.0030) * u_stir.z * min(u_dt, 0.05) * 7.0;',
+    '    v += vec2(0.7, 1.0) * g;',
+    '  }',
+    '  gl_FragColor = vec4(min(v, 1.0), 0.0, 1.0);',
+    '}'
+  ].join('\n');
+
+  /* splats land at (angle, radius) in the field; additive */
+  var SPLAT_SPARK_VERT = [
+    'precision highp float;',
+    'attribute vec2 a_pt;',
+    'uniform float u_spin;',
+    'uniform float u_feed;',
+    'varying float v_w;',
+    'varying float v_turb;',
+    SPARK_FN,
+    'void main() {',
+    '  vec4 o = sparkOrbit(a_pt.x, a_pt.y);',
+    '  gl_Position = vec4(fract(o.x / 6.2831853) * 2.0 - 1.0, clamp(o.y, 0.0, 1.0) * 2.0 - 1.0, 0.0, 1.0);',
+    '  v_w = o.z * (0.35 + 0.65 * o.w);',
+    '  v_turb = o.z;',
+    '  gl_PointSize = 5.0;',
+    '}'
+  ].join('\n');
+
+  var SPLAT_TWP_VERT = [
+    'precision highp float;',
+    'attribute vec2 a_tp;',
+    'varying float v_w;',
+    'varying float v_turb;',
+    TW_FN,
+    TWP_FN,
+    'void main() {',
+    '  float kind;',
+    '  float heat;',
+    '  vec4 q = twParticle(a_tp.x, a_tp.y, kind, heat);',
+    '  /* only where a particle threads the disk plane does it touch gas */',
+    '  float plane = exp(-pow(q.z / 0.05, 2.0));',
+    '  float ang = atan(q.y, q.x);',
+    '  gl_Position = vec4(fract(ang / 6.2831853) * 2.0 - 1.0, clamp(length(q.xy), 0.0, 1.0) * 2.0 - 1.0, 0.0, 1.0);',
+    '  v_w = q.w * plane * (0.6 + 1.4 * heat);',
+    '  v_turb = q.w * plane * 1.4;',
+    '  gl_PointSize = 4.0;',
+    '}'
+  ].join('\n');
+
+  var SPLAT_FRAG = [
+    'precision mediump float;',
+    'uniform float u_gain;',
+    'varying float v_w;',
+    'varying float v_turb;',
+    'void main() {',
+    '  float a = smoothstep(0.5, 0.0, length(gl_PointCoord - 0.5));',
+    '  gl_FragColor = vec4(a * v_w * u_gain * 0.20, a * v_turb * u_gain * 0.07, 0.0, 1.0);',
     '}'
   ].join('\n');
 
@@ -1118,6 +1232,8 @@ function infinityBlackhole(canvas, cfg) {
   var dPhi = gl.getUniformLocation(diskProg, 'u_phi');
   var dKerr = gl.getUniformLocation(diskProg, 'u_kerr');
   var dGal = gl.getUniformLocation(diskProg, 'u_gal');
+  var dPlasma = gl.getUniformLocation(diskProg, 'u_plasma');
+  var dPlasmaOn = gl.getUniformLocation(diskProg, 'u_plasmaOn');
 
   /* Particles: each has a head + tail segments along its orbit */
   var PART_N = cfg.particles.n;
@@ -1204,6 +1320,62 @@ function infinityBlackhole(canvas, cfg) {
     twpLoc.attr = gl.getAttribLocation(twpProg, 'a_tp');
   }
 
+  /* Plasma field: two RGBA8 targets, ping-ponged. Any failure (no
+     programs, incomplete framebuffer) just leaves it off and the disk
+     renders as before. */
+  function makePlasma() {
+    var upd = program(QUAD_VERT, PLASMA_UPDATE_FRAG);
+    var spk = partProg ? program(SPLAT_SPARK_VERT, SPLAT_FRAG) : null;
+    var twp = twpProg ? program(SPLAT_TWP_VERT, SPLAT_FRAG) : null;
+    if (!upd || !spk) {
+      return null;
+    }
+    var tex = [];
+    var fbo = [];
+    for (var pi = 0; pi < 2; pi++) {
+      var tx = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tx);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, PLASMA_W, PLASMA_H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      /* angle wraps seamlessly (power-of-two width); radius clamps */
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      var fb = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tx, 0);
+      if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        return null;
+      }
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      tex.push(tx);
+      fbo.push(fb);
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    function locs(prog, names) {
+      var o = {};
+      names.forEach(function (n) { o[n] = gl.getUniformLocation(prog, n); });
+      return o;
+    }
+    return {
+      tex: tex,
+      fbo: fbo,
+      cur: 0,
+      upd: upd,
+      updPos: gl.getAttribLocation(upd, 'a_pos'),
+      updLoc: locs(upd, ['u_prev', 'u_size', 'u_dspin', 'u_dt', 'u_stir']),
+      spk: spk,
+      spkAttr: gl.getAttribLocation(spk, 'a_pt'),
+      spkLoc: locs(spk, ['u_spin', 'u_feed', 'u_gain']),
+      twp: twp,
+      twpAttr: twp ? gl.getAttribLocation(twp, 'a_tp') : -1,
+      twpLoc: twp ? locs(twp, ['u_time', 'u_spin', 'u_kerr', 'u_feed', 'u_gain']) : null
+    };
+  }
+  var plasma = null;
+
   gl.enable(gl.BLEND);
 
   function resize() {
@@ -1218,6 +1390,8 @@ function infinityBlackhole(canvas, cfg) {
   }
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* a single static frame has no history to evolve */
+  plasma = (cfg.plasma && !reduced) ? makePlasma() : null;
   var visible = true;
   var raf = null;
 
@@ -1289,6 +1463,18 @@ function infinityBlackhole(canvas, cfg) {
      throw it, tap it into alignment (touch) or press G on the feed
      button. Released near alignment, it parks for a while so the
      Einstein ring can be admired. */
+  /* Cursor stirring of the plasma: disk-plane position and a strength
+     that follows how fast the pointer moves over the disk, decaying
+     when it stops. phiNowS mirrors the frame's precession angle so the
+     pointer can be mapped onto the disk plane between frames. */
+  var stirX = 0;
+  var stirY = 0;
+  var stirS = 0;
+  var phiNowS = Math.PI / 2;
+  var stirLast = 0;
+  var stirLX = 0;
+  var stirLY = 0;
+
   var GAL_DRIFT = 0.04;
   var galX = -0.36;
   var galY = 0.035;
@@ -1404,7 +1590,13 @@ function infinityBlackhole(canvas, cfg) {
 
     /* Stirring spins the disk up, feeding makes it race, and the
        hole's own spin sets the base rate: frame dragging */
+    var spinBefore = spin;
     spin += dt * (1.0 + 0.9 * hoverCur + 2.4 * feedCur) * (0.55 + 0.75 * kerr);
+    phiNowS = phiNow;
+    stirS *= Math.exp(-dt * 3.5);
+    if (stirS < 0.002) {
+      stirS = 0;
+    }
 
     /* Twistor field: always faintly there, brightening as the pointer
        comes close, while dragging and when the hole feeds; a faster
@@ -1447,13 +1639,11 @@ function infinityBlackhole(canvas, cfg) {
 
     if (typeof cfg.onState === 'function' && (t - stateAt > 0.1 || reduced)) {
       stateAt = t;
-      /* galaxy magnification for a point lens: u = beta / thetaE,
-         mu = (u^2 + 2) / (u sqrt(u^2 + 4)) - the sum of both images */
+      /* u = beta / thetaE: how far the galaxy is from alignment */
       var gu = Math.sqrt(galX * galX + galY * galY) / GAL_THETA;
       cfg.onState({
         kerr: kerr, elev: elev, dragging: dragging || galDrag, hover: hoverCur, feed: feedCur,
-        galU: (cfg.galaxy && !lightTarget) ? gu : null,
-        galMu: (gu > 1e-3) ? (gu * gu + 2) / (gu * Math.sqrt(gu * gu + 4)) : Infinity
+        galU: (cfg.galaxy && !lightTarget) ? gu : null
       });
     }
 
@@ -1461,6 +1651,58 @@ function infinityBlackhole(canvas, cfg) {
     var cx = c[0];
     var cy = c[1];
     var zoom = zoomFor(canvas.clientWidth, canvas.clientHeight);
+
+    /* Plasma field: advect + decay + stir into the other target, then
+       splat this frame's particles on top, then hand it to the disk */
+    if (plasma) {
+      var nxt = 1 - plasma.cur;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, plasma.fbo[nxt]);
+      gl.viewport(0, 0, PLASMA_W, PLASMA_H);
+      gl.disable(gl.BLEND);
+      gl.useProgram(plasma.upd);
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+      gl.enableVertexAttribArray(plasma.updPos);
+      gl.vertexAttribPointer(plasma.updPos, 2, gl.FLOAT, false, 0, 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, plasma.tex[plasma.cur]);
+      gl.uniform1i(plasma.updLoc.u_prev, 0);
+      gl.uniform2f(plasma.updLoc.u_size, PLASMA_W, PLASMA_H);
+      gl.uniform1f(plasma.updLoc.u_dspin, spin - spinBefore);
+      gl.uniform1f(plasma.updLoc.u_dt, dt);
+      gl.uniform3f(plasma.updLoc.u_stir, stirX, stirY, stirS);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disableVertexAttribArray(plasma.updPos);
+
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE);
+      gl.useProgram(plasma.spk);
+      gl.bindBuffer(gl.ARRAY_BUFFER, partBuf);
+      gl.enableVertexAttribArray(plasma.spkAttr);
+      gl.vertexAttribPointer(plasma.spkAttr, 2, gl.FLOAT, false, 0, 0);
+      gl.uniform1f(plasma.spkLoc.u_spin, spin);
+      gl.uniform1f(plasma.spkLoc.u_feed, feedCur);
+      gl.uniform1f(plasma.spkLoc.u_gain, 1.0 + 1.5 * feedCur);
+      gl.drawArrays(gl.POINTS, 0, PART_COUNT);
+      gl.disableVertexAttribArray(plasma.spkAttr);
+
+      if (plasma.twp) {
+        gl.useProgram(plasma.twp);
+        gl.bindBuffer(gl.ARRAY_BUFFER, twpBuf);
+        gl.enableVertexAttribArray(plasma.twpAttr);
+        gl.vertexAttribPointer(plasma.twpAttr, 2, gl.FLOAT, false, 0, 0);
+        gl.uniform1f(plasma.twpLoc.u_time, t);
+        gl.uniform1f(plasma.twpLoc.u_spin, spin);
+        gl.uniform1f(plasma.twpLoc.u_kerr, kerr);
+        gl.uniform1f(plasma.twpLoc.u_feed, feedCur);
+        gl.uniform1f(plasma.twpLoc.u_gain, 1.6 + 2.0 * feedCur);
+        gl.drawArrays(gl.POINTS, 0, twpCount);
+        gl.disableVertexAttribArray(plasma.twpAttr);
+      }
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      plasma.cur = nxt;
+    }
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1486,6 +1728,10 @@ function infinityBlackhole(canvas, cfg) {
     gl.uniform1f(dPhi, phiNow);
     gl.uniform1f(dKerr, kerr);
     gl.uniform2f(dGal, cfg.galaxy ? galX : 99, cfg.galaxy ? galY : 99);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, plasma ? plasma.tex[plasma.cur] : null);
+    gl.uniform1i(dPlasma, 0);
+    gl.uniform1f(dPlasmaOn, plasma ? 1 : 0);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     /* Twistor pass, between the disk and the sparks */
@@ -1655,6 +1901,33 @@ function infinityBlackhole(canvas, cfg) {
       if (onGal) {
         probeTarget = 0;
       }
+    }
+
+    /* Stir the plasma: map the pointer onto the disk plane (the frame's
+       own foreshortening and precession) and inject in proportion to
+       how fast it is moving there. A resting cursor stirs nothing. */
+    if (plasma && !galDrag) {
+      var pu = pointerUv(ev.clientX, ev.clientY);
+      var nowS = performance.now();
+      if (pu) {
+        var cpS = Math.cos(phiNowS);
+        var spS = Math.sin(phiNowS);
+        var a0S = pu.x * cpS + pu.y * spS;
+        var b0S = -pu.x * spS + pu.y * cpS;
+        var dX = b0S;
+        var dY = -a0S / Math.max(Math.sin(elevNow), 0.12);
+        var rS = Math.sqrt(dX * dX + dY * dY);
+        var dtS = Math.max((nowS - stirLast) / 1000, 0.008);
+        var vS = Math.sqrt((ev.clientX - stirLX) * (ev.clientX - stirLX) + (ev.clientY - stirLY) * (ev.clientY - stirLY)) / dtS;
+        if (rS > 0.14 && rS < 1.0 && stirLast) {
+          stirX = dX;
+          stirY = dY;
+          stirS = Math.max(stirS, Math.min(1, vS / 900));
+        }
+      }
+      stirLast = nowS;
+      stirLX = ev.clientX;
+      stirLY = ev.clientY;
     }
     arm(near > 0.5);
     if (near > 0.5) {
@@ -2172,140 +2445,49 @@ function infinityHeroClicks(section) {
   section.addEventListener('auxclick', onClick, true);
 }
 
-/* ---------- Kerr readout ----------
-
-   Real Kerr quantities for the current spin, in units of M (G = c = 1):
-     horizon         r+   = 1 + sqrt(1 - a^2)
-     photon orbit    r_ph = 2 (1 + cos(2/3 acos(-a)))           prograde
-     ISCO            r_ms = 3 + Z2 - sqrt((3 - Z1)(3 + Z1 + 2 Z2)) prograde
-                     Z1 = 1 + (1 - a^2)^(1/3) ((1 + a)^(1/3) + (1 - a)^(1/3))
-                     Z2 = sqrt(3 a^2 + Z1^2)            (Bardeen, Press & Teukolsky 1972)
-     efficiency      eta  = 1 - sqrt(1 - 2 / (3 r_ms))  thin-disk binding energy at the ISCO
-     horizon spin    Omega_H = a / (2 r+)
-   Sanity: a = 0 gives r+ = 2, r_ph = 3, r_ms = 6, eta = 5.7%;
-   a = 0.998 gives r_ms ~ 1.24 and eta ~ 32%. */
-function infinityKerr(a) {
-  'use strict';
-  a = Math.max(0, Math.min(0.9999, a));
-  var rp = 1 + Math.sqrt(1 - a * a);
-  var z1 = 1 + Math.cbrt(1 - a * a) * (Math.cbrt(1 + a) + Math.cbrt(1 - a));
-  var z2 = Math.sqrt(3 * a * a + z1 * z1);
-  var isco = 3 + z2 - Math.sqrt(Math.max(0, (3 - z1) * (3 + z1 + 2 * z2)));
-  return {
-    a: a,
-    rp: rp,
-    rph: 2 * (1 + Math.cos(2 / 3 * Math.acos(-a))),
-    isco: isco,
-    eta: 1 - Math.sqrt(1 - 2 / (3 * isco)),
-    omega: a / (2 * rp)
-  };
-}
-
 var infinityHeroBh = null;
-var infinityHudEl = null;
-var infinityHudRows = null;
-var infinityHudSeen = -1e9;
 var infinityGalTag = null;
+var infinityGalTagIntro = 0;
 
-/* The readout floats beside the hole on wide screens while the visitor
-   is playing with it - pointer close, dragging, or a feed in progress -
-   and fades a couple of seconds after they stop. Decorative (the feed
-   button's live region speaks for keyboard users), so aria-hidden. */
+/* A small "drag me" tag on the lensed galaxy's primary image, so the
+   galaxy can be found: shown for a few seconds as the hero arrives,
+   and again while the pointer is near the hole. Hidden while dragging,
+   near alignment (it is the ring by then), off the section, on narrow
+   screens and in paper mode. Decorative, so aria-hidden. */
 function infinityHeroHud(st) {
   'use strict';
   var bh = infinityHeroBh;
-  if (!bh || !bh.interactive || window.innerWidth < 1100) {
-    if (infinityHudEl) {
-      infinityHudEl.classList.remove('is-on');
+  if (!bh || !bh.interactive || window.innerWidth < 1100 || !bh.galaxyEnabled()) {
+    if (infinityGalTag) {
+      infinityGalTag.classList.remove('is-on');
     }
     return;
   }
-  if (!infinityHudEl) {
+  var now = performance.now();
+  if (!infinityGalTag) {
     var section = document.getElementById('fp-blackhole');
     section = section && section.parentNode;
     if (!section) {
       return;
     }
-    infinityHudEl = document.createElement('div');
-    infinityHudEl.className = 'bh-hud';
-    infinityHudEl.setAttribute('aria-hidden', 'true');
-    var rows = [['a', 'a<sub>*</sub>'], ['i', 'i'], ['rp', 'r<sub>+</sub>'], ['rph', 'r<sub>ph</sub>'], ['isco', 'r<sub>isco</sub>'], ['eta', '\u03B7'], ['mu', '\u03BC<sub>gal</sub>']];
-    var html = '<p class="bh-hud-title">Kerr metric</p><dl>';
-    rows.forEach(function (r) {
-      html += '<dt>' + r[1] + '</dt><dd data-k="' + r[0] + '"></dd>';
-    });
-    html += '</dl><p class="bh-hud-hint">drag \u2194 spin \u00B7 \u2195 tilt \u00B7 click to feed<br>grab the galaxy \u2726 and drag it behind the hole</p>';
-    infinityHudEl.innerHTML = html;
-    section.appendChild(infinityHudEl);
-    /* introduce it: shown for a few seconds as the hero arrives, so
-       visitors learn the hole can be dragged before they go looking */
-    infinityHudSeen = performance.now() + 2500;
-    infinityHudRows = {};
-    Array.prototype.forEach.call(infinityHudEl.querySelectorAll('dd'), function (dd) {
-      infinityHudRows[dd.getAttribute('data-k')] = dd;
-    });
+    infinityGalTag = document.createElement('div');
+    infinityGalTag.className = 'bh-gal-tag';
+    infinityGalTag.setAttribute('aria-hidden', 'true');
+    infinityGalTag.innerHTML = '<span class="bh-gal-ring"></span><span class="bh-gal-label">\u2726 galaxy \u00B7 drag me</span>';
+    section.appendChild(infinityGalTag);
+    infinityGalTagIntro = now + 4500;
   }
-
-  var now = performance.now();
-  if (st.dragging || st.hover > 0.35 || st.feed > 0.15) {
-    infinityHudSeen = now;
+  var gi = bh.galaxyImage();
+  var pr = infinityGalTag.parentNode.getBoundingClientRect();
+  var gx = gi.x - pr.left;
+  var gy = gi.y - pr.top;
+  var show = (now < infinityGalTagIntro || st.hover > 0.35) && !st.dragging &&
+    st.galU !== null && st.galU > 0.55 &&
+    gx > 20 && gx < pr.width - 20 && gy > 20 && gy < pr.height - 20;
+  infinityGalTag.classList.toggle('is-on', show);
+  if (show) {
+    infinityGalTag.style.transform = 'translate(' + Math.round(gx) + 'px,' + Math.round(gy) + 'px)';
   }
-  var on = now - infinityHudSeen < 2200;
-  infinityHudEl.classList.toggle('is-on', on);
-
-  /* Point at the galaxy while the readout is up, so "grab the galaxy"
-     has something to grab: tagged at its primary image, hidden near
-     alignment (it is the ring by then) and when off the section. */
-  if (bh.galaxyEnabled && bh.galaxyEnabled()) {
-    if (!infinityGalTag) {
-      infinityGalTag = document.createElement('div');
-      infinityGalTag.className = 'bh-gal-tag';
-      infinityGalTag.setAttribute('aria-hidden', 'true');
-      infinityGalTag.innerHTML = '<span class="bh-gal-ring"></span><span class="bh-gal-label">\u2726 galaxy \u00B7 drag me</span>';
-      infinityHudEl.parentNode.appendChild(infinityGalTag);
-    }
-    var gi = bh.galaxyImage();
-    var pr = infinityHudEl.parentNode.getBoundingClientRect();
-    var gx = gi.x - pr.left;
-    var gy = gi.y - pr.top;
-    var showTag = on && !st.dragging && st.galU !== null && st.galU > 0.55 &&
-      gx > 20 && gx < pr.width - 20 && gy > 20 && gy < pr.height - 20;
-    infinityGalTag.classList.toggle('is-on', showTag);
-    if (showTag) {
-      infinityGalTag.style.transform = 'translate(' + Math.round(gx) + 'px,' + Math.round(gy) + 'px)';
-    }
-  } else if (infinityGalTag) {
-    infinityGalTag.classList.remove('is-on');
-  }
-
-  if (!on) {
-    return;
-  }
-
-  var k = infinityKerr(st.kerr);
-  infinityHudRows.a.textContent = k.a.toFixed(3);
-  infinityHudRows.i.textContent = Math.round(90 - st.elev * 180 / Math.PI) + '\u00B0';
-  infinityHudRows.rp.textContent = k.rp.toFixed(2) + ' M';
-  infinityHudRows.rph.textContent = k.rph.toFixed(2) + ' M';
-  infinityHudRows.isco.textContent = k.isco.toFixed(2) + ' M';
-  infinityHudRows.eta.textContent = (k.eta * 100).toFixed(1) + '%';
-  /* the galaxy's total magnification: only meaningful while it is
-     near the lens; at alignment it is formally infinite (the ring) */
-  if (st.galU === null || st.galU > 3) {
-    infinityHudRows.mu.textContent = '\u2014';
-  } else if (!isFinite(st.galMu) || st.galMu > 999) {
-    infinityHudRows.mu.textContent = 'ring';
-  } else {
-    infinityHudRows.mu.textContent = '\u00D7' + st.galMu.toFixed(st.galMu < 10 ? 2 : 1);
-  }
-
-  /* upper right of the disk, in open sky, kept inside the section */
-  var parent = infinityHudEl.parentNode.getBoundingClientRect();
-  var h = bh.hole();
-  var w = infinityHudEl.offsetWidth;
-  var x = Math.min(h.x - parent.left + h.r * 0.48, parent.width - w - 12);
-  var y = Math.max(12, h.y - parent.top - h.r * 0.80);
-  infinityHudEl.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
 }
 
 /* Hero furniture that drives the black hole: the accessible feed
@@ -2404,9 +2586,7 @@ function infinityHeroControls(section, bh) {
       if (live && dk) {
         clearTimeout(spinTimer);
         spinTimer = setTimeout(function () {
-          var k = infinityKerr(bh.spinTarget());
-          live.textContent = 'Spin a* ' + k.a.toFixed(2) + '. Innermost stable orbit ' +
-            k.isco.toFixed(1) + ' M, disk efficiency ' + Math.round(k.eta * 100) + ' percent.';
+          live.textContent = 'Black hole spin ' + bh.spinTarget().toFixed(2) + '.';
         }, 700);
       }
     });
@@ -2497,6 +2677,8 @@ function infinityHeroControls(section, bh) {
       twistorParticles: small ? { n: 36, tail: 6 } : { n: 110, tail: 9 },
       scrollTilt: true,
       galaxy: true,
+      /* particles heat and stir the disk through the plasma field */
+      plasma: true,
       tint: INFINITY_BH_TINTS[hero.getAttribute('data-bh-tint')] || INFINITY_BH_TINTS.space,
       probe: true,
       zoom: function (w, h) {

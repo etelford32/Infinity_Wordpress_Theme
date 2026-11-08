@@ -3,6 +3,39 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.14.0
+
+- **Removed the Kerr readout panel** from the hero (the stats beside the
+  hole, including the μ<sub>gal</sub> row) and its CSS. The "✦ galaxy ·
+  drag me" tag stays, now on its own timing: a few seconds when the page
+  loads, and again whenever the pointer is near the hole. The arrow-key
+  announcement now gives only the spin.
+- **Particles now move the plasma** (`assets/js/blackhole.js`): a new
+  plasma field couples the particles to the disk.
+  - **The field:** a 512×128 RGBA8 texture in the disk's polar
+    coordinates, swapped between two buffers each frame. Its red channel
+    holds heat and its green channel holds turbulence.
+  - **What feeds it:** every spark, and every twistor particle where it
+    crosses the disk plane, deposits heat and turbulence where it
+    passes. These splats run through the same orbit functions as the
+    drawn particles, so the wakes line up exactly with what you see.
+  - **How it evolves:** each frame the field is carried along with the
+    gas under Keplerian differential rotation, Ω ∝ r^−3/2 (the sparks'
+    own orbital law). On a polar grid that is just a radius-dependent
+    shift in angle, so wakes shear into trailing spirals on their own.
+    The field also drifts slowly inward and fades over about 2.4 s.
+  - **What the disk does with it:** the disk samples the field in every
+    slice. Heated gas burns brighter and whiter, and turbulence warps the
+    filaments, so the plasma visibly bends around each particle's path.
+    Feeding raises the deposits.
+  - **The cursor stirs it too:** pointer motion over the disk is mapped
+    onto the disk plane and injects heat and turbulence in proportion to
+    speed, so a still cursor stirs nothing.
+  - **Fallbacks:** the field is off under reduced motion, and it switches
+    itself off if a framebuffer can't be created.
+- The spark and twistor-particle orbits now live in shared GLSL
+  functions, `sparkOrbit()` and `twParticle()`.
+
 ## 3.13.0
 
 - **Drag the galaxy behind the hole** (`assets/js/blackhole.js`):

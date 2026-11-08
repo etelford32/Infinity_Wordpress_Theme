@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.13.0
+Version: 3.14.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -5301,7 +5301,7 @@ html[data-mode="light"] .theme-toggle-knob {
 }
 
 /* ==========================================================================
-   21.0 Black hole: drag, Kerr readout
+   21.0 Black hole: drag
    ========================================================================== */
 
 /* A backdrop drag winds the spin and tilts the camera */
@@ -5312,90 +5312,6 @@ html[data-mode="light"] .theme-toggle-knob {
   user-select: none;
 }
 
-/* Live Kerr readout, floated beside the hole by blackhole.js */
-.bh-hud {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  min-width: 158px;
-  padding: 10px 12px 9px;
-  border-radius: 10px;
-  border: 1px solid rgba(143, 196, 255, 0.28);
-  background: rgba(8, 12, 26, 0.58);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  color: #cfe0ff;
-  font: 500 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 420ms ease;
-}
-
-.bh-hud.is-on {
-  opacity: 1;
-}
-
-.bh-hud-title {
-  margin: 0 0 5px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #8fc4ff;
-}
-
-.bh-hud dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1px 14px;
-  margin: 0;
-}
-
-.bh-hud dt {
-  color: #8a98bd;
-  font-style: italic;
-}
-
-.bh-hud dd {
-  margin: 0;
-  text-align: right;
-  color: #f0f4ff;
-}
-
-.bh-hud sub {
-  font-size: 0.75em;
-  font-style: normal;
-}
-
-.bh-hud-hint {
-  margin: 6px 0 0;
-  padding-top: 5px;
-  border-top: 1px solid rgba(143, 196, 255, 0.16);
-  font-size: 9.5px;
-  color: #7f8cb0;
-  white-space: nowrap;
-}
-
-[data-mode="light"] .bh-hud {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(30, 58, 138, 0.22);
-  color: #1e2a55;
-}
-
-[data-mode="light"] .bh-hud-title { color: #1d4ed8; }
-[data-mode="light"] .bh-hud dt { color: #5b6585; }
-[data-mode="light"] .bh-hud dd { color: #10162e; }
-[data-mode="light"] .bh-hud-hint { color: #5b6585; border-top-color: rgba(30, 58, 138, 0.14); }
-
-@media (max-width: 1099px) {
-  .bh-hud { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bh-hud { transition: none; }
-}
 
 /* The lensed galaxy can be grabbed: any of its images, arcs included */
 .bh-over-galaxy,
