@@ -925,6 +925,7 @@ require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';
 require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 require_once INFINITY_DIR . '/inc/analytics-rum.php';
+require_once INFINITY_DIR . '/inc/analytics-hero.php';
 
 if (is_admin()) {
     require_once INFINITY_DIR . '/inc/admin-posts.php';
@@ -1477,6 +1478,14 @@ function infinity_fp_first_category_link($slugs_csv) {
 /**
  * Homepage Content customizer settings
  */
+/**
+ * Hero holdout share, clamped to 0–50 so the interactive arm is never
+ * the minority.
+ */
+function infinity_sanitize_holdout($value) {
+    return max(0, min(50, absint($value)));
+}
+
 function infinity_front_page_customize_register($wp_customize) {
     $wp_customize->add_section('infinity_front_page', array(
         'title'       => esc_html__('Homepage Content', 'infinity'),
@@ -1490,6 +1499,13 @@ function infinity_front_page_customize_register($wp_customize) {
             'description' => esc_html__('Post ID for the Featured slot below the hero (e.g. the mushroom article). The hero always leads with the newest article; leave 0 to feature the newest sticky post instead, or nothing if there is none.', 'infinity'),
             'default'     => 0,
             'sanitize'    => 'absint',
+            'type'        => 'number',
+        ),
+        'infinity_hero_holdout' => array(
+            'label'       => esc_html__('Hero experiment: holdout %', 'infinity'),
+            'description' => esc_html__('Share of visitor sessions (0–50) that get the black hole without its interactions — no stirring, feeding, lens or read transition — so Analytics → Homepage Hero can measure whether the effects help or hurt clicks on the lead article. 0 turns the experiment off.', 'infinity'),
+            'default'     => 0,
+            'sanitize'    => 'infinity_sanitize_holdout',
             'type'        => 'number',
         ),
         'infinity_pillar_health_slugs' => array(

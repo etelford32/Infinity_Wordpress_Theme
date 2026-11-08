@@ -70,7 +70,7 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
 
     <!-- ================= Hero: black hole ================= -->
     <section class="fp-hero fp-hero-blackhole">
-        <canvas id="fp-blackhole" aria-hidden="true"<?php if ($infinity_lead_pillar) : ?> data-bh-tint="<?php echo esc_attr($infinity_lead_pillar); ?>"<?php endif; ?>></canvas>
+        <canvas id="fp-blackhole" aria-hidden="true" data-bh-holdout="<?php echo (int) get_option('infinity_hero_holdout', 0); ?>"<?php if ($infinity_lead_pillar) : ?> data-bh-tint="<?php echo esc_attr($infinity_lead_pillar); ?>"<?php endif; ?>></canvas>
         <p class="screen-reader-text" aria-live="polite" data-bh-live data-msg="<?php esc_attr_e("Accretion flare: the black hole is feeding.", 'infinity'); ?>"></p>
         <div class="container">
             <div class="fp-hero-inner">

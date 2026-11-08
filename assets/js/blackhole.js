@@ -772,6 +772,22 @@ function infinityBlackhole(canvas, cfg) {
   var spin = 0;
   var prevT = 0;
 
+  /* Analytics hook: cfg.onAction(name) hears what the visitor does to
+     the scene itself. Each one-off action reports once per page. */
+  var reported = {};
+  function emit(name, once) {
+    if (once) {
+      if (reported[name]) {
+        return;
+      }
+      reported[name] = true;
+    }
+    if (typeof cfg.onAction === 'function') {
+      cfg.onAction(name);
+    }
+  }
+  var lensHeld = 0;
+
   /* Pointer lens: target position in the shader's hole-relative uv
      (y up, before the frame tilt) and a strength that fades in over
      the open sky and out near the hole. The position is eased too, so
@@ -839,6 +855,20 @@ function infinityBlackhole(canvas, cfg) {
     probeX += (probeTX - probeX) * Math.min(1, dt * 9.0);
     probeY += (probeTY - probeY) * Math.min(1, dt * 9.0);
     probeCur += (probeTarget - probeCur) * Math.min(1, dt * 5.0);
+    /* the lens counts as used once it has been held over open sky for
+       a second and a half, not when the cursor merely crosses it */
+    if (probeCur > 0.5 && !reported.lens) {
+      /* wall clock, not summed frame dt: dt is capped per frame, so a
+         slow device would otherwise need far longer than 1.5s */
+      var nowMs = performance.now();
+      if (!lensHeld) {
+        lensHeld = nowMs;
+      } else if (nowMs - lensHeld > 1500) {
+        emit('lens', true);
+      }
+    } else if (probeCur <= 0.5) {
+      lensHeld = 0;
+    }
     if (Math.abs(probeTarget - probeCur) < 0.004) {
       probeCur = probeTarget;
     }
@@ -986,6 +1016,9 @@ function infinityBlackhole(canvas, cfg) {
     probeTY = -dy;
     probeTarget = (cfg.probe && !lightTarget) ? smooth(0.32, 0.62, dist) : 0;
     arm(near > 0.5);
+    if (near > 0.5) {
+      emit('stir', true);
+    }
     if (!raf) {
       raf = requestAnimationFrame(frame);
     }
@@ -1046,6 +1079,7 @@ function infinityBlackhole(canvas, cfg) {
     }
     if (ev.pointerType === 'mouse') {
       feed(1);
+      emit('feed');
       return;
     }
     tapId = ev.pointerId;
@@ -1069,6 +1103,7 @@ function infinityBlackhole(canvas, cfg) {
     tapId = -1;
     if (performance.now() - tapAt <= TAP_MS && tapMoved <= TAP_SLOP) {
       feed(1);
+      emit('feed');
     }
   }
 
@@ -1141,6 +1176,98 @@ var INFINITY_BH_TINTS = {
   travel:  [1.15, 0.85, 0.40, 0.45]
 };
 
+/* ---------- hero analytics ----------
+
+   What visitors do in the hero is pushed onto window.infinityHeroQ.
+   This file knows nothing about analytics: rum.js (loaded only for
+   logged-out visitors, and deferred, so usually after this runs)
+   drains whatever is queued and swaps in a live push. Nothing is
+   recorded when the collector is absent. Every entry carries the
+   session's experiment arm, so the dashboard can split by it. */
+var infinityHeroVariant = '';
+var infinityHeroStart = 0;
+
+function infinityHeroTrack(action, extra) {
+  'use strict';
+  var entry = { action: action, variant: infinityHeroVariant };
+  if (extra) {
+    for (var k in extra) {
+      if (Object.prototype.hasOwnProperty.call(extra, k)) {
+        entry[k] = extra[k];
+      }
+    }
+  }
+  (window.infinityHeroQ = window.infinityHeroQ || []).push(entry);
+}
+
+/* The experiment arm for this tab. A holdout share of sessions
+   (Customizer, data-bh-holdout) gets the calm hero: the same animated
+   black hole with none of its interactions. The random roll, not the
+   arm, is what sessionStorage keeps, so the arm stays put for the life
+   of the tab and a changed holdout share reassigns consistently.
+   Visitors who could not get the interactive hero anyway (reduced
+   motion, no WebGL) are 'static' and sit outside the comparison. */
+function infinityHeroArm(canvas) {
+  'use strict';
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return 'static';
+  }
+  var holdout = parseInt(canvas.getAttribute('data-bh-holdout'), 10) || 0;
+  if (holdout <= 0) {
+    return 'fx';
+  }
+  var roll = NaN;
+  try {
+    roll = parseFloat(sessionStorage.getItem('infHeroRoll'));
+    if (!(roll >= 0 && roll < 100)) {
+      roll = Math.random() * 100;
+      sessionStorage.setItem('infHeroRoll', String(roll));
+    }
+  } catch (e) {
+    /* no storage: a fresh roll per page view still splits fairly */
+    roll = Math.random() * 100;
+  }
+  return roll < holdout ? 'calm' : 'fx';
+}
+
+/* Where clicks inside the hero go. Runs in every arm, including the
+   calm and static ones, because it is the outcome being compared. */
+function infinityHeroClicks(section) {
+  'use strict';
+  var MAP = [
+    ['.fp-lead-title a, .fp-lead-media', 'lead-click'],
+    ['.fp-lead-cat', 'lead-cat'],
+    ['.fp-hero-latest-pill', 'also-new'],
+    ['.fp-pillar-nav a', 'pillar-nav'],
+    ['.hero-steam-card a', 'wishlist']
+  ];
+
+  function onClick(ev) {
+    /* left clicks, plus middle clicks via auxclick (new-tab opens) */
+    if (ev.type === 'auxclick' && ev.button !== 1) {
+      return;
+    }
+    var t = ev.target;
+    if (!t || !t.closest) {
+      return;
+    }
+    for (var i = 0; i < MAP.length; i++) {
+      if (t.closest(MAP[i][0])) {
+        var extra = null;
+        if (MAP[i][1] === 'lead-click' && infinityHeroStart) {
+          extra = { sec: (performance.now() - infinityHeroStart) / 1000 };
+        }
+        infinityHeroTrack(MAP[i][1], extra);
+        return;
+      }
+    }
+  }
+
+  /* capture: recorded before the read transition takes over the click */
+  section.addEventListener('click', onClick, true);
+  section.addEventListener('auxclick', onClick, true);
+}
+
 /* Hero furniture that drives the black hole: the accessible feed
    button and the read transition on the lead card. */
 function infinityHeroControls(section, bh) {
@@ -1195,6 +1322,7 @@ function infinityHeroControls(section, bh) {
     btn.hidden = false;
     btn.addEventListener('click', function () {
       bh.feed(1);
+      infinityHeroTrack('feed-btn');
       btn.classList.remove('is-pulsing');
       void btn.offsetWidth; /* restart the ring animation */
       btn.classList.add('is-pulsing');
@@ -1243,6 +1371,7 @@ function infinityHeroControls(section, bh) {
       card.style.setProperty('--bh-ang', Math.atan2(dy, dx).toFixed(3) + 'rad');
       card.classList.add('is-falling');
       bh.feed(0.8);
+      infinityHeroTrack('read-fall');
     } catch (e) {
       window.location.assign(href);
       return;
@@ -1284,7 +1413,10 @@ function infinityHeroControls(section, bh) {
        the disk inside its column at every aspect, where a fixed zoom let
        it grow with the section height - huge on a tall phone hero. */
     var WIDE = 1100;
+    infinityHeroStart = performance.now();
+    infinityHeroVariant = infinityHeroArm(hero);
     var heroBh = infinityBlackhole(hero, {
+      onAction: function (name) { infinityHeroTrack(name); },
       tint: INFINITY_BH_TINTS[hero.getAttribute('data-bh-tint')] || INFINITY_BH_TINTS.space,
       probe: true,
       zoom: function (w, h) {
@@ -1293,7 +1425,8 @@ function infinityHeroControls(section, bh) {
       },
       variant: 0,
       followTheme: true,
-      interactive: true,
+      /* the calm arm keeps the animation, loses the interactions */
+      interactive: infinityHeroVariant === 'fx',
       particles: small ? { n: 34, tail: 5 } : { n: 90, tail: 8 },
       slices: small ? 2 : 3,
       center: function (w, h) {
@@ -1304,6 +1437,12 @@ function infinityHeroControls(section, bh) {
         return [0.62, 1 - Math.min(170 / Math.max(h, 1), 0.4)];
       }
     });
+    if (!heroBh) {
+      /* no WebGL: the CSS fallback can't be interactive either */
+      infinityHeroVariant = 'static';
+    }
+    infinityHeroTrack('impression');
+    infinityHeroClicks(hero.parentNode);
     infinityHeroControls(hero.parentNode, heroBh);
   }
 
