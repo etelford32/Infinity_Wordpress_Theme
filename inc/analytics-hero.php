@@ -28,7 +28,7 @@ if (!defined('ABSPATH')) {
 
 /** Actions that count as playing with the hole, as opposed to reading. */
 function infinity_hero_play_actions() {
-    return array('stir', 'lens', 'feed', 'feed-btn');
+    return array('stir', 'lens', 'orbit', 'feed', 'feed-btn');
 }
 
 /** Actions that take the visitor into content from the hero. */
@@ -232,6 +232,7 @@ function infinity_hero_render_page() {
         'impression' => __('Hero shown', 'infinity'),
         'stir'       => __('Stirred the disk (pointer reached the hole)', 'infinity'),
         'lens'       => __('Held the pointer lens over the sky', 'infinity'),
+        'orbit'      => __('Spun or tilted the hole (drag / arrow keys)', 'infinity'),
         'feed'       => __('Fed the hole (backdrop click / tap)', 'infinity'),
         'feed-btn'   => __('Fed the hole (button)', 'infinity'),
         'read-fall'  => __('Read transition played', 'infinity'),

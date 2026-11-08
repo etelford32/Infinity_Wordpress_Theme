@@ -25,6 +25,7 @@ interactive. Every item is scoped to fit the current constraints:
 | Article-aware stir (new) | Hovering or focusing the lead card holds the disk at a gentle stir. |
 | Controls never feed (new) | Pressing a link, the card, or the Steam widget no longer triggers a feeding event. |
 | Phase 1 (3.9.0) | Feed button + live region, read transition, pillar tint, pointer lens. See below. |
+| Twistor dynamics (3.11.0) | Robinson-congruence field, drag to spin/tilt, Kerr shadow and ISCO, live Kerr readout, scroll tilt. See below. |
 | Theme crossfade | Night ↔ paper palette follows the site toggle. |
 
 ## Phase 1: shipped in 3.9.0
@@ -54,9 +55,35 @@ interactive. Every item is scoped to fit the current constraints:
    shows a faint, lumpy Einstein ring. It fades out near the hole so the
    two lenses never meet at the photon ring. Night mode and mouse only.
 
+## Twistor dynamics: shipped in 3.11.0
+
+- **The Robinson congruence**, drawn as a live field of linked, twisting
+  light rays on nested tori around the spin axis: the hole's own
+  shear-free principal null congruence (Kerr theorem), built from
+  stereographically projected Hopf fibres. It's frame-dragged at a
+  rate set by the spin, light pulses run along every fibre, and threads
+  passing behind the hole are lensed around the shadow.
+- **Drag to spin and tilt** (this was item 5): horizontal drag winds a*
+  from 0 to 0.998 and vertical drag tilts the camera. A click still
+  feeds. Arrow keys on the feed button do the same, with a spoken
+  summary. The spin relaxes back to rest over ~20s; the tilt springs
+  back in about 2s.
+- **Spin-dependent geometry** (a first pass at item 9): an approximate
+  Kerr "D" shadow, flattened on the approaching side, scaled by a*² and
+  by how edge-on the view is. The ISCO moves inward with spin, and the
+  disk spins faster as the hole does.
+- **Live Kerr readout** (the readout part of item 8): a*, inclination,
+  r₊, prograde r_ph and r_isco, and thin-disk efficiency η, from the
+  exact formulas. It appears while you play and for a few seconds on
+  arrival.
+- **Scroll tilt** (item 7): the disk lays toward edge-on as the hero
+  scrolls away.
+- **3D sparks**: the swarm now uses the disk's exact camera, and sparks
+  behind the hole are lensed instead of drawn across the shadow.
+
 ## Phase 2: "play with it" (≈3–5 days)
 
-5. **Drag to orbit.** Dragging on the empty backdrop changes the
+5. **Drag to orbit.** *(Shipped in 3.11.0 as drag to spin and tilt.)* Dragging on the empty backdrop changes the
    disk's inclination and precession angle (`elev`, `phi`) with inertia
    and an elastic return to the resting pose. Both values already drive
    the shader, so this only needs two uniforms in place of the current

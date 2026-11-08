@@ -3,6 +3,46 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.11.0
+
+- **Twistor dynamics for the black hole** (`assets/js/blackhole.js`): a
+  new render pass draws the hole's principal null congruence as a
+  Robinson congruence. That is the linked, twisting light rays of
+  Penrose's twistor picture, which the Kerr theorem identifies with a
+  spinning hole's shear-free null congruence. It is built from
+  stereographically projected Hopf fibres on three nested tori around
+  the spin axis, with the ring radius tracking a*. The field is
+  frame-dragged at a spin-dependent rate, light pulses run along every
+  fibre (faster with spin and when feeding), and threads that pass
+  behind the hole are point-lensed around the shadow. It is drawn as
+  cool cyan-violet threads at night and as ink on paper.
+- **Drag to spin and tilt**: dragging the backdrop horizontally with a
+  mouse or pen winds the spin a* from 0 to 0.998, and dragging
+  vertically tilts the camera. A press without a drag still feeds.
+  Touch is unchanged (a tap feeds, a drag scrolls). The spin relaxes
+  over ~20s and the tilt springs back in about 2s. Arrow keys on the
+  "Feed the black hole" button do the same, and the new spin is
+  announced.
+- **Kerr geometry**: the shadow flattens into the Kerr "D" on the
+  approaching side (scaled by a*² and how edge-on the view is), the
+  disk's inner edge follows the spin-dependent ISCO, and the disk
+  rotates faster as the spin rises.
+- **Live Kerr readout** on wide screens: a*, inclination, r₊, prograde
+  r_ph and r_isco, and thin-disk efficiency η, using exact formulas
+  (Bardeen, Press & Teukolsky 1972). It shows while you interact and
+  for a few seconds when the page loads.
+- **Scroll tilt**: the disk lays toward edge-on as the hero scrolls out
+  of view.
+- **3D sparks**: the swarm uses the disk's exact camera, so it tilts
+  with the view, and sparks behind the hole are lensed around the
+  shadow instead of being drawn on top of it.
+- The camera (`u_elev`, `u_phi`) and spin (`u_kerr`) are now driven from
+  JS. The new config options are `cfg.twistor`, `cfg.scrollTilt`,
+  `cfg.kerr` and `cfg.onState`, and the handle gains `nudge()` and
+  `spinTarget()`.
+- **Analytics**: a new `orbit` hero action (spin or tilt by drag or
+  keys) counts as playing with the hole on Analytics → Homepage Hero.
+
 ## 3.10.0
 
 - **Hero engagement metrics** (`assets/js/rum.js`, `inc/analytics-rum.php`):

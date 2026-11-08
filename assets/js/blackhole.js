@@ -90,6 +90,9 @@ function infinityBlackhole(canvas, cfg) {
     'uniform float u_feed;',  /* 1 on a feeding event, decaying to 0 */
     'uniform vec3 u_probe;',  /* pointer lens: xy in hole-relative uv, z strength */
     'uniform vec4 u_tint;',   /* pillar grade: rgb hue, a amount (0 = none) */
+    'uniform float u_elev;',  /* camera elevation above the disk plane (rad) */
+    'uniform float u_phi;',   /* precession azimuth of the disk normal (rad) */
+    'uniform float u_kerr;',  /* dimensionless spin a* = a/M, 0..0.998 */
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -197,7 +200,10 @@ function infinityBlackhole(canvas, cfg) {
     '     The jets are deliberately NOT rotated by any of this. They ride',
     '     the hole spin axis, which is the axis the disk precesses around,',
     '     so the disk wobbles and the beams hold still. */',
-    '  float elev = 0.310 + 0.086 * sin(u_time * 0.055) + 0.075 * u_hover + 0.105 * u_feed;',
+    '  /* The camera now lives in JS (u_elev), so a drag can tilt it and',
+    '     scrolling can lay the disk edge-on; the breathing, stir and feed',
+    '     terms that used to be summed here are summed there instead. */',
+    '  float elev = u_elev;',
     '  float sinE = max(sin(elev), 0.12);',
     '  float squash = 1.0 / sinE;',
     '  float cosE = sqrt(max(1.0 - sinE * sinE, 0.0));',
@@ -206,9 +212,7 @@ function infinityBlackhole(canvas, cfg) {
     '     the radial term of the warp: the warp cannot depend on itself. */',
     '  float r0 = length(vec2(uv.x, uv.y * squash));',
     '  float lag = 0.80 / (0.55 + r0 * r0 * 4.0);',
-    '  float phi = 1.5707963',
-    '            + 0.20 * sin(u_time * 0.083)',
-    '            + lag * 0.30 * sin(u_time * 0.147 + 0.7);',
+    '  float phi = u_phi + lag * 0.30 * sin(u_time * 0.147 + 0.7);',
     '',
     '  float cp = cos(phi);',
     '  float sp = sin(phi);',
@@ -222,7 +226,24 @@ function infinityBlackhole(canvas, cfg) {
     '  float r = length(p);',
     '  float ang = atan(p.y, p.x);',
     '',
-    '  float rc = length(uv * vec2(1.0, 1.12));',
+    '  /* ---- Kerr shadow ----',
+    '     A spinning hole\'s shadow is not a circle. Photons orbiting with',
+    '     the spin (prograde) can skim much closer than those orbiting',
+    '     against it, so seen from near the equator the shadow is flattened',
+    '     on the approaching side - the side the disk beams toward us,',
+    '     +b0 here - and bulges slightly on the receding one: the Kerr "D".',
+    '     How much depends on a*^2 and on how edge-on we sit (cosE), which',
+    '     is why winding the spin up visibly squares one side off.',
+    '',
+    '     Every ring, arc and the horizon itself are measured off rc, so',
+    '     reshaping rc here bends all of them into the D together. */',
+    '  vec2 nodeDir = vec2(-sp, cp);',
+    '  float rc0 = length(uv * vec2(1.0, 1.12));',
+    '  float cosA = dot(uv, nodeDir) / max(length(uv), 1e-4);',
+    '  float kEdge = u_kerr * u_kerr * cosE;',
+    '  float flatSide = 0.30 * kEdge * pow(max(cosA, 0.0), 3.0);',
+    '  float bulge = 0.07 * kEdge * max(-cosA, 0.0);',
+    '  float rc = rc0 / max(1.0 - flatSide, 0.5) * (1.0 - bulge);',
     '  float rsky = length(uv);',
     '  /* Radius remap. A small 1/r pull so the hot inner annulus crowds',
     '     toward the hole. It used to be 0.05/r, which pushed the disk\'s',
@@ -240,6 +261,11 @@ function infinityBlackhole(canvas, cfg) {
     '  float tq = clamp((rr - 0.50) / 0.46, -1.0, 1.0);',
     '  float H = (0.082 + 0.042 * u_hover + 0.072 * u_feed)',
     '          * sqrt(max(1.0 - tq * tq, 0.0)) * (0.60 + 0.70 * clamp(rr, 0.0, 1.0));',
+    '',
+    '  /* The ISCO moves in as the spin rises (6M at a* = 0, ~1.2M at',
+    '     0.998 for prograde orbits), so the inner edge of the disk follows',
+    '     u_kerr and creeps toward the shadow as the hole is wound up. */',
+    '  float iscoK = mix(1.14, 0.80, u_kerr);',
     '',
     '  float bright = 0.0;',
     '  float trans = 1.0;',
@@ -300,7 +326,7 @@ function infinityBlackhole(canvas, cfg) {
     '    float sB = fbm(vec2((sw - sign(as) * 6.2831853) * 2.3, rrs * 10.0 - u_spin * 0.1));',
     '    float streakS = pow(mix(sA, sB, wSeam), 1.6);',
     '',
-    '    float diskS = smoothstep(0.155, 0.26, rrs) * (1.0 - smoothstep(0.5, 0.95, rrs));',
+    '    float diskS = smoothstep(0.155 * iscoK, 0.26 * iscoK, rrs) * (1.0 - smoothstep(0.5, 0.95, rrs));',
     '    float e = diskS * (0.24 + 1.3 * streakS) * exp(-k * k * 0.95);',
     '',
     '    /* Orbiting hot spot: a compact flare just outside the ISCO, the',
@@ -331,7 +357,7 @@ function infinityBlackhole(canvas, cfg) {
     '  bright += topFace * 0.20;',
     '',
     '  /* Radial profile of the midplane, still wanted for the inner rim */',
-    '  float disk = smoothstep(0.155, 0.26, rr) * (1.0 - smoothstep(0.5, 0.95, rr));',
+    '  float disk = smoothstep(0.155 * iscoK, 0.26 * iscoK, rr) * (1.0 - smoothstep(0.5, 0.95, rr));',
     '',
     '  /* Hover churns the plasma: a finer turbulence layer rides on the',
     '     filaments and the contrast between them sharpens. Applied to the',
@@ -626,6 +652,46 @@ function infinityBlackhole(canvas, cfg) {
 
   /* ---------- particle pass: infalling sparks ---------- */
 
+  /* ---------- shared 3D projection for the geometry passes ----------
+
+     World space: x, y in the disk plane, z up the spin axis, in the
+     disk pass's own units. projectDisk() reproduces that pass's camera
+     exactly - foreshortening by sin(elev) along the precession azimuth,
+     height lifting along it by cos(elev), then undoing the frame's
+     fixed cant - so sparks and twistor lines sit IN the disk rather
+     than floating over a picture of it. z of the result is depth along
+     the view ray, positive beyond the hole.
+
+     lensBehind() is the point-lens primary image, theta = (beta +
+     sqrt(beta^2 + 4 thetaE^2)) / 2, switched on only for points behind
+     the hole. Anything passing behind is pushed out around the shadow
+     instead of being drawn across it, and lines bend into arcs as they
+     go round - the same lensing the disk pass ray-traces, applied per
+     vertex. */
+  var PROJ_GLSL = [
+    'uniform float u_elev;',
+    'uniform float u_phi;',
+    'vec3 projectDisk(vec3 w) {',
+    '  float sE = max(sin(u_elev), 0.12);',
+    '  float cE = sqrt(max(1.0 - sE * sE, 0.0));',
+    '  vec2 f = vec2(cos(u_phi), sin(u_phi));',
+    '  vec2 n = vec2(-f.y, f.x);',
+    '  vec2 uvR = w.x * n + (-w.y * sE + w.z * cE) * f;',
+    '  float t = 0.10;',
+    '  vec2 uvS = mat2(cos(t), -sin(t), sin(t), cos(t)) * uvR;',
+    '  return vec3(uvS, -w.y * cE - w.z * sE);',
+    '}',
+    'vec2 lensBehind(vec2 sc, float depth) {',
+    '  float b = length(sc);',
+    '  float tE = 0.168 * smoothstep(0.0, 0.06, depth);',
+    '  float th = 0.5 * (b + sqrt(b * b + 4.0 * tE * tE));',
+    '  return sc * (th / max(b, 1e-4));',
+    '}',
+    'vec4 toClip(vec2 sc, vec2 res, vec2 center, float zoom) {',
+    '  return vec4(sc / zoom * vec2(res.y / res.x, 1.0) * 2.0 + (center * 2.0 - 1.0), 0.0, 1.0);',
+    '}'
+  ].join('\n');
+
   var PART_VERT = [
     'precision highp float;',
     'attribute vec2 a_pt; /* x: particle seed, y: tail segment */',
@@ -637,6 +703,7 @@ function infinityBlackhole(canvas, cfg) {
     'uniform float u_feed;',
     'varying float v_heat;',
     'varying float v_fade;',
+    PROJ_GLSL,
     '',
     'void main() {',
     '  float seed = a_pt.x * 123.717;',
@@ -664,15 +731,11 @@ function infinityBlackhole(canvas, cfg) {
     '  float r = aAxis * shrink * (1.0 - ecc * ecc) / (1.0 + ecc * cos(theta - peri));',
     '  r = max(r, 0.125);',
     '',
-    '  vec2 p = vec2(cos(theta), sin(theta)) * r;',
-    '  p.y /= 3.3; /* disk inclination */',
-    '',
-    '  float tilt = 0.10;',
-    '  p = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * p;',
-    '  p /= u_zoom; /* match disk zoom */',
-    '',
-    '  vec2 clip = p * vec2(u_res.y / u_res.x, 1.0) * 2.0 + (u_center * 2.0 - 1.0);',
-    '  gl_Position = vec4(clip, 0.0, 1.0);',
+    '  /* Real 3D now: the same camera as the disk, so the swarm tilts',
+    '     with a drag and goes edge-on with the scroll; sparks behind',
+    '     the hole are lensed around the shadow rather than drawn on it. */',
+    '  vec3 pr = projectDisk(vec3(cos(theta) * r, sin(theta) * r, 0.0));',
+    '  gl_Position = toClip(lensBehind(pr.xy, pr.z), u_res, u_center, u_zoom);',
     '',
     '  /* Heat rises as radius falls; head hotter than tail */',
     '  v_heat = clamp((0.22 + 0.12 * u_feed) / r - 0.15, 0.0, 1.0) * (1.0 - seg * 0.08);',
@@ -705,6 +768,118 @@ function infinityBlackhole(canvas, cfg) {
     '     under source-over, so a spark darkens the page instead of',
     '     brightening it (adding light to white does nothing). */',
     '  gl_FragColor = vec4(mix(col * a, col, u_light), a * mix(0.9, 1.0, u_light));',
+    '}'
+  ].join('\n');
+
+  /* ---------- twistor pass: the Robinson congruence ----------
+
+     Penrose's picture of a spinning field in twistor terms is a
+     Robinson congruence: a family of twisting light rays which, at an
+     instant, lie on nested tori as linked circles - every one threaded
+     through every other - wrapped around a central ring, with the
+     symmetry axis running through the middle. By the Kerr theorem the
+     principal null congruence of a Kerr black hole is exactly such a
+     shear-free, twisting congruence, wrapped around the ring of radius
+     a. So this is not decoration laid over the hole: it is the hole's
+     own null geometry, drawn.
+
+     Construction: Hopf fibres. A point of S^3 is (z1, z2) with
+       z1 = cos(th/2) e^{i psi},  z2 = sin(th/2) e^{i (psi + ph)}
+     Fixing (th, ph) and sweeping psi traces one great circle (fibre);
+     th picks the torus, ph the fibre on it. Stereographic projection
+     (x1, x2, x3) / (1 - x4) carries the fibres to R^3 as linked
+     circles: th = 0 is the core ring in the disk plane, th -> pi the
+     spin axis. The ring radius tracks a*, as Kerr's ring does.
+
+     Motion: the whole congruence is frame-dragged about the axis at a
+     rate that rises with spin; light pulses run along every fibre (the
+     rays are null, so this is what "flowing along the congruence"
+     means); and the tori breathe slightly. Lines are 1px threads,
+     additive at night, ink on paper. */
+  /* th / pi for each torus. Fat tori: seen from near the disk plane,
+     thin ones collapse into the disk band and vanish against it, while
+     these loop up over and under the disk along the axis, into sky. */
+  var TW_TORI = [0.42, 0.58, 0.72];
+  var TW_FIBRES = 14;
+  var TW_SEGS = 128;
+
+  var TW_VERT = [
+    'precision highp float;',
+    'attribute vec3 a_tw; /* th, ph, psi */',
+    'uniform vec2 u_res;',
+    'uniform vec2 u_center;',
+    'uniform float u_zoom;',
+    'uniform float u_time;',
+    'uniform float u_spin;',
+    'uniform float u_kerr;',
+    'uniform float u_feed;',
+    'varying float v_a;',
+    'varying float v_pulse;',
+    'varying float v_depth;',
+    'varying float v_torus;',
+    PROJ_GLSL,
+    '',
+    'void main() {',
+    '  float th = a_tw.x;',
+    '  float ph = a_tw.y;',
+    '  float ps = a_tw.z;',
+    '  float h = 0.5 * th + 0.04 * sin(u_time * 0.31 + ph * 2.0);',
+    '  vec4 q = vec4(cos(h) * cos(ps), cos(h) * sin(ps), sin(h) * cos(ps + ph), sin(h) * sin(ps + ph));',
+    '  float den = 1.0 - q.w;',
+    '  vec3 P = q.xyz / max(den, 0.06);',
+    '',
+    '  /* far-flung arcs (den -> 0 runs off to infinity) fade out */',
+    '  v_a = smoothstep(0.06, 0.32, den) / (1.0 + 0.10 * dot(P, P));',
+    '',
+    '  /* The ring radius tracks a*, as Kerr\'s ring does, but is drawn',
+    '     out at the inner disk rather than at its true size (inside the',
+    '     horizon), where the structure can actually be seen. */',
+    '  P *= 0.13 + 0.12 * u_kerr;',
+    '',
+    '  /* frame dragging: the congruence turns with the spacetime */',
+    '  float g = u_spin * (0.08 + 0.42 * u_kerr);',
+    '  P.xy = mat2(cos(g), sin(g), -sin(g), cos(g)) * P.xy;',
+    '',
+    '  vec3 pr = projectDisk(P);',
+    '  v_depth = pr.z;',
+    '  vec2 scr = lensBehind(pr.xy, pr.z);',
+    '  gl_Position = toClip(scr, u_res, u_center, u_zoom);',
+    '  /* threads crossing in front of the shadow are real, but additive',
+    '     light on pure black reads as scribble: let them through dimmed */',
+    '  v_a *= mix(0.3, 1.0, smoothstep(0.11, 0.19, length(scr * vec2(1.0, 1.12))));',
+    '',
+    '  /* two pulses per fibre, staggered fibre to fibre, racing harder',
+    '     as the hole spins up and when it feeds */',
+    '  float run = u_time * (1.1 + 1.8 * u_kerr + 3.0 * u_feed);',
+    '  v_pulse = pow(0.5 + 0.5 * cos(2.0 * ps - run + ph * 3.0 + th * 5.0), 22.0);',
+    '  v_torus = a_tw.x;',
+    '}'
+  ].join('\n');
+
+  var TW_FRAG = [
+    'precision mediump float;',
+    'uniform float u_tw;',
+    'uniform float u_light;',
+    'uniform highp float u_feed; /* shared with the vertex stage: precisions must match */',
+    'uniform vec4 u_tint;',
+    'varying float v_a;',
+    'varying float v_pulse;',
+    'varying float v_depth;',
+    'varying float v_torus;',
+    '',
+    'void main() {',
+    '  /* inner tori cool blue, outer violet; pulses run white-gold */',
+    '  /* saturated and cool on purpose: the disk is warm and bright, so',
+    '     the congruence has to separate from it by hue, not by brightness */',
+    '  vec3 base = mix(vec3(0.20, 0.78, 1.0), vec3(0.62, 0.40, 1.0), smoothstep(1.3, 2.3, v_torus));',
+    '  vec3 hot = vec3(0.80, 0.97, 1.0);',
+    '  vec3 col = mix(base, hot, v_pulse);',
+    '  col = mix(col, dot(col, vec3(0.299, 0.587, 0.114)) * u_tint.rgb * 1.12, u_tint.a * 0.5);',
+    '  /* depth cue: the far half of the congruence sits back */',
+    '  float depthK = mix(1.0, 0.45, smoothstep(0.0, 0.25, v_depth));',
+    '  float a = u_tw * v_a * depthK * (0.20 + 1.25 * v_pulse) * (1.0 + 1.2 * u_feed);',
+    '  vec3 ink = mix(vec3(0.16, 0.20, 0.52), vec3(0.62, 0.30, 0.06), v_pulse);',
+    '  gl_FragColor = vec4(mix(col, ink, u_light), clamp(a * mix(1.0, 0.8, u_light), 0.0, 1.0));',
     '}'
   ].join('\n');
 
@@ -755,6 +930,9 @@ function infinityBlackhole(canvas, cfg) {
   var dProbe = gl.getUniformLocation(diskProg, 'u_probe');
   var dTint = gl.getUniformLocation(diskProg, 'u_tint');
   var tint = cfg.tint || [1, 1, 1, 0];
+  var dElev = gl.getUniformLocation(diskProg, 'u_elev');
+  var dPhi = gl.getUniformLocation(diskProg, 'u_phi');
+  var dKerr = gl.getUniformLocation(diskProg, 'u_kerr');
 
   /* Particles: each has a head + tail segments along its orbit */
   var PART_N = cfg.particles.n;
@@ -780,6 +958,38 @@ function infinityBlackhole(canvas, cfg) {
   var pSpin = partProg ? gl.getUniformLocation(partProg, 'u_spin') : null;
   var pFeed = partProg ? gl.getUniformLocation(partProg, 'u_feed') : null;
   var pTint = partProg ? gl.getUniformLocation(partProg, 'u_tint') : null;
+  var pElev = partProg ? gl.getUniformLocation(partProg, 'u_elev') : null;
+  var pPhi = partProg ? gl.getUniformLocation(partProg, 'u_phi') : null;
+
+  /* Twistor congruence: one GL_LINES pair per fibre segment */
+  var twProg = cfg.twistor ? program(TW_VERT, TW_FRAG) : null;
+  var twCount = 0;
+  var twBuf = null;
+  var twLoc = {};
+  if (twProg) {
+    var twData = [];
+    for (var ti = 0; ti < TW_TORI.length; ti++) {
+      var th = TW_TORI[ti] * Math.PI;
+      for (var fi = 0; fi < TW_FIBRES; fi++) {
+        /* stagger each torus's fibres so they interleave, not stack */
+        var ph = (fi + ti * 0.37) / TW_FIBRES * Math.PI * 2;
+        for (var si = 0; si < TW_SEGS; si++) {
+          var p0 = si / TW_SEGS * Math.PI * 2;
+          var p1 = (si + 1) / TW_SEGS * Math.PI * 2;
+          twData.push(th, ph, p0, th, ph, p1);
+        }
+      }
+    }
+    twCount = twData.length / 3;
+    twBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, twBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(twData), gl.STATIC_DRAW);
+    ['u_res', 'u_center', 'u_zoom', 'u_time', 'u_spin', 'u_kerr', 'u_feed', 'u_elev', 'u_phi',
+     'u_tw', 'u_light', 'u_tint'].forEach(function (n) {
+      twLoc[n] = gl.getUniformLocation(twProg, n);
+    });
+    twLoc.attr = gl.getAttribLocation(twProg, 'a_tw');
+  }
 
   gl.enable(gl.BLEND);
 
@@ -842,8 +1052,25 @@ function infinityBlackhole(canvas, cfg) {
   var probeTarget = 0;
   var probeCur = 0;
 
+  /* Spin and camera. kerr is a* (0..0.998); a horizontal drag winds it
+     toward kerrTarget, and when let go it relaxes back to the resting
+     spin over ~20s, slowly, like a flywheel. dragElev is the vertical
+     drag's tilt, which springs back in a couple of seconds. scrollTilt
+     lays the disk toward edge-on as the hero scrolls away. twCur is the
+     twistor field's visibility. */
+  var KERR_REST = (typeof cfg.kerr === 'number') ? cfg.kerr : 0.6;
+  var kerr = KERR_REST;
+  var kerrTarget = KERR_REST;
+  var dragElev = 0;
+  var dragging = false;
+  var scrollTilt = 0;
+  var twCur = cfg.twistor ? 0.4 : 0;
+  var elevNow = 0.31;
+  var stateAt = 0;
+
   function settling() {
-    return lightCur !== lightTarget || hoverCur !== hoverTarget || feedCur > 0 || probeCur !== probeTarget;
+    return lightCur !== lightTarget || hoverCur !== hoverTarget || feedCur > 0 || probeCur !== probeTarget ||
+      kerr !== kerrTarget || dragElev !== 0 || dragging;
   }
 
   /* cfg.zoom is either a constant or a function of the canvas size,
@@ -916,8 +1143,47 @@ function infinityBlackhole(canvas, cfg) {
       probeCur = probeTarget;
     }
 
-    /* Stirring spins the disk up; feeding makes it race */
-    spin += dt * (1.0 + 0.9 * hoverCur + 2.4 * feedCur);
+    /* Spin: follows the drag briskly, relaxes to rest slowly */
+    if (!dragging) {
+      kerrTarget += (KERR_REST - kerrTarget) * Math.min(1, dt / 20);
+      dragElev += (0 - dragElev) * Math.min(1, dt * 1.4);
+      if (Math.abs(dragElev) < 0.002) {
+        dragElev = 0;
+      }
+      if (Math.abs(kerrTarget - KERR_REST) < 0.002) {
+        kerrTarget = KERR_REST;
+      }
+    }
+    kerr += (kerrTarget - kerr) * Math.min(1, dt * 5);
+    if (Math.abs(kerrTarget - kerr) < 0.001) {
+      kerr = kerrTarget;
+    }
+
+    /* Camera. Breathing, stir and feed open the disk toward us as they
+       always did; a vertical drag tilts it further either way; scroll
+       lays it toward edge-on. */
+    var elev = 0.310 + 0.086 * Math.sin(t * 0.055) + 0.075 * hoverCur + 0.105 * feedCur +
+      dragElev - 0.17 * scrollTilt;
+    elev = Math.max(0.09, Math.min(0.98, elev));
+    elevNow = elev;
+    var phiNow = Math.PI / 2 + 0.20 * Math.sin(t * 0.083);
+
+    /* Stirring spins the disk up, feeding makes it race, and the
+       hole's own spin sets the base rate: frame dragging */
+    spin += dt * (1.0 + 0.9 * hoverCur + 2.4 * feedCur) * (0.55 + 0.75 * kerr);
+
+    /* Twistor field: always faintly there, brightening as the pointer
+       comes close, while dragging and when the hole feeds; a faster
+       hole draws a brighter, wider congruence */
+    var twTarget = cfg.twistor
+      ? Math.min(1, (0.50 + 0.35 * hoverCur + (dragging ? 0.55 : 0) + 0.5 * feedCur) * (0.55 + 0.45 * kerr))
+      : 0;
+    twCur += (twTarget - twCur) * Math.min(1, dt * 4);
+
+    if (typeof cfg.onState === 'function' && (t - stateAt > 0.1 || reduced)) {
+      stateAt = t;
+      cfg.onState({ kerr: kerr, elev: elev, dragging: dragging, hover: hoverCur, feed: feedCur });
+    }
 
     var c = cfg.center(canvas.clientWidth, canvas.clientHeight);
     var cx = c[0];
@@ -944,7 +1210,33 @@ function infinityBlackhole(canvas, cfg) {
     gl.uniform1f(dFeed, feedCur);
     gl.uniform3f(dProbe, probeX, probeY, probeCur);
     gl.uniform4f(dTint, tint[0], tint[1], tint[2], tint[3]);
+    gl.uniform1f(dElev, elev);
+    gl.uniform1f(dPhi, phiNow);
+    gl.uniform1f(dKerr, kerr);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    /* Twistor pass, between the disk and the sparks */
+    if (twProg && twCur > 0.003) {
+      gl.blendFunc(gl.SRC_ALPHA, lightCur > 0.5 ? gl.ONE_MINUS_SRC_ALPHA : gl.ONE);
+      gl.useProgram(twProg);
+      gl.bindBuffer(gl.ARRAY_BUFFER, twBuf);
+      gl.enableVertexAttribArray(twLoc.attr);
+      gl.vertexAttribPointer(twLoc.attr, 3, gl.FLOAT, false, 0, 0);
+      gl.uniform2f(twLoc.u_res, canvas.width, canvas.height);
+      gl.uniform2f(twLoc.u_center, cx, cy);
+      gl.uniform1f(twLoc.u_zoom, zoom);
+      gl.uniform1f(twLoc.u_time, t);
+      gl.uniform1f(twLoc.u_spin, spin);
+      gl.uniform1f(twLoc.u_kerr, kerr);
+      gl.uniform1f(twLoc.u_feed, feedCur);
+      gl.uniform1f(twLoc.u_elev, elev);
+      gl.uniform1f(twLoc.u_phi, phiNow);
+      gl.uniform1f(twLoc.u_tw, twCur);
+      gl.uniform1f(twLoc.u_light, lightCur);
+      gl.uniform4f(twLoc.u_tint, tint[0], tint[1], tint[2], tint[3]);
+      gl.drawArrays(gl.LINES, 0, twCount);
+      gl.disableVertexAttribArray(twLoc.attr);
+    }
 
     /* Particle pass: sparks add light at night, ink on paper */
     if (partProg) {
@@ -961,6 +1253,8 @@ function infinityBlackhole(canvas, cfg) {
       gl.uniform1f(pSpin, spin);
       gl.uniform1f(pFeed, feedCur);
       gl.uniform4f(pTint, tint[0], tint[1], tint[2], tint[3]);
+      gl.uniform1f(pElev, elev);
+      gl.uniform1f(pPhi, phiNow);
       gl.drawArrays(gl.POINTS, 0, PART_COUNT);
     }
 
@@ -1115,14 +1409,76 @@ function infinityBlackhole(canvas, cfg) {
   var tapMoved = 0;
   var tapId = -1;
 
+  /* ---- drag: wind the spin, tilt the camera ----
+     Mouse and pen only; on touch a drag is a scroll and stays one.
+     A press that doesn't travel is still a click and still feeds, now
+     on release, so a drag never fires a feed by accident. Presses on
+     text are left alone, so the copy can still be selected. */
+  var DRAG_SLOP = 5;
+  var dragId = -1;
+  var dragLX = 0;
+  var dragLY = 0;
+  var dragTravel = 0;
+
+  function isText(el) {
+    return !!(el && el.closest && el.closest('p, h1, h2, h3, li, svg, .fp-hero-latest-label'));
+  }
+
+  function onDragMove(ev) {
+    if (ev.pointerId !== dragId) {
+      return;
+    }
+    var dx = ev.clientX - dragLX;
+    var dy = ev.clientY - dragLY;
+    dragLX = ev.clientX;
+    dragLY = ev.clientY;
+    dragTravel += Math.abs(dx) + Math.abs(dy);
+    if (!dragging && dragTravel > DRAG_SLOP) {
+      dragging = true;
+      host.classList.add('bh-dragging');
+      emit('orbit', true);
+    }
+    if (dragging) {
+      kerrTarget = Math.max(0, Math.min(0.998, kerrTarget + dx * 0.0032));
+      dragElev = Math.max(-0.22, Math.min(0.68, dragElev - dy * 0.0042));
+      if (!raf) {
+        raf = requestAnimationFrame(frame);
+      }
+    }
+  }
+
+  function onDragEnd(ev) {
+    if (ev.pointerId !== dragId) {
+      return;
+    }
+    dragId = -1;
+    if (!dragging && ev.type === 'pointerup') {
+      feed(1);
+      emit('feed');
+    }
+    dragging = false;
+    host.classList.remove('bh-dragging');
+    if (!raf) {
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
   function onPointerDown(ev) {
     if (isControl(ev.target)) {
       tapId = -1;
       return;
     }
-    if (ev.pointerType === 'mouse') {
-      feed(1);
-      emit('feed');
+    if (ev.pointerType === 'mouse' || ev.pointerType === 'pen') {
+      if (isText(ev.target)) {
+        /* a press on the copy: no drag, but the old click-to-feed */
+        feed(1);
+        emit('feed');
+        return;
+      }
+      dragId = ev.pointerId;
+      dragLX = ev.clientX;
+      dragLY = ev.clientY;
+      dragTravel = 0;
       return;
     }
     tapId = ev.pointerId;
@@ -1160,6 +1516,17 @@ function infinityBlackhole(canvas, cfg) {
     arm(false);
   }
 
+  /* Scroll lays the disk toward edge-on as the hero leaves the
+     screen, so the hole closes like an eye behind the reader. */
+  if (cfg.scrollTilt && !reduced) {
+    var onScrollTilt = function () {
+      var r = canvas.getBoundingClientRect();
+      scrollTilt = r.height ? Math.max(0, Math.min(1, -r.top / r.height)) : 0;
+    };
+    window.addEventListener('scroll', onScrollTilt, { passive: true });
+    onScrollTilt();
+  }
+
   if (interactive) {
     window.addEventListener('scroll', dropRect, { passive: true });
     window.addEventListener('resize', dropRect);
@@ -1173,6 +1540,15 @@ function infinityBlackhole(canvas, cfg) {
       host.addEventListener('pointermove', onTapMove, { passive: true });
       host.addEventListener('pointerup', onPointerUp, { passive: true });
       host.addEventListener('pointercancel', onPointerCancel, { passive: true });
+      window.addEventListener('pointermove', onDragMove, { passive: true });
+      window.addEventListener('pointerup', onDragEnd, { passive: true });
+      window.addEventListener('pointercancel', onDragEnd, { passive: true });
+      /* stop a backdrop drag from starting a text selection */
+      host.addEventListener('mousedown', function (ev) {
+        if (ev.button === 0 && !isControl(ev.target) && !isText(ev.target)) {
+          ev.preventDefault();
+        }
+      });
       Array.prototype.forEach.call(host.querySelectorAll('[data-bh-stir]'), function (el) {
         el.addEventListener('mouseenter', function () { setStir(true); });
         el.addEventListener('mouseleave', function () { setStir(false); });
@@ -1193,6 +1569,21 @@ function infinityBlackhole(canvas, cfg) {
       if (interactive) {
         feed(strength);
       }
+    },
+    /* keyboard route to the drag: spin by dk, tilt by de */
+    nudge: function (dk, de) {
+      if (!interactive) {
+        return;
+      }
+      kerrTarget = Math.max(0, Math.min(0.998, kerrTarget + (dk || 0)));
+      dragElev = Math.max(-0.22, Math.min(0.68, dragElev + (de || 0)));
+      emit('orbit', true);
+      if (!raf) {
+        raf = requestAnimationFrame(frame);
+      }
+    },
+    spinTarget: function () {
+      return kerrTarget;
     },
     hole: function () {
       var rc = canvas.getBoundingClientRect();
@@ -1311,6 +1702,106 @@ function infinityHeroClicks(section) {
   section.addEventListener('auxclick', onClick, true);
 }
 
+/* ---------- Kerr readout ----------
+
+   Real Kerr quantities for the current spin, in units of M (G = c = 1):
+     horizon         r+   = 1 + sqrt(1 - a^2)
+     photon orbit    r_ph = 2 (1 + cos(2/3 acos(-a)))           prograde
+     ISCO            r_ms = 3 + Z2 - sqrt((3 - Z1)(3 + Z1 + 2 Z2)) prograde
+                     Z1 = 1 + (1 - a^2)^(1/3) ((1 + a)^(1/3) + (1 - a)^(1/3))
+                     Z2 = sqrt(3 a^2 + Z1^2)            (Bardeen, Press & Teukolsky 1972)
+     efficiency      eta  = 1 - sqrt(1 - 2 / (3 r_ms))  thin-disk binding energy at the ISCO
+     horizon spin    Omega_H = a / (2 r+)
+   Sanity: a = 0 gives r+ = 2, r_ph = 3, r_ms = 6, eta = 5.7%;
+   a = 0.998 gives r_ms ~ 1.24 and eta ~ 32%. */
+function infinityKerr(a) {
+  'use strict';
+  a = Math.max(0, Math.min(0.9999, a));
+  var rp = 1 + Math.sqrt(1 - a * a);
+  var z1 = 1 + Math.cbrt(1 - a * a) * (Math.cbrt(1 + a) + Math.cbrt(1 - a));
+  var z2 = Math.sqrt(3 * a * a + z1 * z1);
+  var isco = 3 + z2 - Math.sqrt(Math.max(0, (3 - z1) * (3 + z1 + 2 * z2)));
+  return {
+    a: a,
+    rp: rp,
+    rph: 2 * (1 + Math.cos(2 / 3 * Math.acos(-a))),
+    isco: isco,
+    eta: 1 - Math.sqrt(1 - 2 / (3 * isco)),
+    omega: a / (2 * rp)
+  };
+}
+
+var infinityHeroBh = null;
+var infinityHudEl = null;
+var infinityHudRows = null;
+var infinityHudSeen = -1e9;
+
+/* The readout floats beside the hole on wide screens while the visitor
+   is playing with it - pointer close, dragging, or a feed in progress -
+   and fades a couple of seconds after they stop. Decorative (the feed
+   button's live region speaks for keyboard users), so aria-hidden. */
+function infinityHeroHud(st) {
+  'use strict';
+  var bh = infinityHeroBh;
+  if (!bh || !bh.interactive || window.innerWidth < 1100) {
+    if (infinityHudEl) {
+      infinityHudEl.classList.remove('is-on');
+    }
+    return;
+  }
+  if (!infinityHudEl) {
+    var section = document.getElementById('fp-blackhole');
+    section = section && section.parentNode;
+    if (!section) {
+      return;
+    }
+    infinityHudEl = document.createElement('div');
+    infinityHudEl.className = 'bh-hud';
+    infinityHudEl.setAttribute('aria-hidden', 'true');
+    var rows = [['a', 'a<sub>*</sub>'], ['i', 'i'], ['rp', 'r<sub>+</sub>'], ['rph', 'r<sub>ph</sub>'], ['isco', 'r<sub>isco</sub>'], ['eta', '\u03B7']];
+    var html = '<p class="bh-hud-title">Kerr metric</p><dl>';
+    rows.forEach(function (r) {
+      html += '<dt>' + r[1] + '</dt><dd data-k="' + r[0] + '"></dd>';
+    });
+    html += '</dl><p class="bh-hud-hint">drag \u2194 spin \u00B7 \u2195 tilt \u00B7 click to feed</p>';
+    infinityHudEl.innerHTML = html;
+    section.appendChild(infinityHudEl);
+    /* introduce it: shown for a few seconds as the hero arrives, so
+       visitors learn the hole can be dragged before they go looking */
+    infinityHudSeen = performance.now() + 2500;
+    infinityHudRows = {};
+    Array.prototype.forEach.call(infinityHudEl.querySelectorAll('dd'), function (dd) {
+      infinityHudRows[dd.getAttribute('data-k')] = dd;
+    });
+  }
+
+  var now = performance.now();
+  if (st.dragging || st.hover > 0.35 || st.feed > 0.15) {
+    infinityHudSeen = now;
+  }
+  var on = now - infinityHudSeen < 2200;
+  infinityHudEl.classList.toggle('is-on', on);
+  if (!on) {
+    return;
+  }
+
+  var k = infinityKerr(st.kerr);
+  infinityHudRows.a.textContent = k.a.toFixed(3);
+  infinityHudRows.i.textContent = Math.round(90 - st.elev * 180 / Math.PI) + '\u00B0';
+  infinityHudRows.rp.textContent = k.rp.toFixed(2) + ' M';
+  infinityHudRows.rph.textContent = k.rph.toFixed(2) + ' M';
+  infinityHudRows.isco.textContent = k.isco.toFixed(2) + ' M';
+  infinityHudRows.eta.textContent = (k.eta * 100).toFixed(1) + '%';
+
+  /* upper right of the disk, in open sky, kept inside the section */
+  var parent = infinityHudEl.parentNode.getBoundingClientRect();
+  var h = bh.hole();
+  var w = infinityHudEl.offsetWidth;
+  var x = Math.min(h.x - parent.left + h.r * 0.48, parent.width - w - 12);
+  var y = Math.max(12, h.y - parent.top - h.r * 0.80);
+  infinityHudEl.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
+}
+
 /* Hero furniture that drives the black hole: the accessible feed
    button and the read transition on the lead card. */
 function infinityHeroControls(section, bh) {
@@ -1377,6 +1868,29 @@ function infinityHeroControls(section, bh) {
           live.textContent = live.getAttribute('data-msg') || '';
         }, 30);
         liveTimer = setTimeout(function () { live.textContent = ''; }, 4500);
+      }
+    });
+    /* Arrow keys on the focused button do what a drag does: left and
+       right wind the spin down and up, up and down tilt the camera. The
+       new spin is announced once the keys go quiet. */
+    var spinTimer = null;
+    btn.addEventListener('keydown', function (ev) {
+      var dk = 0;
+      var de = 0;
+      if (ev.key === 'ArrowRight') { dk = 0.05; }
+      else if (ev.key === 'ArrowLeft') { dk = -0.05; }
+      else if (ev.key === 'ArrowUp') { de = 0.06; }
+      else if (ev.key === 'ArrowDown') { de = -0.06; }
+      else { return; }
+      ev.preventDefault();
+      bh.nudge(dk, de);
+      if (live && dk) {
+        clearTimeout(spinTimer);
+        spinTimer = setTimeout(function () {
+          var k = infinityKerr(bh.spinTarget());
+          live.textContent = 'Spin a* ' + k.a.toFixed(2) + '. Innermost stable orbit ' +
+            k.isco.toFixed(1) + ' M, disk efficiency ' + Math.round(k.eta * 100) + ' percent.';
+        }, 700);
       }
     });
     place();
@@ -1460,6 +1974,9 @@ function infinityHeroControls(section, bh) {
     infinityHeroVariant = infinityHeroArm(hero);
     var heroBh = infinityBlackhole(hero, {
       onAction: function (name) { infinityHeroTrack(name); },
+      onState: function (st) { infinityHeroHud(st); },
+      twistor: true,
+      scrollTilt: true,
       tint: INFINITY_BH_TINTS[hero.getAttribute('data-bh-tint')] || INFINITY_BH_TINTS.space,
       probe: true,
       zoom: function (w, h) {
@@ -1480,6 +1997,7 @@ function infinityHeroControls(section, bh) {
         return [0.62, 1 - Math.min(170 / Math.max(h, 1), 0.4)];
       }
     });
+    infinityHeroBh = heroBh || null;
     if (!heroBh) {
       /* no WebGL: the CSS fallback can't be interactive either */
       infinityHeroVariant = 'static';
