@@ -3,6 +3,39 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.7.0
+
+- **Adjustable post list columns** (`inc/admin-posts.php`,
+  `assets/js/admin-posts.js`, `assets/css/admin-posts.css`): on every
+  wp-admin list screen (Posts, Pages, Simulations, Blueprints, Challenges,
+  and any other post type) drag a header's right edge to resize it,
+  double-click the edge to reset it, or focus the edge and use the arrow
+  keys (Shift for bigger steps). Drag a header onto another to reorder.
+  The layout is saved per user and per screen in user meta and printed
+  server-side, so the table loads at your widths with no flash, and the
+  order holds after Quick Edit. Widths only apply on desktop; the stacked
+  mobile layout is unchanged.
+- **Screen Options → Table layout**: "Compact rows" and "Reset column
+  widths & order".
+- **New columns**: featured image thumbnail, length (word count and
+  reading time), last modified (relative time and who edited it, sortable)
+  and ID (sortable, hidden until you turn it on in Screen Options).
+- **Duplicate as draft**: a row action and a bulk action. The copy keeps
+  content, excerpt, terms, featured image, template and custom fields, is
+  owned by you, and opens in the editor. Edit bookkeeping and engagement
+  counters (plays, votes, forks, completions, attempts, session time) are
+  not copied; the list is filterable via `infinity_duplicate_skipped_meta`,
+  and `infinity_post_duplicated` fires after each copy.
+- **Copy link** row action on published items, an **author filter**
+  dropdown for editors and admins, a coloured left edge on draft, pending,
+  scheduled and private rows, and a sticky table header.
+- **Keyboard shortcuts** on list screens: `/` focuses search, `n` adds a
+  new item, Esc leaves the search box. All of this is described in the
+  screen's Help tab.
+- **Dashboard → Content pipeline** widget: drafts, pending review and
+  scheduled counts per post type, the next five scheduled posts, and your
+  five most recently edited drafts.
+
 ## 3.6.0
 
 - **Sidebar widgets are now fully editable** (`inc/widgets.php`, `sidebar.php`):

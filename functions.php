@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.6.0');
+define('INFINITY_VERSION', '3.7.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -925,6 +925,10 @@ require_once INFINITY_DIR . '/inc/subscribe.php';
 require_once INFINITY_DIR . '/inc/icons.php';
 require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 require_once INFINITY_DIR . '/inc/analytics-rum.php';
+
+if (is_admin()) {
+    require_once INFINITY_DIR . '/inc/admin-posts.php';
+}
 
 // Load WooCommerce compatibility if plugin is active
 if (class_exists('WooCommerce')) {
