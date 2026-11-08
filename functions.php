@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.7.0');
+define('INFINITY_VERSION', '3.8.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -1398,6 +1398,22 @@ function infinity_fp_query($slugs_csv, $count = 3, $exclude = array(), $rotate =
 }
 
 /**
+ * Estimated reading time in whole minutes (225 wpm, minimum 1).
+ *
+ * Same word rule as the admin Length column, so the homepage and the
+ * post list never disagree about how long an article is.
+ */
+function infinity_reading_minutes($post = null) {
+    $post = get_post($post);
+    if (!$post) {
+        return 1;
+    }
+    $text  = wp_strip_all_tags(strip_shortcodes((string) $post->post_content));
+    $words = preg_match_all('/[\p{L}\p{N}][\p{L}\p{N}\'’-]*/u', $text);
+    return max(1, (int) round(((int) $words) / 225));
+}
+
+/**
  * Get the archive link for the first existing category in a slug list.
  */
 function infinity_fp_first_category_link($slugs_csv) {
@@ -1426,7 +1442,7 @@ function infinity_front_page_customize_register($wp_customize) {
     $fields = array(
         'infinity_featured_post_id' => array(
             'label'       => esc_html__('Featured Post ID', 'infinity'),
-            'description' => esc_html__('Post ID to feature at the top (e.g. the mushroom article). Leave 0 for the most recent post.', 'infinity'),
+            'description' => esc_html__('Post ID for the Featured slot below the hero (e.g. the mushroom article). The hero always leads with the newest article; leave 0 to feature the newest sticky post instead, or nothing if there is none.', 'infinity'),
             'default'     => 0,
             'sanitize'    => 'absint',
             'type'        => 'number',

@@ -3,6 +3,41 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.8.0
+
+- **Homepage hero leads with the newest article** (`front-page.php`):
+  the latest post now sits above the fold in a lead card with its
+  thumbnail, category, a "New" badge for posts under a week old, date,
+  reading time and excerpt. The whole card is the click target. The
+  next two posts follow as "Also new" links, then the section nav. The
+  hero is sized to the viewport (up to 960px tall) so the card is always
+  in the first screen. The lead thumbnail is now the eager,
+  high-priority image; the Featured section's image loads lazily.
+- **No duplicate posts**: the Featured slot below the hero now shows only
+  a deliberate pick (the Customizer's Featured Post ID, or else the
+  newest sticky post) and is skipped when neither is set. The bottom
+  "Latest from the blog" list leaves out the three posts the hero shows.
+- **`infinity_reading_minutes()`** helper in `functions.php`, using the
+  same word rule as the admin Length column.
+- **Black hole, redesigned** (`assets/js/blackhole.js`): the far inner
+  disk is now lensed over the top of the shadow, and the disk's
+  underside shows as a thin arc beneath it. The photon rings are
+  Doppler-beamed (brighter on the approaching side), emissivity falls
+  steeply with radius so the inner disk carries the image, the outer
+  disk cools to dusky rose instead of a saturated violet band, and there
+  is a second star layer plus a faint nebula that is lensed with the
+  stars (night mode only).
+- **Hole layout**: on wide screens the hole is the centrepiece of the
+  right column, above the Steam card. Zoom is solved for a target disk
+  radius, so the disk keeps its size relative to the column instead of
+  growing with the section height on tall phone screens. `cfg.zoom` and
+  `cfg.center` now accept functions of the canvas width and height.
+- **Interaction**: hovering or focusing the lead card holds the disk at
+  a gentle stir. Pressing links, the article card or the Steam widget no
+  longer triggers a feeding event.
+- **`HERO_ROADMAP.md`**: a phased plan for more interactive features in
+  the hero.
+
 ## 3.7.0
 
 - **Adjustable post list columns** (`inc/admin-posts.php`,

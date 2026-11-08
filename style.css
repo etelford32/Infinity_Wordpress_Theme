@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.7.0
+Version: 3.8.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -4876,6 +4876,316 @@ html[data-mode="light"] .theme-toggle-knob {
   .etu-wishlist-plate::after,
   .etu-type-face,
   .etu-wishlist-sparks {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   19.0 Hero, v2 — the newest article above the fold
+   The hero is sized to the viewport so the lead article is always in the
+   first screen. Copy (wordmark, tagline, lead card, quick links, section
+   nav) runs down the left; the black hole is the visual centrepiece on
+   the right, with the Steam card anchored beneath it. The hero keeps its
+   own fixed night / paper palettes (section 18) rather than the skin's
+   tokens, because it sits on the shader, not on the page.
+   ========================================================================== */
+
+.fp-hero-blackhole {
+  display: flex;
+  align-items: center;
+  min-height: min(calc(100svh - 72px), 960px);
+  padding: var(--spacing-2xl) 0;
+}
+
+.fp-hero-blackhole > .container {
+  width: 100%;
+}
+
+.fp-hero-blackhole .fp-hero-copy {
+  max-width: 44rem;
+}
+
+.fp-hero-blackhole .fp-hero-title-svg {
+  margin: 0 0 var(--spacing-xs);
+  max-width: 40rem;
+}
+
+.fp-hero-blackhole .fp-hero-tagline {
+  margin-bottom: var(--spacing-lg);
+}
+
+@media (min-width: 1100px) {
+  .fp-hero-blackhole .fp-hero-inner {
+    align-items: end;
+  }
+
+  /* The card sits low in its column so the hole above it has room */
+  .fp-hero-blackhole .hero-steam-card {
+    align-self: end;
+  }
+}
+
+/* ---- Lead article card ---- */
+.fp-lead {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-xl);
+  color: #f0f2ff;
+  background: linear-gradient(160deg, rgba(20, 26, 46, 0.82), rgba(10, 14, 26, 0.88));
+  border: 1px solid rgba(255, 184, 77, 0.32);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+@media (min-width: 640px) {
+  .fp-lead.fp-lead-has-media {
+    grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  /* Side by side, the image fills the card's height instead of
+     holding its own ratio, which would push the column wider */
+  .fp-lead-has-media .fp-lead-media {
+    aspect-ratio: auto;
+    min-height: 150px;
+  }
+}
+
+.fp-lead:hover,
+.fp-lead:focus-within {
+  border-color: rgba(255, 184, 77, 0.7);
+  box-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.55),
+    0 0 36px rgba(255, 140, 50, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.fp-lead-media {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  aspect-ratio: 16 / 10;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fp-lead-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.fp-lead:hover .fp-lead-media img {
+  transform: scale(1.04);
+}
+
+.fp-lead-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fp-lead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fp-lead-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #ffb84d;
+}
+
+.fp-lead-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.fp-lead-badge.is-new .fp-lead-dot {
+  animation: fp-lead-pulse 2.2s ease-out infinite;
+}
+
+@keyframes fp-lead-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 184, 77, 0.7), 0 0 8px currentColor; }
+  70%  { box-shadow: 0 0 0 9px rgba(255, 184, 77, 0), 0 0 8px currentColor; }
+  100% { box-shadow: 0 0 0 0 rgba(255, 184, 77, 0), 0 0 8px currentColor; }
+}
+
+.fp-lead-cat {
+  position: relative;
+  z-index: 2; /* above the stretched title link */
+  color: #8fd8ff;
+  text-decoration: none;
+}
+
+.fp-lead-cat:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.fp-lead-title {
+  margin: 0 0 var(--spacing-xs);
+  color: #f0f2ff;
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  /* long titles stop at three lines rather than pushing the card out
+     of the first screen */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fp-lead-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The whole card is the click target; the title link stretches over it */
+.fp-lead-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.fp-lead-title a:focus-visible {
+  outline: none;
+}
+
+.fp-lead:has(.fp-lead-title a:focus-visible) {
+  outline: 2px solid #ffb84d;
+  outline-offset: 3px;
+}
+
+.fp-lead-excerpt {
+  margin: 0 0 var(--spacing-sm);
+  color: #b8c0d4;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fp-lead-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: auto 0 0;
+  font-size: var(--font-size-xs);
+  color: #8a93ad;
+}
+
+.fp-lead-cta {
+  margin-left: auto;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #ffb84d;
+  transition: transform var(--transition-fast);
+}
+
+.fp-lead:hover .fp-lead-cta {
+  transform: translateX(3px);
+}
+
+/* Quick links and section nav sit closer under the card */
+.fp-hero-blackhole .fp-hero-latest {
+  margin-top: var(--spacing-md);
+}
+
+.fp-hero-blackhole .fp-pillar-nav {
+  margin-top: var(--spacing-md);
+}
+
+.fp-hero-blackhole .fp-pillar-nav a {
+  padding: 6px 13px;
+  font-size: var(--font-size-xs);
+}
+
+@media (max-width: 640px) {
+  .fp-hero-blackhole {
+    min-height: 0;
+    padding: var(--spacing-xl) 0 var(--spacing-2xl);
+  }
+
+  .fp-lead-cta {
+    margin-left: 0;
+    flex-basis: 100%;
+    margin-top: 4px;
+  }
+}
+
+/* ---- Paper ---- */
+[data-mode="light"] .fp-lead {
+  color: #10162e;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(238, 243, 252, 0.92));
+  border-color: rgba(180, 83, 9, 0.28);
+  box-shadow:
+    0 16px 40px rgba(30, 58, 95, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-mode="light"] .fp-lead:hover,
+[data-mode="light"] .fp-lead:focus-within {
+  border-color: rgba(180, 83, 9, 0.6);
+  box-shadow:
+    0 20px 48px rgba(30, 58, 95, 0.2),
+    0 0 28px rgba(234, 88, 12, 0.14);
+}
+
+[data-mode="light"] .fp-lead-title { color: #10162e; }
+[data-mode="light"] .fp-lead-badge { color: #b45309; }
+[data-mode="light"] .fp-lead-cat { color: #0e7490; }
+[data-mode="light"] .fp-lead-cat:hover { color: #10162e; }
+[data-mode="light"] .fp-lead-excerpt { color: #3b4566; }
+[data-mode="light"] .fp-lead-foot { color: #5b6585; }
+[data-mode="light"] .fp-lead-cta { color: #b45309; }
+[data-mode="light"] .fp-lead:has(.fp-lead-title a:focus-visible) { outline-color: #b45309; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-lead,
+  .fp-lead-media img,
+  .fp-lead-cta {
+    transition: none;
+  }
+
+  .fp-lead:hover,
+  .fp-lead:focus-within {
+    transform: none;
+  }
+
+  .fp-lead:hover .fp-lead-media img {
+    transform: none;
+  }
+
+  .fp-lead-badge.is-new .fp-lead-dot {
     animation: none;
   }
 }
