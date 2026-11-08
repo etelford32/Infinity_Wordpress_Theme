@@ -88,6 +88,8 @@ function infinityBlackhole(canvas, cfg) {
     'uniform float u_spin;',  /* warped rotation clock, not wall time */
     'uniform float u_hover;', /* 0..1 pointer proximity to the hole */
     'uniform float u_feed;',  /* 1 on a feeding event, decaying to 0 */
+    'uniform vec3 u_probe;',  /* pointer lens: xy in hole-relative uv, z strength */
+    'uniform vec4 u_tint;',   /* pillar grade: rgb hue, a amount (0 = none) */
     '',
     'float hash(vec2 p) {',
     '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);',
@@ -110,6 +112,16 @@ function infinityBlackhole(canvas, cfg) {
     '    a *= 0.5;',
     '  }',
     '  return v;',
+    '}',
+    '',
+    '/* Pillar grade. Recolours toward a hue while keeping each pixel\'s',
+    '   luminance, so the filaments, beaming and hot inner edge all',
+    '   survive - a multiply cannot turn ember into teal, this can. */',
+    'vec3 grade(vec3 c) {',
+    '  float l = dot(c, vec3(0.299, 0.587, 0.114));',
+    '  /* on paper the ramp is dark pigment, where a luminance grade',
+    '     reads as grey; there it only leans toward the hue */',
+    '  return mix(c, l * u_tint.rgb * 1.12, u_tint.a * (1.0 - 0.6 * u_light));',
     '}',
     '',
     '/* Relativistic jets. One beam per pole, mirrored through the disk',
@@ -411,6 +423,12 @@ function infinityBlackhole(canvas, cfg) {
     '    col = mix(col, col * vec3(1.6, 0.7, 0.3), clamp(-dop, 0.0, 1.0) * 0.45);',
     '  }',
     '',
+    '  /* Pillar grade: the lead article\'s section nudges the palette -',
+    '     teal for anatomy, green for science, violet for mind, gold for',
+    '     travel; space keeps the native ramp. Feeding still mixes toward',
+    '     white-hot afterwards, so a flare reads the same in every pillar. */',
+    '  col = grade(col);',
+    '',
     '  /* Feeding drives the whole ramp toward the white-hot end */',
     '  col = mix(col, hot, u_feed * 0.28);',
     '',
@@ -430,9 +448,33 @@ function infinityBlackhole(canvas, cfg) {
     '     against the photon ring. The tangential stretch theta/beta is',
     '     what turns those stars into a bright rim instead of merely',
     '     moving them somewhere else. */',
+    '  /* A second, much weaker point lens riding the pointer: as if a',
+    '     small dark mass were drifting across the sky. Same thin-lens map',
+    '     as the hole\'s (beta = theta - thetaE^2/theta), applied first, so',
+    '     the cursor bends the starfield and nebula and then the hole bends',
+    '     the result. It touches only the sky lookup - the disk, ring and',
+    '     horizon are untouched - and the JS fades it out near the hole so',
+    '     the two lenses never fight over the photon ring. */',
+    '  vec2 skyUv = uv;',
+    '  float probeRing = 0.0;',
+    '  if (u_probe.z > 0.002) {',
+    '    vec2 pp = mat2(cos(tilt), -sin(tilt), sin(tilt), cos(tilt)) * u_probe.xy;',
+    '    vec2 dP = uv - pp;',
+    '    float rP2 = max(dot(dP, dP), 0.0009);',
+    '    float tP = 0.085;',
+    '    skyUv = uv - dP * min(tP * tP * u_probe.z / rP2, 1.4);',
+    '    /* Diffuse background light (the nebula, unresolved stars) is',
+    '       piled up at the Einstein radius into a faint ring - the one',
+    '       visible sign of a lens with nothing bright behind it. */',
+    '    probeRing = exp(-pow((sqrt(rP2) - tP) / 0.014, 2.0)) * u_probe.z * (1.0 - u_light);',
+    '    /* lumpy, as the light behind it is: arcs, not a drawn circle */',
+    '    probeRing *= 0.4 + 0.6 * noise(vec2(atan(dP.y, dP.x) * 2.2 + 5.0, u_time * 0.35));',
+    '  }',
+    '  float rskyL = max(length(skyUv), 1e-4);',
+    '',
     '  float thetaE = 0.175;',
-    '  float lensR = max(rsky - thetaE * thetaE / max(rsky, 0.05), 0.012);',
-    '  vec2 sky = (uv / max(rsky, 1e-4)) * lensR;',
+    '  float lensR = max(rskyL - thetaE * thetaE / max(rskyL, 0.05), 0.012);',
+    '  vec2 sky = (skyUv / rskyL) * lensR;',
     '  vec2 cell = floor(sky * u_res.y * 0.5 + 256.0);',
     '  float star = pow(hash(cell), 220.0) * smoothstep(0.132, 0.30, rsky);',
     '  star *= 0.55 + 0.45 * sin(u_time * 2.2 + hash(cell + 7.0) * 44.0);',
@@ -441,7 +483,7 @@ function infinityBlackhole(canvas, cfg) {
     '     visible block. Fade the field out just before that happens and',
     '     let the photon ring carry the rim it was already drawing. */',
     '  star *= smoothstep(0.018, 0.055, lensR);',
-    '  star *= clamp(rsky / max(lensR, 0.03), 1.0, 3.5);',
+    '  star *= clamp(rskyL / max(lensR, 0.03), 1.0, 3.5);',
     '  star *= 1.0 - u_light; /* white pinpricks have nothing to show on white */',
     '  c += vec3(0.75, 0.82, 1.0) * star * 1.4 * (1.0 - horizon);',
     '  alpha += star * 1.2 * (1.0 - horizon);',
@@ -470,16 +512,19 @@ function infinityBlackhole(canvas, cfg) {
     '    alpha += neb * 0.10;',
     '  }',
     '',
+    '  c += vec3(0.62, 0.72, 1.0) * probeRing * 1.3 * (1.0 - horizon);',
+    '  alpha += probeRing * 0.6 * (1.0 - horizon);',
+    '',
     '  /* Far side of the disk: occluded by the event horizon */',
     '  c += col * bright * farMask * (1.0 - horizon);',
     '  alpha += bright * 1.5 * farMask * (1.0 - horizon);',
     '',
     '  /* Underside image, lensed beneath the shadow */',
-    '  c += mix(vec3(1.0, 0.82, 0.55), vec3(0.92, 0.48, 0.10), u_light) * under * 0.75 * (1.0 - horizon);',
+    '  c += grade(mix(vec3(1.0, 0.82, 0.55), vec3(0.92, 0.48, 0.10), u_light)) * under * 0.75 * (1.0 - horizon);',
     '  alpha += under * 0.62 * (1.0 - horizon);',
     '',
     '  /* Far inner disk, wrapped over the top of the shadow */',
-    '  vec3 farCol = mix(hot, gold, smoothstep(0.17, 0.34, rArc));',
+    '  vec3 farCol = grade(mix(hot, gold, smoothstep(0.17, 0.34, rArc)));',
     '  c += farCol * farImg * 0.8 * (1.0 - horizon);',
     '  alpha += farImg * 1.25 * (1.0 - horizon);',
     '',
@@ -601,6 +646,7 @@ function infinityBlackhole(canvas, cfg) {
   var PART_FRAG = [
     'precision mediump float;',
     'uniform float u_light;',
+    'uniform vec4 u_tint;',
     'varying float v_heat;',
     'varying float v_fade;',
     '',
@@ -611,6 +657,7 @@ function infinityBlackhole(canvas, cfg) {
     '  vec3 cool = mix(vec3(1.0, 0.58, 0.24), vec3(0.72, 0.24, 0.04), u_light);',
     '  vec3 hotc = mix(vec3(1.0, 0.97, 0.9), vec3(0.95, 0.62, 0.12), u_light);',
     '  vec3 col = mix(cool, hotc, v_heat);',
+    '  col = mix(col, dot(col, vec3(0.299, 0.587, 0.114)) * u_tint.rgb * 1.12, u_tint.a * (1.0 - 0.6 * u_light));',
     '  /* Night: premultiplied, drawn additively. Paper: straight color',
     '     under source-over, so a spark darkens the page instead of',
     '     brightening it (adding light to white does nothing). */',
@@ -662,6 +709,9 @@ function infinityBlackhole(canvas, cfg) {
   var dSpin = gl.getUniformLocation(diskProg, 'u_spin');
   var dHover = gl.getUniformLocation(diskProg, 'u_hover');
   var dFeed = gl.getUniformLocation(diskProg, 'u_feed');
+  var dProbe = gl.getUniformLocation(diskProg, 'u_probe');
+  var dTint = gl.getUniformLocation(diskProg, 'u_tint');
+  var tint = cfg.tint || [1, 1, 1, 0];
 
   /* Particles: each has a head + tail segments along its orbit */
   var PART_N = cfg.particles.n;
@@ -686,6 +736,7 @@ function infinityBlackhole(canvas, cfg) {
   var pLight = partProg ? gl.getUniformLocation(partProg, 'u_light') : null;
   var pSpin = partProg ? gl.getUniformLocation(partProg, 'u_spin') : null;
   var pFeed = partProg ? gl.getUniformLocation(partProg, 'u_feed') : null;
+  var pTint = partProg ? gl.getUniformLocation(partProg, 'u_tint') : null;
 
   gl.enable(gl.BLEND);
 
@@ -721,8 +772,19 @@ function infinityBlackhole(canvas, cfg) {
   var spin = 0;
   var prevT = 0;
 
+  /* Pointer lens: target position in the shader's hole-relative uv
+     (y up, before the frame tilt) and a strength that fades in over
+     the open sky and out near the hole. The position is eased too, so
+     the lens glides after the cursor instead of snapping to it. */
+  var probeTX = 0;
+  var probeTY = 0;
+  var probeX = 0;
+  var probeY = 0;
+  var probeTarget = 0;
+  var probeCur = 0;
+
   function settling() {
-    return lightCur !== lightTarget || hoverCur !== hoverTarget || feedCur > 0;
+    return lightCur !== lightTarget || hoverCur !== hoverTarget || feedCur > 0 || probeCur !== probeTarget;
   }
 
   /* cfg.zoom is either a constant or a function of the canvas size,
@@ -769,6 +831,18 @@ function infinityBlackhole(canvas, cfg) {
       }
     }
 
+    if (probeCur === 0 && probeTarget > 0) {
+      /* fading in from nothing: start where the pointer already is */
+      probeX = probeTX;
+      probeY = probeTY;
+    }
+    probeX += (probeTX - probeX) * Math.min(1, dt * 9.0);
+    probeY += (probeTY - probeY) * Math.min(1, dt * 9.0);
+    probeCur += (probeTarget - probeCur) * Math.min(1, dt * 5.0);
+    if (Math.abs(probeTarget - probeCur) < 0.004) {
+      probeCur = probeTarget;
+    }
+
     /* Stirring spins the disk up; feeding makes it race */
     spin += dt * (1.0 + 0.9 * hoverCur + 2.4 * feedCur);
 
@@ -795,6 +869,8 @@ function infinityBlackhole(canvas, cfg) {
     gl.uniform1f(dSpin, spin);
     gl.uniform1f(dHover, hoverCur);
     gl.uniform1f(dFeed, feedCur);
+    gl.uniform3f(dProbe, probeX, probeY, probeCur);
+    gl.uniform4f(dTint, tint[0], tint[1], tint[2], tint[3]);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     /* Particle pass: sparks add light at night, ink on paper */
@@ -811,6 +887,7 @@ function infinityBlackhole(canvas, cfg) {
       gl.uniform1f(pLight, lightCur);
       gl.uniform1f(pSpin, spin);
       gl.uniform1f(pFeed, feedCur);
+      gl.uniform4f(pTint, tint[0], tint[1], tint[2], tint[3]);
       gl.drawArrays(gl.POINTS, 0, PART_COUNT);
     }
 
@@ -891,6 +968,7 @@ function infinityBlackhole(canvas, cfg) {
         ev.clientX < rc.left || ev.clientX > rc.right ||
         ev.clientY < rc.top || ev.clientY > rc.bottom) {
       hoverTarget = 0;
+      probeTarget = 0;
       arm(false);
       return;
     }
@@ -901,8 +979,12 @@ function infinityBlackhole(canvas, cfg) {
     var dy = (ev.clientY - (rc.top + (1 - ctr[1]) * rc.height)) / rc.height * z;
     /* full response over the hole, easing down to a floor across the
        rest of the section so the disk stays alive to the pointer */
-    var near = 1 - smooth(0.22, 1.25, Math.sqrt(dx * dx + dy * dy));
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var near = 1 - smooth(0.22, 1.25, dist);
     hoverTarget = Math.max(0.18, near, stirFloor);
+    probeTX = dx;
+    probeTY = -dy;
+    probeTarget = (cfg.probe && !lightTarget) ? smooth(0.32, 0.62, dist) : 0;
     arm(near > 0.5);
     if (!raf) {
       raf = requestAnimationFrame(frame);
@@ -930,8 +1012,8 @@ function infinityBlackhole(canvas, cfg) {
     return !!(el && el.closest && el.closest('a, button, input, select, textarea, label, iframe, [data-bh-stir], .hero-steam-card'));
   }
 
-  function feed() {
-    feedCur = 1;
+  function feed(strength) {
+    feedCur = Math.max(feedCur, (typeof strength === 'number') ? strength : 1);
     if (!raf) {
       raf = requestAnimationFrame(frame);
     }
@@ -963,7 +1045,7 @@ function infinityBlackhole(canvas, cfg) {
       return;
     }
     if (ev.pointerType === 'mouse') {
-      feed();
+      feed(1);
       return;
     }
     tapId = ev.pointerId;
@@ -986,7 +1068,7 @@ function infinityBlackhole(canvas, cfg) {
     }
     tapId = -1;
     if (performance.now() - tapAt <= TAP_MS && tapMoved <= TAP_SLOP) {
-      feed();
+      feed(1);
     }
   }
 
@@ -996,6 +1078,7 @@ function infinityBlackhole(canvas, cfg) {
 
   function onPointerGone() {
     hoverTarget = 0;
+    probeTarget = 0;
     arm(false);
   }
 
@@ -1022,6 +1105,161 @@ function infinityBlackhole(canvas, cfg) {
   }
 
   raf = requestAnimationFrame(frame);
+
+  /* A small handle for page code (the hero's feed button and read
+     transition). hole() reports where the hole is on screen right now,
+     in client pixels, with the disk's outer radius. */
+  return {
+    interactive: interactive,
+    feed: function (strength) {
+      if (interactive) {
+        feed(strength);
+      }
+    },
+    hole: function () {
+      var rc = canvas.getBoundingClientRect();
+      var ctr = cfg.center(rc.width, rc.height);
+      var z = zoomFor(rc.width, rc.height);
+      return {
+        x: rc.left + ctr[0] * rc.width,
+        y: rc.top + (1 - ctr[1]) * rc.height,
+        r: 0.95 * rc.height / z
+      };
+    }
+  };
+}
+
+/* Pillar grades for the hero disk, keyed by the lead article's
+   section (front-page.php prints it as data-bh-tint on the canvas).
+   Space is the native incandescent ramp. */
+/* [r, g, b, amount]: the hue to grade toward and how far */
+var INFINITY_BH_TINTS = {
+  space:   [1.00, 1.00, 1.00, 0.00],
+  health:  [0.30, 0.95, 1.10, 0.60],
+  science: [0.55, 1.05, 0.62, 0.50],
+  mind:    [0.75, 0.50, 1.25, 0.55],
+  travel:  [1.15, 0.85, 0.40, 0.45]
+};
+
+/* Hero furniture that drives the black hole: the accessible feed
+   button and the read transition on the lead card. */
+function infinityHeroControls(section, bh) {
+  'use strict';
+  if (!section || !bh || !bh.interactive) {
+    return;
+  }
+
+  var WIDE = 1100;
+
+  /* ---- Feed button + live region ----
+     The backdrop click is pointer-only and invisible to assistive
+     tech; this is the same event for everyone else. On wide screens it
+     is placed beside the hole itself, below the two-column breakpoint
+     it stays in the copy column's flow. */
+  var btn = section.querySelector('[data-bh-feed]');
+  var live = section.querySelector('[data-bh-live]');
+  var liveTimer = null;
+
+  function place() {
+    if (!btn) {
+      return;
+    }
+    if (window.innerWidth < WIDE || !btn.offsetParent) {
+      btn.style.left = '';
+      btn.style.top = '';
+      btn.classList.remove('is-floating');
+      return;
+    }
+    btn.classList.add('is-floating');
+    var parent = btn.offsetParent.getBoundingClientRect();
+    var h = bh.hole();
+    var bw = btn.offsetWidth;
+    var bhgt = btn.offsetHeight;
+    /* centred over the hole, just above the top of the disk, which is
+       open sky on every wide layout; never allowed down onto the Steam
+       card if the hole ever sits that low */
+    var x = h.x - parent.left - bw / 2;
+    var y = h.y - parent.top - h.r * 0.52 - bhgt;
+    var steam = section.querySelector('.hero-steam-card');
+    var maxY = parent.height - bhgt - 8;
+    if (steam) {
+      maxY = Math.min(maxY, steam.getBoundingClientRect().top - parent.top - bhgt - 10);
+    }
+    x = Math.max(8, Math.min(x, parent.width - bw - 8));
+    y = Math.max(8, Math.min(y, maxY));
+    btn.style.left = Math.round(x) + 'px';
+    btn.style.top = Math.round(y) + 'px';
+  }
+
+  if (btn) {
+    btn.hidden = false;
+    btn.addEventListener('click', function () {
+      bh.feed(1);
+      btn.classList.remove('is-pulsing');
+      void btn.offsetWidth; /* restart the ring animation */
+      btn.classList.add('is-pulsing');
+      if (live) {
+        live.textContent = '';
+        clearTimeout(liveTimer);
+        /* a fresh node change, so a repeat press is announced again */
+        setTimeout(function () {
+          live.textContent = live.getAttribute('data-msg') || '';
+        }, 30);
+        liveTimer = setTimeout(function () { live.textContent = ''; }, 4500);
+      }
+    });
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('load', place);
+  }
+
+  /* ---- Read transition: the card falls in ----
+     A plain left-click on the lead article's title or image feeds the
+     hole and pulls the card toward it - stretched along the line to
+     the hole and squeezed across it, which is what a tidal field does -
+     then navigates. Capped at 340ms so it never reads as lag; modified
+     clicks, middle clicks and new-tab links are left entirely alone. */
+  var card = section.querySelector('.fp-lead');
+  var FALL_MS = 340;
+
+  function onReadClick(ev) {
+    var link = ev.currentTarget;
+    if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey ||
+        ev.shiftKey || ev.altKey || (link.target && link.target !== '_self')) {
+      return;
+    }
+    var href = link.href;
+    if (!href || card.classList.contains('is-falling')) {
+      return;
+    }
+    ev.preventDefault();
+    try {
+      var h = bh.hole();
+      var r = card.getBoundingClientRect();
+      var dx = h.x - (r.left + r.width / 2);
+      var dy = h.y - (r.top + r.height / 2);
+      card.style.setProperty('--bh-dx', Math.round(dx * 0.45) + 'px');
+      card.style.setProperty('--bh-dy', Math.round(dy * 0.45) + 'px');
+      card.style.setProperty('--bh-ang', Math.atan2(dy, dx).toFixed(3) + 'rad');
+      card.classList.add('is-falling');
+      bh.feed(0.8);
+    } catch (e) {
+      window.location.assign(href);
+      return;
+    }
+    setTimeout(function () { window.location.assign(href); }, FALL_MS);
+  }
+
+  if (card) {
+    Array.prototype.forEach.call(card.querySelectorAll('.fp-lead-title a, .fp-lead-media'), function (a) {
+      a.addEventListener('click', onReadClick);
+    });
+    /* Back button with bfcache: the page comes back mid-fall unless
+       the card is reset. */
+    window.addEventListener('pageshow', function () {
+      card.classList.remove('is-falling');
+    });
+  }
 }
 
 /* Hero: incandescent disk anchored at the wordmark */
@@ -1046,7 +1284,9 @@ function infinityBlackhole(canvas, cfg) {
        the disk inside its column at every aspect, where a fixed zoom let
        it grow with the section height - huge on a tall phone hero. */
     var WIDE = 1100;
-    infinityBlackhole(hero, {
+    var heroBh = infinityBlackhole(hero, {
+      tint: INFINITY_BH_TINTS[hero.getAttribute('data-bh-tint')] || INFINITY_BH_TINTS.space,
+      probe: true,
       zoom: function (w, h) {
         var radius = (w >= WIDE) ? Math.min(w * 0.26, h * 0.6, 520) : Math.min(w * 0.62, 420);
         return 0.95 * h / Math.max(radius, 120);
@@ -1064,6 +1304,7 @@ function infinityBlackhole(canvas, cfg) {
         return [0.62, 1 - Math.min(170 / Math.max(h, 1), 0.4)];
       }
     });
+    infinityHeroControls(hero.parentNode, heroBh);
   }
 
   /* Parker's band: centered binary-palette disk behind the logo. It is

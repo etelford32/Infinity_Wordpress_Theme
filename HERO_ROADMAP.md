@@ -24,30 +24,35 @@ interactive. Every item is scoped to fit the current constraints:
 | Click / tap to feed | Disk flares, swarm drops into the hole, shock ring, polar jets (~4 s). |
 | Article-aware stir (new) | Hovering or focusing the lead card holds the disk at a gentle stir. |
 | Controls never feed (new) | Pressing a link, the card, or the Steam widget no longer triggers a feeding event. |
+| Phase 1 (3.9.0) | Feed button + live region, read transition, pillar tint, pointer lens. See below. |
 | Theme crossfade | Night ↔ paper palette follows the site toggle. |
 
-## Phase 1: small, high-value (≈1–2 days)
+## Phase 1: shipped in 3.9.0
 
-1. **Accessible "Feed the black hole" button.** A small ghost button in
-   the hero corner that calls the same `feed()`, for keyboard and
-   screen-reader users who can't click the bare backdrop. A visually
-   hidden live region reads out one line ("Accretion flare: 4 seconds").
-   Hidden under reduced motion.
-2. **Read → spaghettify transition.** Clicking the lead card fires a
-   short feed (≈350 ms) and pulls the card's content toward the hole
-   with a CSS transform before navigating. Uses the View Transitions
-   API where supported and plain navigation everywhere else. It must
-   never delay navigation by more than 400 ms, and the transition is
-   skipped for modifier-clicks and middle-clicks.
-3. **Category tint.** Pass the lead article's pillar (Health, Space,
-   Mind, Travel) to the shader as a uniform that shifts the disk palette
-   slightly: teal for anatomy, ember for space, violet for mind, gold
-   for travel. One `uniform vec3`, no extra cost.
-4. **Pointer gravitational lens on the sky.** A second, weak lens
-   centred on the cursor that bends the starfield and nebula as it
-   passes, as if a small mass is moving across the sky. Only the
-   background lookup changes, so the cost is the existing lens maths
-   once more. Mouse only, not touch.
+1. **Accessible "Feed the black hole" button.** `[data-bh-feed]` in
+   the hero calls the same feed event as the backdrop click, and a
+   polite live region (`[data-bh-live]`) announces "Accretion flare: the
+   black hole is feeding." Stays hidden unless the scene is interactive
+   (WebGL available and motion allowed). On screens 1100px and wider it
+   floats just above the hole and never drops onto the Steam card; on
+   narrower screens it sits in the copy column under the section links.
+2. **Read → spaghettify transition.** A plain left-click on the lead
+   card's title or image feeds the hole at 0.8 strength and pulls the
+   card toward it, stretched along the line to the hole and squeezed
+   across it, then navigates after 340 ms. Modifier clicks, middle
+   clicks and new-tab links are not intercepted, and returning through
+   the back/forward cache resets the card.
+3. **Category tint.** `infinity_post_pillar()` maps the lead post's
+   categories to a pillar, which is printed as `data-bh-tint` on the
+   canvas. The disk, lensed arcs and sparks are graded toward a hue
+   (teal for health, green for science, violet for mind, gold for
+   travel; space keeps the native ramp) while each pixel keeps its
+   luminance. The grade is gentler in paper mode, so dark pigment
+   doesn't turn grey.
+4. **Pointer gravitational lens on the sky.** A weak point lens follows
+   the mouse (eased, not snapped), bends the starfield and nebula, and
+   shows a faint, lumpy Einstein ring. It fades out near the hole so the
+   two lenses never meet at the photon ring. Night mode and mouse only.
 
 ## Phase 2: "play with it" (≈3–5 days)
 
@@ -96,7 +101,7 @@ interactive. Every item is scoped to fit the current constraints:
 
 ## Suggested order
 
-Phase 1 items 1 and 2 first: they are about accessibility and the
-article funnel. Next, item 12, so every later item can be measured. Then
+Phase 1 is done. Next, item 12, so every later item can be measured
+(including whether the read transition helps or hurts click-through). Then
 items 5 and 8, which are the most "Parker's Physics" in spirit. Item 9
 only if the spin slider ships.

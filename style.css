@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.8.0
+Version: 3.9.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -5187,5 +5187,115 @@ html[data-mode="light"] .theme-toggle-knob {
 
   .fp-lead-badge.is-new .fp-lead-dot {
     animation: none;
+  }
+}
+
+/* ==========================================================================
+   20.0 Hero interactions, phase 1: feed button, read transition
+   ========================================================================== */
+
+/* Accessible twin of the backdrop click. In the copy column's flow on
+   narrow screens; blackhole.js floats it beside the hole on wide ones. */
+.bh-feed-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--spacing-md);
+  padding: 7px 14px 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 184, 77, 0.45);
+  background: rgba(10, 14, 26, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #ffd9a0;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast), opacity var(--transition-base);
+}
+
+.bh-feed-btn[hidden] {
+  display: none;
+}
+
+.bh-feed-btn.is-floating {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.bh-feed-btn:hover,
+.bh-feed-btn:focus-visible {
+  opacity: 1;
+  color: #ffffff;
+  border-color: #ffb84d;
+  background: rgba(40, 24, 10, 0.7);
+}
+
+.bh-feed-btn:focus-visible {
+  outline: 2px solid #ffb84d;
+  outline-offset: 3px;
+}
+
+/* A tiny black hole: dark core, hot ring */
+.bh-feed-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #05060c;
+  box-shadow: 0 0 0 2px #ffb84d, 0 0 8px 2px rgba(255, 140, 50, 0.6);
+}
+
+.bh-feed-btn.is-pulsing .bh-feed-icon::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid #ffd9a0;
+  animation: bh-feed-ring 900ms ease-out forwards;
+}
+
+@keyframes bh-feed-ring {
+  from { transform: scale(1); opacity: 1; }
+  to   { transform: scale(3.2); opacity: 0; }
+}
+
+[data-mode="light"] .bh-feed-btn {
+  color: #9a3412;
+  border-color: rgba(180, 83, 9, 0.45);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+[data-mode="light"] .bh-feed-btn:hover,
+[data-mode="light"] .bh-feed-btn:focus-visible {
+  color: #10162e;
+  border-color: #b45309;
+  background: #ffffff;
+}
+
+/* Read transition: the card is stretched along the line to the hole
+   and squeezed across it (rotate into that frame, scale, rotate back),
+   drifting toward the hole as it dims. blackhole.js sets the vector. */
+.fp-lead.is-falling {
+  pointer-events: none;
+  transition:
+    transform 340ms cubic-bezier(0.55, 0, 0.85, 0.35),
+    opacity 340ms ease-in,
+    filter 340ms ease-in;
+  transform:
+    translate(var(--bh-dx, 0), var(--bh-dy, 0))
+    rotate(var(--bh-ang, 0rad)) scale(1.22, 0.5) rotate(calc(var(--bh-ang, 0rad) * -1));
+  opacity: 0.25;
+  filter: blur(2px) saturate(1.6) brightness(1.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bh-feed-btn {
+    transition: none;
   }
 }

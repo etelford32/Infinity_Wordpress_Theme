@@ -3,6 +3,32 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.9.0
+
+Hero interactions, phase 1 of `HERO_ROADMAP.md`:
+
+- **"Feed the black hole" button** (`front-page.php`,
+  `assets/js/blackhole.js`): a keyboard and screen-reader route to the
+  backdrop's click-to-feed, with a polite live-region announcement. It
+  appears only when the scene is interactive (WebGL available and motion
+  allowed). On screens 1100px and wider it floats just above the hole;
+  on narrower screens it sits under the section links.
+- **Read transition**: left-clicking the lead article's title or image
+  feeds the hole and pulls the card into it, stretched along the line
+  to the hole, then navigates after 340ms. Modifier clicks, middle
+  clicks and new-tab links behave normally, and the card resets when
+  the page is restored from the back/forward cache.
+- **Pillar tint**: the lead article's section grades the disk palette
+  (teal for health, green for science, violet for mind, gold for travel;
+  space is unchanged). New helpers in `functions.php`:
+  `infinity_pillar_slugs()` and `infinity_post_pillar()`.
+- **Pointer lens**: in night mode, a faint gravitational lens follows
+  the mouse across the sky, bending the stars and nebula and showing a
+  soft Einstein ring. It fades out near the hole.
+- `infinityBlackhole()` now returns a small handle
+  (`{ interactive, feed(strength), hole() }`). `cfg.tint`
+  (`[r, g, b, amount]`) and `cfg.probe` are new options.
+
 ## 3.8.0
 
 - **Homepage hero leads with the newest article** (`front-page.php`):

@@ -62,13 +62,16 @@ $infinity_lead_query = new WP_Query(array(
     'no_found_rows'       => true,
 ));
 $infinity_lead_ids = array_map('intval', wp_list_pluck($infinity_lead_query->posts, 'ID'));
+// The lead article's pillar grades the black hole's palette
+$infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead_ids[0]) : '';
 ?>
 
 <div class="front-page">
 
     <!-- ================= Hero: black hole ================= -->
     <section class="fp-hero fp-hero-blackhole">
-        <canvas id="fp-blackhole" aria-hidden="true"></canvas>
+        <canvas id="fp-blackhole" aria-hidden="true"<?php if ($infinity_lead_pillar) : ?> data-bh-tint="<?php echo esc_attr($infinity_lead_pillar); ?>"<?php endif; ?>></canvas>
+        <p class="screen-reader-text" aria-live="polite" data-bh-live data-msg="<?php esc_attr_e("Accretion flare: the black hole is feeding.", 'infinity'); ?>"></p>
         <div class="container">
             <div class="fp-hero-inner">
                 <div class="fp-hero-copy">
@@ -206,6 +209,15 @@ $infinity_lead_ids = array_map('intval', wp_list_pluck($infinity_lead_query->pos
                         <a href="#explore-the-universe"><?php esc_html_e('The Game', 'infinity'); ?></a>
                         <a href="#landscaping"><?php esc_html_e('Landscaping', 'infinity'); ?></a>
                     </nav>
+                    <?php
+                    // Keyboard / screen-reader route to the backdrop's
+                    // click-to-feed. Revealed by blackhole.js only when
+                    // the scene is interactive (WebGL, motion allowed).
+                    ?>
+                    <button type="button" class="bh-feed-btn" data-bh-feed hidden>
+                        <span class="bh-feed-icon" aria-hidden="true"></span>
+                        <?php esc_html_e('Feed the black hole', 'infinity'); ?>
+                    </button>
                 </div>
 
                 <?php $infinity_hero_app = infinity_steam_app_id(); if ($infinity_hero_app) : ?>

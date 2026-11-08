@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.8.0');
+define('INFINITY_VERSION', '3.9.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -1395,6 +1395,51 @@ function infinity_fp_query($slugs_csv, $count = 3, $exclude = array(), $rotate =
     }
 
     return $query;
+}
+
+/**
+ * The homepage pillars and their category slug lists, keyed by pillar.
+ *
+ * The slug lists are the Customizer options under Homepage Content, so
+ * this is the one place their defaults are spelled out for code that
+ * needs to know which pillar a post belongs to.
+ */
+function infinity_pillar_slugs() {
+    return array(
+        'health'  => get_option('infinity_pillar_health_slugs', 'anatomy,osteology,health,nutrition,fitness,medicine,wellness,body'),
+        'space'   => get_option('infinity_pillar_space_slugs', 'space,astronomy,astrophysics,simulations,physics,cosmos,universe,satellites,black-holes'),
+        'mind'    => get_option('infinity_pillar_mind_slugs', 'philosophy,religion,buddhism,hinduism,yoga,mind,meditation,spirituality,psychology'),
+        'science' => get_option('infinity_pillar_science_slugs', 'science,biology,nature,technology,research,mushrooms,fungi,discovery'),
+        'travel'  => get_option('infinity_pillar_travel_slugs', 'travel,experiences,adventures,journeys,field-notes,life,blog'),
+    );
+}
+
+/**
+ * Which homepage pillar a post belongs to: health, space, mind,
+ * science or travel, or '' when none of its categories match.
+ *
+ * Categories are tried in the post's own order, so its primary
+ * category decides; the hero uses this to grade the black hole.
+ */
+function infinity_post_pillar($post = null) {
+    $post = get_post($post);
+    if (!$post) {
+        return '';
+    }
+    $map = array();
+    foreach (infinity_pillar_slugs() as $pillar => $csv) {
+        foreach (array_filter(array_map('trim', explode(',', (string) $csv))) as $slug) {
+            if (!isset($map[$slug])) {
+                $map[$slug] = $pillar;
+            }
+        }
+    }
+    foreach ((array) get_the_category($post->ID) as $cat) {
+        if (isset($map[$cat->slug])) {
+            return $map[$cat->slug];
+        }
+    }
+    return '';
 }
 
 /**
