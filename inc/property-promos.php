@@ -189,15 +189,15 @@ function infinity_property_features($key) {
 /**
  * Render a band feature grid.
  */
-function infinity_render_feature_grid($key, $aria_label) {
+function infinity_render_feature_grid($key, $aria_label, $placement = '') {
     $features = infinity_property_features($key);
     if (!$features) {
         return;
     }
     ?>
-    <nav class="band-features" aria-label="<?php echo esc_attr($aria_label); ?>">
+    <nav class="band-features" aria-label="<?php echo esc_attr($aria_label); ?>" data-project="<?php echo esc_attr($key); ?>" data-cta="feature"<?php if ($placement) : ?> data-placement="<?php echo esc_attr($placement); ?>"<?php endif; ?>>
         <?php foreach ($features as $f) : $badge = isset($f[4]) ? strtoupper($f[4]) : ''; ?>
-            <a class="band-feature" href="<?php echo esc_url($f[3]); ?>" target="_blank" rel="noopener">
+            <a class="band-feature" href="<?php echo esc_url($placement && function_exists('infinity_project_href') ? infinity_project_href($f[3], $placement, 'feature_' . sanitize_title($f[1])) : $f[3]); ?>" target="_blank" rel="noopener">
                 <span class="band-feature-icon" aria-hidden="true"><?php
                 if (function_exists('infinity_is_icon_token') && infinity_is_icon_token($f[0])) {
                     infinity_icon($f[0]);
@@ -255,7 +255,7 @@ function infinity_etu_wishlist_cta($args = array()) {
     $label = __('Wishlist on Steam', 'infinity');
     $size  = 'md' === $args['size'] ? 'md' : 'lg';
     ?>
-    <a class="etu-wishlist etu-wishlist-<?php echo esc_attr($size); ?>" href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener noreferrer">
+    <a class="etu-wishlist etu-wishlist-<?php echo esc_attr($size); ?>" href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener noreferrer" data-project="etu" data-cta="wishlist" data-placement="<?php echo esc_attr(sanitize_key($args['campaign'])); ?>">
         <span class="etu-wishlist-plate">
             <img class="etu-wishlist-emblem" src="<?php echo esc_url(INFINITY_URI . '/assets/img/etu-type.webp'); ?>" alt="" width="480" height="200" loading="lazy" decoding="async">
             <span class="etu-wishlist-copy">
