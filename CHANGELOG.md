@@ -3,6 +3,41 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.10.0
+
+- **Hero engagement metrics** (`assets/js/rum.js`, `inc/analytics-rum.php`):
+  homepage hero actions are recorded as a new `hero` event type
+  (impression, stir, lens, feed, feed button, read transition, lead
+  click, lead category, "Also new", section links, wishlist).
+  `blackhole.js` only pushes onto `window.infinityHeroQ`, and the
+  collector drains it, so nothing is recorded for logged-in users or
+  without the collector. Caps apply per pageview (feed 10, one-off
+  actions 1).
+- **Interactive-vs-calm experiment**: Customize → Homepage Content →
+  Hero experiment: holdout % (0–50, off by default). Holdout sessions
+  get the animated black hole with none of its interactions. The arm
+  stays fixed for the life of the tab and is stored in a new `variant`
+  column (the RUM table upgrades itself to DB version 2).
+  Reduced-motion and no-WebGL visitors are recorded as `static` and
+  kept out of the comparison.
+- **Analytics → Homepage Hero** (`inc/analytics-hero.php`): lead-article
+  CTR per arm, measured in sessions; a two-proportion z-test with 95%
+  confidence interval and relative lift (shown once each arm has 100
+  sessions; filter `infinity_hero_min_sessions`); an action breakdown;
+  players vs non-players (labelled as descriptive); how often the read
+  transition plays; median time to open the lead article; and daily CTR.
+- **Black hole visuals**:
+  - The disk now reaches in close to the shadow, as the ISCO does in a
+    real image, which removes the dark "eye" gaps on either side of the
+    hole.
+  - A hot spot orbits just outside the inner edge, stretched along its
+    orbit, Doppler-beamed and waxing and waning; feeding makes it flare.
+  - A luminance-based filmic shoulder keeps detail in the core instead
+    of clipping it to white (night mode only).
+  - A faint corona glows around the inner disk.
+  - Dithering removes banding in the dark gradients.
+  - Spark tails now draw as continuous streaks instead of dotted rows.
+
 ## 3.9.0
 
 Hero interactions, phase 1 of `HERO_ROADMAP.md`:

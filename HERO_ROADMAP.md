@@ -93,15 +93,32 @@ interactive. Every item is scoped to fit the current constraints:
 11. **Ambient sonification.** Off by default, behind a speaker toggle.
     A low drone pitched by disk spin, with a chirp on feeding. Web Audio
     only, and nothing loads until the toggle is pressed.
-12. **Engagement metrics.** Send hover-stir, feed, drag and panel-open
-    counts plus lead-card click-through through the existing RUM
-    pipeline (`assets/js/rum.js`, `inc/analytics-rum.php`), to find out
-    whether the interactions help or hurt article clicks before
-    expanding them.
+12. **Engagement metrics. Shipped in 3.10.0.** Hero actions (impression,
+    stir, lens, feed, feed button, read transition, lead click, category,
+    "Also new", section links, wishlist) go through the existing RUM
+    pipeline as `hero` events, with an optional interactive-vs-calm
+    holdout experiment and an Analytics → Homepage Hero report. See
+    "Measuring it" below.
+
+## Measuring it
+
+- **Turn the experiment on** under Customize → Homepage Content → Hero
+  experiment: holdout % (try 20–30). Holdout sessions get the animated
+  black hole with none of its interactions.
+- **Decide the sample size before looking.** For a baseline lead CTR
+  around 20%, detecting a 3-point change at 80% power needs roughly
+  2,900 sessions per arm. The report holds back the comparison until
+  each arm has at least 100 sessions (filter
+  `infinity_hero_min_sessions`), but 100 only catches large effects.
+- **Read the experiment table, not the players table.** Visitors choose
+  whether to play with the hole, so "players click more" is
+  self-selection. The holdout comparison is randomised.
+- **Set the holdout back to 0** once there's an answer.
 
 ## Suggested order
 
-Phase 1 is done. Next, item 12, so every later item can be measured
-(including whether the read transition helps or hurts click-through). Then
-items 5 and 8, which are the most "Parker's Physics" in spirit. Item 9
-only if the spin slider ships.
+Phase 1 and the metrics (item 12) are done. Run the holdout experiment
+to a decided sample size before building Phase 2, so we know whether
+interactivity is helping article clicks. Then items 5 and 8, which are
+the most "Parker's Physics" in spirit. Item 9 only if the spin slider
+ships.
