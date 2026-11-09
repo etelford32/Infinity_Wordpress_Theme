@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.15.0');
+define('INFINITY_VERSION', '3.17.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -927,6 +927,8 @@ require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 require_once INFINITY_DIR . '/inc/analytics-rum.php';
 require_once INFINITY_DIR . '/inc/analytics-hero.php';
 require_once INFINITY_DIR . '/inc/ga-events.php';
+require_once INFINITY_DIR . '/inc/post-media.php';
+require_once INFINITY_DIR . '/inc/lazy-load.php';
 
 // Page excerpts: the projects page uses its excerpt as the hero lede
 add_action('init', function () {
@@ -1690,6 +1692,11 @@ function infinity_seo_json_ld() {
             'image'         => get_the_post_thumbnail_url(null, 'large') ?: '',
             'mainEntityOfPage' => get_permalink(),
         );
+        // Header video (inc/post-media.php)
+        $infinity_video = function_exists('infinity_header_video_schema') ? infinity_header_video_schema() : null;
+        if ($infinity_video) {
+            $schema[count($schema) - 1]['video'] = $infinity_video;
+        }
     }
 
     foreach ($schema as $item) {

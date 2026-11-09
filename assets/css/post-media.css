@@ -1,0 +1,267 @@
+/**
+ * Post media: header video / GIF hero, loop videos, animated GIFs,
+ * YouTube facade. Markup from inc/post-media.php, behaviour from
+ * assets/js/post-media.js.
+ */
+
+/* ---------- Post header media ---------- */
+
+.entry-hero-media {
+  position: relative;
+  margin: 0 auto var(--spacing-2xl);
+  max-width: 960px;
+}
+
+.entry-hero-media img,
+.entry-hero-media video,
+.entry-hero-media .infinity-yt {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  background: var(--color-bg-secondary);
+}
+
+.entry-hero-media video {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.entry-hero-media video[width][height] {
+  aspect-ratio: auto;
+}
+
+/* Full width: edge to edge, capped so the title stays near the fold */
+.entry-hero-media.entry-hero-wide {
+  max-width: none;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+}
+
+.entry-hero-wide img,
+.entry-hero-wide video,
+.entry-hero-wide .infinity-yt {
+  border-radius: 0;
+  box-shadow: none;
+  max-height: 70vh;
+  object-fit: cover;
+}
+
+.entry-hero-wide video[width][height] {
+  aspect-ratio: 16 / 9;
+}
+
+.entry-hero-wide .infinity-yt {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* ---------- Pause / play button ---------- */
+
+.infinity-media-host {
+  position: relative;
+}
+
+.infinity-media-toggle {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-full);
+  background: rgba(10, 14, 26, 0.6);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), background-color var(--transition-fast);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.infinity-media-host:hover .infinity-media-toggle,
+.infinity-media-host.is-paused .infinity-media-toggle,
+.infinity-media-toggle:focus-visible {
+  opacity: 1;
+}
+
+.infinity-media-toggle:hover {
+  background: var(--color-accent-primary);
+}
+
+.infinity-media-toggle:focus-visible {
+  outline: 2px solid var(--color-accent-tertiary);
+  outline-offset: 2px;
+}
+
+/* Touch screens have no hover: keep the button visible */
+@media (hover: none) {
+  .infinity-media-toggle {
+    opacity: 0.85;
+  }
+}
+
+/* ---------- Animated GIFs ---------- */
+
+.infinity-gif {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+  vertical-align: top;
+}
+
+.entry-hero-media .infinity-gif {
+  display: block;
+}
+
+.infinity-gif picture {
+  display: block;
+}
+
+.infinity-gif img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* The frozen frame sits exactly over the still-running GIF */
+.infinity-gif-freeze {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.infinity-gif.is-frozen img {
+  visibility: hidden;
+}
+
+.entry-hero-media .infinity-gif-freeze {
+  border-radius: var(--radius-lg);
+}
+
+.entry-hero-wide .infinity-gif-freeze {
+  border-radius: 0;
+  object-fit: cover;
+}
+
+/* ---------- Loop videos in content ---------- */
+
+.wp-block-video.infinity-loop-wrap video,
+.infinity-gif-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.infinity-gif-video {
+  position: relative;
+  display: block;
+}
+
+/* ---------- YouTube facade ---------- */
+
+.infinity-yt {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Inside a core embed block the wrapper already reserves the ratio */
+.wp-has-aspect-ratio .wp-block-embed__wrapper .infinity-yt {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  height: 100%;
+}
+
+.infinity-yt img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+
+.infinity-yt:hover img,
+.infinity-yt:focus-visible img {
+  transform: scale(1.03);
+  filter: brightness(0.85);
+}
+
+.infinity-yt-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 0;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+}
+
+.infinity-yt-play-bg {
+  fill: #212121;
+  fill-opacity: 0.8;
+  transition: fill 0.2s ease, fill-opacity 0.2s ease;
+}
+
+.infinity-yt:hover .infinity-yt-play-bg,
+.infinity-yt:focus-visible .infinity-yt-play-bg {
+  fill: #f00;
+  fill-opacity: 1;
+}
+
+.infinity-yt-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 1rem 2rem;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  line-height: 1.3;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.infinity-yt:focus-visible {
+  outline: 3px solid var(--color-accent-tertiary);
+  outline-offset: 3px;
+}
+
+.infinity-yt-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .infinity-yt img,
+  .infinity-media-toggle {
+    transition: none;
+  }
+  .infinity-yt:hover img {
+    transform: none;
+  }
+}

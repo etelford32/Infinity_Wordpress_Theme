@@ -50,11 +50,11 @@ get_header();
             </div>
         </header>
 
-        <?php if (has_post_thumbnail()) : ?>
-            <div class="entry-thumbnail container">
-                <?php the_post_thumbnail('simulation-hero'); ?>
-            </div>
-        <?php endif; ?>
+        <?php
+        // Header video, YouTube, animated GIF or featured image
+        // (inc/post-media.php)
+        infinity_the_post_header_media();
+        ?>
 
         <?php $infinity_sidebar = infinity_sidebar_layout('post'); ?>
         <div class="<?php echo esc_attr(infinity_entry_layout_classes($infinity_sidebar)); ?> container">

@@ -37,6 +37,72 @@ entries are in release order, newest first.
     printed to the Actions log or uploaded as an artifact.
 - The shared Google sign-in code now lives in `tools/ga4/google.mjs`.
 
+## 3.17.0
+
+- **Lazy loading** (`inc/lazy-load.php`). Core WordPress already
+  lazy-loads post thumbnails, content images and avatars. This release
+  covers what it leaves eager:
+  - **Videos:** a `<video>` used to fetch its poster image, and the
+    start of the file, as soon as the page loaded. Now both wait until
+    the video is about a screen away from the viewport. This applies to
+    video blocks, GIF-replacement loops, and the teaser videos on the
+    homepage and projects page.
+    - The post header video still loads straight away.
+    - You can turn this off with the `infinity_lazy_videos` filter.
+  - **Iframes in post content:** core only lazy-loads iframes that have
+    width and height attributes. Every content iframe without a
+    `loading` attribute now gets `loading="lazy"`.
+  - **Below the fold:** related posts, comments and the footer use
+    `content-visibility: auto`. The browser skips laying them out and
+    painting them until they are scrolled near.
+  - **Header logo swarm** (`assets/js/logo-orbits.js`): the WebGL setup
+    waits until the browser is idle, so it doesn't compete with first
+    paint. The animation loop stops while the logo is off screen.
+  - The header logo `<img>` now has width, height and
+    `decoding="async"`.
+
+## 3.16.0
+
+- **Blog post media** (`inc/post-media.php`, `assets/js/post-media.js`,
+  `assets/css/post-media.css`):
+  - **GIFs keep animating.** WordPress resizes GIFs into static
+    first-frame copies, so a GIF inserted at "Large" froze, and so did a
+    GIF featured image shown at the hero size. Posts now serve the
+    original GIF, in the content and in the header.
+    - A large GIF is no longer replaced by a static `-scaled` copy when
+      it is uploaded.
+    - Visitors who prefer reduced motion get the still frame, without
+      downloading the GIF.
+    - Every GIF has a pause/play button. Pausing freezes the current
+      frame.
+    - On cards (homepage, archives, related posts), GIF thumbnails show
+      the small still frame and animate on hover or focus. The GIF is
+      only fetched then.
+  - **GIF → video swap.** Upload `name.mp4` (or `.webm`) next to
+    `name.gif`, or set the GIF's new "Loop video" field in the media
+    library, and posts serve the video as a silent loop instead. It is
+    typically 5–20× smaller. The media library flags GIFs over 2 MB.
+  - **Video blocks:** every video gets `playsinline` and
+    `preload="metadata"`. Videos set to autoplay, and videos with the new
+    **"GIF-style loop"** block style, are muted and looped. They play only
+    while on screen, don't start for reduced-motion visitors, and have a
+    pause button.
+  - **YouTube embeds load on click.** Posts show the thumbnail with a
+    play button. The player (about 1 MB of script) loads from
+    youtube-nocookie.com only when someone clicks. It works for embed
+    blocks and for bare URLs in classic content. The editor preview is
+    unchanged. You can turn it off with the `infinity_youtube_facade`
+    filter.
+  - **Header media box** on the post screen: set a header video (from the
+    media library or a URL, with an optional WebM version) or a YouTube
+    link. The video replaces the featured image, which becomes its
+    poster.
+    - Playback is either an ambient silent loop or a player with sound
+      and controls.
+    - The width is either contained or full width (cinematic).
+    - The video is added to the Open Graph tags (`og:video`) and to the
+      Article structured data (`VideoObject`).
+
 ## 3.15.0
 
 - **Projects page funnel** (`page-projects.php`): `/projects/` now has its

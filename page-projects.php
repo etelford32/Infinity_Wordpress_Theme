@@ -169,7 +169,7 @@ $infinity_primary_cta = function ($key, $p, $placement) {
             <div class="fp-band-inner<?php echo ($infinity_i++ % 2) ? ' fp-band-reverse' : ''; ?>">
                 <div class="fp-band-media pj-media<?php echo !empty($media['contain']) ? ' pj-media-contain' : ''; ?><?php echo 'icon' === $media['type'] ? ' pj-media-icon' : ''; ?>">
                     <?php if ('video' === $media['type']) : ?>
-                        <video class="fp-etu-video" muted loop playsinline preload="metadata" poster="<?php echo esc_url($media['poster']); ?>" aria-label="<?php echo esc_attr(sprintf(__('%s teaser video', 'infinity'), $p['name'])); ?>">
+                        <video class="fp-etu-video" muted loop playsinline preload="none" data-preload="metadata" data-lazy-video data-poster="<?php echo esc_url($media['poster']); ?>" aria-label="<?php echo esc_attr(sprintf(__('%s teaser video', 'infinity'), $p['name'])); ?>">
                             <source src="<?php echo esc_url($media['src']); ?>" type="video/mp4">
                         </video>
                     <?php elseif ('img' === $media['type']) : ?>

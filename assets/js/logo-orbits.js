@@ -14,6 +14,7 @@
 (function () {
     'use strict';
 
+    function boot() {
     var stage = document.querySelector('.bh-logo');
     if (!stage) {
         return;
@@ -289,11 +290,20 @@
     var last = 0;
     var staticTimer = null;
 
+    // The loop sleeps while the logo is off screen (scrolled past a
+    // non-sticky header) and wakes when it comes back.
+    var onScreen = true, looping = false;
     function frame(ts) {
+        if (!onScreen) { looping = false; last = 0; return; }
         var dt = last ? Math.min((ts - last) / 1000, 0.05) : 1 / 60;
         last = ts;
         stepSim(dt);
         render();
+        requestAnimationFrame(frame);
+    }
+    function startLoop() {
+        if (looping) { return; }
+        looping = true;
         requestAnimationFrame(frame);
     }
 
@@ -319,6 +329,21 @@
     if (reduced) {
         staticSettle();
     } else {
-        requestAnimationFrame(frame);
+        startLoop();
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(function (entries) {
+                onScreen = entries[0].isIntersecting;
+                if (onScreen) { startLoop(); }
+            }).observe(stage);
+        }
+    }
+    }
+
+    // WebGL setup waits until the browser is idle, so it never competes
+    // with the page's first paint or its largest image.
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(boot, { timeout: 1500 });
+    } else {
+        setTimeout(boot, 200);
     }
 })();
