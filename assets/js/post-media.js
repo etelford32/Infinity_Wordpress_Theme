@@ -11,6 +11,8 @@
  * - Card thumbnails with [data-gif-hover] animate on hover or focus.
  * - YouTube facades (.infinity-yt) become the privacy-enhanced player
  *   on click.
+ * - Lazy videos ([data-lazy-video]) get their poster and preload back
+ *   when they come within a screen of the viewport.
  */
 (function () {
   'use strict';
@@ -56,6 +58,41 @@
   }
 
   /* ---------------------------------------------------------------
+   * Lazy videos (inc/lazy-load.php): poster and preload are held back
+   * until the video is about a screen away from the viewport.
+   * ------------------------------------------------------------- */
+
+  function wake(v) {
+    if (v._woke) return;
+    v._woke = true;
+    var poster = v.getAttribute('data-poster');
+    if (poster) v.setAttribute('poster', poster);
+    var preload = v.getAttribute('data-preload');
+    if (preload && preload !== 'none' && v.preload === 'none') v.preload = preload;
+  }
+
+  var lazyVids = document.querySelectorAll('video[data-lazy-video]');
+  if (lazyVids.length) {
+    if ('IntersectionObserver' in window) {
+      var lazyIo = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            wake(entry.target);
+            lazyIo.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin: '100% 0px' });
+      Array.prototype.forEach.call(lazyVids, function (v) {
+        lazyIo.observe(v);
+        // Anything that starts playback first wakes it too
+        v.addEventListener('play', function () { wake(v); }, { once: true });
+      });
+    } else {
+      Array.prototype.forEach.call(lazyVids, wake);
+    }
+  }
+
+  /* ---------------------------------------------------------------
    * Loop videos
    * ------------------------------------------------------------- */
 
@@ -72,6 +109,7 @@
   }, { threshold: [0, 0.25] }) : null;
 
   function start(v) {
+    wake(v);
     if (v.preload === 'none') v.preload = 'auto';
     var p = v.play();
     if (p && p.catch) p.catch(function () { /* blocked; button still works */ });

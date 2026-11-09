@@ -290,7 +290,7 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                         <span class="property-live-placeholder">
                             <span class="property-live-mono"><?php echo esc_html($infinity_prop['mono']); ?></span>
                             <?php if ('etu' === $infinity_prop['key'] && $infinity_etu_video) : ?>
-                                <video class="property-live-art property-live-video" muted loop playsinline preload="none" poster="<?php echo esc_url($infinity_etu_art); ?>">
+                                <video class="property-live-art property-live-video" muted loop playsinline preload="none" data-lazy-video data-poster="<?php echo esc_url($infinity_etu_art); ?>">
                                     <source src="<?php echo esc_url($infinity_etu_video); ?>" type="video/mp4">
                                 </video>
                             <?php elseif ($infinity_prop['art']) : ?>
@@ -475,8 +475,10 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                             muted
                             loop
                             playsinline
-                            preload="metadata"
-                            poster="<?php echo esc_url($infinity_etu_art); ?>"
+                            preload="none"
+                            data-preload="metadata"
+                            data-lazy-video
+                            data-poster="<?php echo esc_url($infinity_etu_art); ?>"
                             aria-label="<?php echo esc_attr(sprintf(__('%s teaser video', 'infinity'), $steam_label)); ?>"
                         >
                             <source src="<?php echo esc_url($infinity_etu_video); ?>" type="video/mp4">

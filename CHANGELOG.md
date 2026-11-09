@@ -37,6 +37,30 @@ entries are in release order, newest first.
     printed to the Actions log or uploaded as an artifact.
 - The shared Google sign-in code now lives in `tools/ga4/google.mjs`.
 
+## 3.17.0
+
+- **Lazy loading** (`inc/lazy-load.php`). Core WordPress already
+  lazy-loads post thumbnails, content images and avatars. This release
+  covers what it leaves eager:
+  - **Videos:** a `<video>` used to fetch its poster image, and the
+    start of the file, as soon as the page loaded. Now both wait until
+    the video is about a screen away from the viewport. This applies to
+    video blocks, GIF-replacement loops, and the teaser videos on the
+    homepage and projects page.
+    - The post header video still loads straight away.
+    - You can turn this off with the `infinity_lazy_videos` filter.
+  - **Iframes in post content:** core only lazy-loads iframes that have
+    width and height attributes. Every content iframe without a
+    `loading` attribute now gets `loading="lazy"`.
+  - **Below the fold:** related posts, comments and the footer use
+    `content-visibility: auto`. The browser skips laying them out and
+    painting them until they are scrolled near.
+  - **Header logo swarm** (`assets/js/logo-orbits.js`): the WebGL setup
+    waits until the browser is idle, so it doesn't compete with first
+    paint. The animation loop stops while the logo is off screen.
+  - The header logo `<img>` now has width, height and
+    `decoding="async"`.
+
 ## 3.16.0
 
 - **Blog post media** (`inc/post-media.php`, `assets/js/post-media.js`,

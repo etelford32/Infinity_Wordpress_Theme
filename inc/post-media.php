@@ -186,7 +186,7 @@ function infinity_gif_markup($attachment_id, $args = array()) {
     $twin = infinity_gif_video_twin($attachment_id);
     if ($twin) {
         $label = $args['alt'] ? sprintf(' aria-label="%s"', esc_attr($args['alt'])) : ' aria-hidden="true"';
-        return sprintf(
+        $html  = sprintf(
             '<span class="infinity-loop-wrap infinity-gif-video"><video class="infinity-loop %1$s" data-infinity-loop muted loop playsinline preload="%2$s"%3$s%4$s%5$s>%6$s</video></span>',
             esc_attr($args['class']),
             $args['priority'] ? 'auto' : 'none',
@@ -195,6 +195,8 @@ function infinity_gif_markup($attachment_id, $args = array()) {
             $label,
             infinity_video_sources_html($twin)
         );
+        // Hero loops load now; loops further down wait (inc/lazy-load.php)
+        return ($args['priority'] || !function_exists('infinity_lazy_video_html')) ? $html : infinity_lazy_video_html($html);
     }
 
     $img = sprintf(
@@ -486,9 +488,9 @@ function infinity_the_post_header_media($post_id = null) {
         $poster = infinity_header_poster_url($post_id);
 
         if ('player' === $media['mode']) {
-            $attrs = 'controls playsinline preload="metadata"';
+            $attrs = 'controls playsinline preload="metadata" data-eager';
         } else {
-            $attrs = 'class="infinity-loop" data-infinity-loop muted loop playsinline preload="auto" aria-hidden="true"';
+            $attrs = 'class="infinity-loop" data-infinity-loop muted loop playsinline preload="auto" aria-hidden="true" data-eager';
         }
         $inner = sprintf(
             '<video %1$s%2$s%3$s>%4$s</video>',

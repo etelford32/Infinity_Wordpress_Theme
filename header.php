@@ -24,13 +24,14 @@
                     // swarm (WebGL): back canvas behind the logo, front
                     // canvas above, so particles genuinely circle it.
                     $infinity_logo_id  = get_theme_mod('custom_logo');
-                    $infinity_logo_src = wp_get_attachment_image_url($infinity_logo_id, 'medium');
+                    $infinity_logo_img = wp_get_attachment_image_src($infinity_logo_id, 'medium');
+                    $infinity_logo_src = $infinity_logo_img ? $infinity_logo_img[0] : '';
                     ?>
                     <a class="site-logo-link" href="<?php echo esc_url(home_url('/')); ?>" rel="home">
                         <span class="bh-logo" aria-hidden="true">
                             <canvas class="bh-orbits bh-orbits-back"></canvas>
                             <span class="bh-logo-photon"></span>
-                            <img class="bh-logo-img" src="<?php echo esc_url($infinity_logo_src); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>">
+                            <img class="bh-logo-img" src="<?php echo esc_url($infinity_logo_src); ?>" alt="<?php echo esc_attr(get_bloginfo('name')); ?>"<?php if ($infinity_logo_img && $infinity_logo_img[1] && $infinity_logo_img[2]) : ?> width="<?php echo (int) $infinity_logo_img[1]; ?>" height="<?php echo (int) $infinity_logo_img[2]; ?>"<?php endif; ?> decoding="async">
                             <canvas class="bh-orbits bh-orbits-front"></canvas>
                         </span>
                         <span class="site-title-group">
