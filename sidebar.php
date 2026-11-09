@@ -22,6 +22,10 @@ $infinity_area = (isset($args['area']) && is_string($args['area'])) ? $args['are
 ?>
 
 <aside class="post-sidebar widget-area" id="secondary-<?php echo esc_attr($infinity_area); ?>" role="complementary" aria-label="<?php esc_attr_e('Sidebar', 'infinity'); ?>">
+    <?php
+    // Single posts pin their table of contents here (inc/reading-tools.php)
+    do_action('infinity_sidebar_top', $infinity_area);
+    ?>
     <?php if (is_active_sidebar($infinity_area)) : ?>
         <?php dynamic_sidebar($infinity_area); ?>
     <?php elseif (infinity_sidebar_uses_fallback($infinity_area)) : ?>

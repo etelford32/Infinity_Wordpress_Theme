@@ -393,8 +393,15 @@
 
                 window.scrollTo({
                     top: targetPosition,
-                    behavior: 'smooth'
+                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
                 });
+
+                // Put the #section in the address bar, as a plain link
+                // would: section links (TOC, heading anchors) are meant
+                // to be copied and shared, and Back should return here.
+                if (window.history && history.pushState && location.hash !== targetId) {
+                    history.pushState(null, '', targetId);
+                }
 
                 // Set focus for accessibility. preventScroll matters:
                 // a plain focus() scrolls the target into view on its

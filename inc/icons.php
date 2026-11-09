@@ -49,6 +49,7 @@ function infinity_icon_paths() {
         'spark' => '<path d="M12 2.8c.7 4.4 2.6 6.3 7 7-4.4.7-6.3 2.6-7 7-.7-4.4-2.6-6.3-7-7 4.4-.7 6.3-2.6 7-7z"/><circle cx="19" cy="17.6" r="0.9" fill="currentColor" stroke="none"/>',
         'sun' => '<circle cx="12" cy="12" r="4.4"/><path d="M12 2.6v2.8M12 18.6v2.8M2.6 12h2.8M18.6 12h2.8M5.2 5.2l2 2M16.8 16.8l2 2M18.8 5.2l-2 2M7.2 16.8l-2 2"/>',
         'moon' => '<path d="M20.4 13.4A8.4 8.4 0 1 1 10.6 3.6a6.8 6.8 0 0 0 9.8 9.8z"/><circle cx="17.6" cy="5.8" r="0.8" fill="currentColor" stroke="none"/>',
+        'search' => '<circle cx="10.6" cy="10.6" r="6.6"/><path d="m15.5 15.5 5.1 5.1"/><circle cx="8.4" cy="8.2" r="0.8" fill="currentColor" stroke="none"/>',
     );
 }
 

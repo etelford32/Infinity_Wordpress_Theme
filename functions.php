@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.18.0');
+define('INFINITY_VERSION', '3.19.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -67,20 +67,58 @@ function infinity_theme_setup() {
 add_action('after_setup_theme', 'infinity_theme_setup');
 
 /**
+ * URL of a theme stylesheet, preferring its minified twin.
+ *
+ * The deploy workflow writes foo.min.css next to every foo.css it ships
+ * (lightningcss). In a checkout, or if minifying failed, there is no
+ * .min file and the readable source is served instead, so nothing ever
+ * depends on the build step having run.
+ *
+ * @param string $rel Path relative to the theme root, e.g. 'style.css'.
+ * @return string
+ */
+function infinity_css_url($rel) {
+    $min = preg_replace('/\.css$/', '.min.css', $rel);
+    if ($min !== $rel && file_exists(INFINITY_DIR . '/' . $min)) {
+        $rel = $min;
+    }
+    return INFINITY_URI . '/' . $rel;
+}
+
+/**
  * Enqueue Scripts and Styles
+ *
+ * style.css holds what every page needs. Template-specific rules live in
+ * their own sheets so a post or archive doesn't download the homepage's
+ * black hole hero (3.18.0 split):
+ *
+ *   assets/css/bands.css       front page + projects funnel
+ *   assets/css/front-page.css  front page
+ *   assets/css/projects.css    projects funnel
+ *   assets/css/single.css      single posts (TOC, progress bar too)
+ *   assets/css/music.css       music pages (since 3.x)
+ *
+ * Fonts are self-hosted (@font-face at the top of style.css).
  */
 function infinity_enqueue_scripts() {
-    // Main stylesheet
-    wp_enqueue_style('infinity-style', get_stylesheet_uri(), array(), INFINITY_VERSION);
+    // Main stylesheet. get_stylesheet_uri() would be style.css itself;
+    // a child theme still gets its own style.css through that filter.
+    $infinity_main_css = is_child_theme() ? get_stylesheet_uri() : infinity_css_url('style.css');
+    wp_enqueue_style('infinity-style', $infinity_main_css, array(), INFINITY_VERSION);
 
-    // Orbitron display face for headings and the wordmark; Oxanium's
-    // chamfered caps carry the ETU 2175 lettering on the wishlist CTA
-    wp_enqueue_style(
-        'infinity-orbitron',
-        'https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Oxanium:wght@700;800&display=swap',
-        array(),
-        null
-    );
+    $infinity_is_projects = function_exists('infinity_is_projects_page') && infinity_is_projects_page();
+
+    if (is_front_page() || $infinity_is_projects) {
+        wp_enqueue_style('infinity-bands', infinity_css_url('assets/css/bands.css'), array('infinity-style'), INFINITY_VERSION);
+    }
+    if (is_front_page()) {
+        wp_enqueue_style('infinity-front-page', infinity_css_url('assets/css/front-page.css'), array('infinity-bands'), INFINITY_VERSION);
+    } elseif ($infinity_is_projects) {
+        wp_enqueue_style('infinity-projects', infinity_css_url('assets/css/projects.css'), array('infinity-bands'), INFINITY_VERSION);
+    }
+    if (is_singular('post')) {
+        wp_enqueue_style('infinity-single', infinity_css_url('assets/css/single.css'), array('infinity-style', 'infinity-post-media'), INFINITY_VERSION);
+    }
 
     // Music pages carry their own stylesheet so their look can't leak
     if (infinity_is_music_page()) {
@@ -197,12 +235,11 @@ add_filter('script_loader_tag', 'infinity_module_script_loader_tag', 10, 3);
 
 /**
  * Resource hints: preconnect to the Steam CDN on the front page,
- * where the game's key art is loaded from it.
+ * where the game's key art is loaded from it. (Google Fonts hints went
+ * with Google Fonts in 3.18.0; the fonts are same-origin now.)
  */
 function infinity_resource_hints($urls, $relation_type) {
     if ('preconnect' === $relation_type) {
-        $urls[] = array('href' => 'https://fonts.googleapis.com');
-        $urls[] = array('href' => 'https://fonts.gstatic.com', 'crossorigin');
         if (is_front_page()) {
             $urls[] = array(
                 'href' => 'https://shared.akamai.steamstatic.com',
@@ -213,6 +250,20 @@ function infinity_resource_hints($urls, $relation_type) {
     return $urls;
 }
 add_filter('wp_resource_hints', 'infinity_resource_hints', 10, 2);
+
+/**
+ * Preload Orbitron. The site title in the header is set in it on every
+ * page, so it is needed for first paint; without the preload the
+ * browser only discovers the file after style.css has downloaded and
+ * parsed. Oxanium is not preloaded: most pages never use it.
+ */
+function infinity_preload_fonts() {
+    printf(
+        '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
+        esc_url(INFINITY_URI . '/assets/fonts/orbitron-latin-wght.woff2')
+    );
+}
+add_action('wp_head', 'infinity_preload_fonts', 1);
 
 /**
  * Register Custom Post Types
@@ -929,6 +980,9 @@ require_once INFINITY_DIR . '/inc/analytics-hero.php';
 require_once INFINITY_DIR . '/inc/ga-events.php';
 require_once INFINITY_DIR . '/inc/post-media.php';
 require_once INFINITY_DIR . '/inc/lazy-load.php';
+require_once INFINITY_DIR . '/inc/speculative-loading.php';
+require_once INFINITY_DIR . '/inc/reading-tools.php';
+require_once INFINITY_DIR . '/inc/quick-search.php';
 
 // Page excerpts: the projects page uses its excerpt as the hero lede
 add_action('init', function () {

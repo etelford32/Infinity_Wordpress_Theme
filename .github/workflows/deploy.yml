@@ -110,16 +110,22 @@ jobs:
           [ "$fail" -eq 0 ] || exit 1
           echo "JS OK"
 
-      - name: Check stylesheet is balanced
+      - name: Check stylesheets are balanced
         run: |
           set -euo pipefail
-          open=$(tr -cd '{' < style.css | wc -c)
-          close=$(tr -cd '}' < style.css | wc -c)
-          if [ "$open" -ne "$close" ]; then
-            echo "::error file=style.css::Unbalanced braces: $open '{' vs $close '}'"
-            exit 1
-          fi
-          echo "CSS OK ($open blocks)"
+          fail=0
+          for f in style.css assets/css/*.css; do
+            open=$(tr -cd '{' < "$f" | wc -c)
+            close=$(tr -cd '}' < "$f" | wc -c)
+            if [ "$open" -ne "$close" ]; then
+              echo "::error file=$f::Unbalanced braces: $open '{' vs $close '}'"
+              fail=1
+            fi
+          done
+          [ "$fail" -eq 0 ] || exit 1
+          # Dry run of the minifier the deploy job uses
+          python3 tools/minify-css.py --check
+          echo "CSS OK"
 
       - name: Check the theme version
         id: version
@@ -299,6 +305,13 @@ jobs:
             "$INSTALL@$INSTALL.ssh.wpengine.net" \
             "cd sites/$INSTALL/wp-content/themes/$SLUG && rm -f plugins.txt && echo 'plugins.txt absent'" \
             2>/dev/null
+
+      # foo.css -> foo.min.css, served by infinity_css_url(). Not
+      # continue-on-error: rsync runs without --delete, so a failed run
+      # here would leave last deploy's .min files on the server beside
+      # this deploy's sources, and the theme would serve the stale ones.
+      - name: Minify stylesheets
+        run: python3 tools/minify-css.py
 
       - name: Deploy to WP Engine
         uses: wpengine/github-action-wpe-site-deploy@v3

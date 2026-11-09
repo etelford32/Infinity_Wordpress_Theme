@@ -37,7 +37,7 @@ entries are in release order, newest first.
     printed to the Actions log or uploaded as an artifact.
 - The shared Google sign-in code now lives in `tools/ga4/google.mjs`.
 
-## 3.18.0
+## 3.19.0
 
 - **Narrow-phone header fix (320–420px).** The Parker's Physics and
   ETU buttons no longer overlap the site name, and the menu button no
@@ -70,6 +70,81 @@ entries are in release order, newest first.
   - **New Customizer option:** *Navigation & UX → Hide Sticky Header
     While Scrolling Down*. It's on by default, which matches the old
     behaviour. Turn it off to keep the header on screen at all times.
+- **1024–1279px header (iPad landscape, small laptops).** Since 3.18.0
+  added the search button, the action buttons dropped onto a row of
+  their own at 1024–1130px. That made a three-row header, about 200px
+  tall and pinned to the screen with Sticky Header on. In this range the
+  buttons are now a little tighter and the tagline stops at 240px with
+  an ellipsis, so the header is two rows again.
+- **Section links no longer double the header gap.** Heading anchors on
+  posts and project blocks on the projects page each added a fixed 80px
+  for the sticky header. The page-wide `scroll-padding-top` already
+  clears it, so with Sticky Header on they now add only a small gap.
+
+## 3.18.0
+
+Speed and reading: a lighter stylesheet, self-hosted fonts, links that
+open already rendered, and a table of contents, progress bar and site
+search.
+
+- **Stylesheet split.** `style.css` goes from 150 KB to 122 KB, and to
+  82 KB minified. Rules that only apply to one template moved to sheets
+  that load only on that template:
+  - `assets/css/front-page.css` (26 KB): the homepage hero and sections.
+  - `assets/css/projects.css` (7 KB): the projects funnel.
+  - `assets/css/bands.css` (2 KB): property bands used by both.
+  - `assets/css/single.css`: was an inline `<style>` in `single.php`,
+    re-sent with every post. As a file it is cached.
+  - A rule moved only if it can only ever match on that template. A
+    computed-style diff of every element on seven templates (desktop,
+    mobile, light, dark) showed no differences.
+- **Minified CSS at deploy.** `tools/minify-css.py` writes `foo.min.css`
+  next to each sheet in the deploy job, and `infinity_css_url()` serves
+  the `.min` file when it exists. It only removes comments and
+  whitespace; it never rewrites or reorders rules. The `.min` files are
+  not committed.
+- **Self-hosted fonts.** Orbitron and Oxanium are served from
+  `assets/fonts/` (variable WOFF2, SIL OFL) instead of Google Fonts. That
+  removes a connection to a third-party server and a stylesheet that
+  blocked rendering. Orbitron is preloaded because the header uses it.
+  Oxanium only downloads on pages that show the ETU wishlist button.
+- **Prerendering** (`inc/speculative-loading.php`). WordPress's
+  speculation rules now prerender same-site links after about 200 ms of
+  hover (on touch, on tap-down), instead of prefetching on click.
+  - Checkout, cart, account, sign-up, feeds, REST and GraphQL are
+    excluded. Logged-in users get no speculation.
+  - Works in Chrome and Edge. Other browsers ignore it.
+  - `rum.js` waits until a prerendered page is actually opened, so pages
+    that were prerendered and never visited don't count. Paint timings
+    are measured from that moment.
+  - Site & Speed shows a **Prerendered views** share.
+- **Page transitions.** Same-site navigations crossfade (180 ms) with the
+  header held still, using CSS cross-document view transitions. They are
+  off when the visitor prefers reduced motion.
+- **Table of contents and section links** (`inc/reading-tools.php`).
+  - Every h2/h3 in a post gets a stable id and a link icon. Clicking the
+    icon copies the section's URL.
+  - Posts with three or more headings get an "On this page" list with
+    the reading time. It is collapsible at the top of the post, and on
+    wide screens it is pinned at the top of the sticky sidebar. The
+    section you're reading is highlighted.
+  - Add the `no-toc` class to a heading to leave it out.
+- **Reading progress bar.** A thin bar at the top of the screen tracks
+  progress through the post body (not the comments). It only appears on
+  posts longer than one and a half screens.
+- **Quick search** (`inc/quick-search.php`).
+  - Opens from a Search button in the header, with `/`, or with
+    Ctrl/⌘+K. On phones it is at the top of the menu drawer.
+  - Results appear as you type: topics, posts, pages and projects, with
+    the matched words highlighted. Use ↑/↓ and Enter to pick one.
+  - Before you type, it shows the latest posts and the biggest topics.
+  - Without JavaScript, the button is a plain link to the search page.
+  - The results come from `GET /wp-json/infinity/v1/search?q=` and are
+    cached for 5 minutes.
+  - Searches are sent to GA4 as the standard `search` event.
+- **In-page links** (`navigation.js`) now put the `#section` in the
+  address bar, so the Back button works, and they jump instantly when
+  the visitor prefers reduced motion.
 
 ## 3.17.0
 
