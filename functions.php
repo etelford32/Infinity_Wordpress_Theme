@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.14.0');
+define('INFINITY_VERSION', '3.15.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -926,6 +926,12 @@ require_once INFINITY_DIR . '/inc/icons.php';
 require_once INFINITY_DIR . '/inc/seo-cleanup.php';
 require_once INFINITY_DIR . '/inc/analytics-rum.php';
 require_once INFINITY_DIR . '/inc/analytics-hero.php';
+require_once INFINITY_DIR . '/inc/ga-events.php';
+
+// Page excerpts: the projects page uses its excerpt as the hero lede
+add_action('init', function () {
+    add_post_type_support('page', 'excerpt');
+});
 
 if (is_admin()) {
     require_once INFINITY_DIR . '/inc/admin-posts.php';
@@ -1128,6 +1134,17 @@ function infinity_enqueue_navigation_scripts() {
         'stickyHeader'   => get_theme_mod('infinity_sticky_header', false),
         'backToTopText'  => __('Back to top', 'infinity'),
     ));
+
+    // Teaser video play/pause on scroll for the projects funnel
+    if (!is_front_page() && function_exists('infinity_is_projects_page') && infinity_is_projects_page()) {
+        wp_enqueue_script(
+            'infinity-property-previews',
+            INFINITY_URI . '/assets/js/property-previews.js',
+            array(),
+            INFINITY_VERSION,
+            true
+        );
+    }
 
     // Black hole accretion disk shader, front page hero only
     if (is_front_page()) {

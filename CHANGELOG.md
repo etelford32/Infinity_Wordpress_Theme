@@ -3,6 +3,61 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.15.0
+
+- **Projects page funnel** (`page-projects.php`): `/projects/` now has its
+  own template, picked up by slug or chosen as "Projects Funnel" from the
+  Template dropdown.
+  - **Hero, "pick a door":** three intent tiles ("I want to play",
+    "I want to explore real physics", "I want a yard designed"). Each
+    one goes straight to its site in one click, with a "Details ↓" link
+    for visitors who want to read first. The page excerpt, if set,
+    replaces the default lede.
+  - **One block per project:** a status pill, a one-line pitch, three
+    proof points, one primary CTA (the Steam wishlist for ETU), one
+    secondary CTA, and the feature grid. On phones the copy and buttons
+    come before the media.
+  - Anything typed into the page in the editor still renders, under
+    "From the workshop". A "Still deciding?" strip and the subscribe
+    band close the page, so the footer doesn't repeat the band.
+  - Copy and order can be changed with the `infinity_projects` filter.
+- **GA4 events** (`inc/ga-events.php`, `assets/js/ga-events.js`): these
+  ride on the gtag.js that Site Kit already prints, so there is no
+  second tag and no extra pageview. The events are `project_click`,
+  `wishlist_click`, `project_impression`, `project_intent` and
+  `sign_up`. They carry `project`, `placement`, `cta`, `link_url`,
+  `link_text` and `page_context`.
+  - They are site-wide, so homepage cards and links typed into posts are
+    attributed by hostname.
+  - Add `?ga_debug=1` to a URL to send events to DebugView.
+- **UTM-tagged outbound links** on the projects page
+  (`infinity_project_href()`): `utm_campaign` is the placement and
+  `utm_content` is the button, so the destination sites' own analytics
+  can tell which button sent each visitor.
+- **Optional cross-domain linker** (Customizer → Steam Promotion): for
+  project sites that share this site's GA4 property. When it is on,
+  links to those sites drop their UTM tags so the session carries
+  across.
+- **Homepage and promo-card links tagged the same way:** the property
+  strip, the ETU / Parker's / Landscaping bands, their feature grids and
+  the three promo-card widgets now carry UTM tags (placements
+  `home_strip`, `home_*_band`, `widget`) plus the event attributes. That
+  way homepage clicks can be matched to arrivals on each project site.
+- **Cross-site GA4 rollup** (`tools/ga4-rollup.mjs`, `tools/ga4-sites.json`):
+  one report across elliottelford.com, Parker's Physics, ETU and Telford
+  Landscaping, each in its own GA4 property.
+  - It covers traffic per site against the previous period, hand-offs
+    (impressions → clicks on this site → arrivals and key events on the
+    destination), which placement sent each visitor, and a site-to-site
+    referral matrix.
+  - It needs no dependencies (Node 18+) and signs in with one service
+    account.
+  - It looks properties up from their `G-` measurement ids. Run it with
+    `--discover` to list what the account can see.
+- The feature grid and the wishlist CTA now carry `data-project`,
+  `data-placement` and `data-cta` attributes, which the RUM dashboard
+  also reads.
+
 ## 3.14.0
 
 - **Removed the Kerr readout panel** from the hero (the stats beside the

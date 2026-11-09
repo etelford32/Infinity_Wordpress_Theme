@@ -189,15 +189,15 @@ function infinity_property_features($key) {
 /**
  * Render a band feature grid.
  */
-function infinity_render_feature_grid($key, $aria_label) {
+function infinity_render_feature_grid($key, $aria_label, $placement = '') {
     $features = infinity_property_features($key);
     if (!$features) {
         return;
     }
     ?>
-    <nav class="band-features" aria-label="<?php echo esc_attr($aria_label); ?>">
+    <nav class="band-features" aria-label="<?php echo esc_attr($aria_label); ?>" data-project="<?php echo esc_attr($key); ?>" data-cta="feature"<?php if ($placement) : ?> data-placement="<?php echo esc_attr($placement); ?>"<?php endif; ?>>
         <?php foreach ($features as $f) : $badge = isset($f[4]) ? strtoupper($f[4]) : ''; ?>
-            <a class="band-feature" href="<?php echo esc_url($f[3]); ?>" target="_blank" rel="noopener">
+            <a class="band-feature" href="<?php echo esc_url($placement && function_exists('infinity_project_href') ? infinity_project_href($f[3], $placement, 'feature_' . sanitize_title($f[1])) : $f[3]); ?>" target="_blank" rel="noopener">
                 <span class="band-feature-icon" aria-hidden="true"><?php
                 if (function_exists('infinity_is_icon_token') && infinity_is_icon_token($f[0])) {
                     infinity_icon($f[0]);
@@ -255,7 +255,7 @@ function infinity_etu_wishlist_cta($args = array()) {
     $label = __('Wishlist on Steam', 'infinity');
     $size  = 'md' === $args['size'] ? 'md' : 'lg';
     ?>
-    <a class="etu-wishlist etu-wishlist-<?php echo esc_attr($size); ?>" href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener noreferrer">
+    <a class="etu-wishlist etu-wishlist-<?php echo esc_attr($size); ?>" href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener noreferrer" data-project="etu" data-cta="wishlist" data-placement="<?php echo esc_attr(sanitize_key($args['campaign'])); ?>">
         <span class="etu-wishlist-plate">
             <img class="etu-wishlist-emblem" src="<?php echo esc_url(INFINITY_URI . '/assets/img/etu-type.webp'); ?>" alt="" width="480" height="200" loading="lazy" decoding="async">
             <span class="etu-wishlist-copy">
@@ -289,7 +289,7 @@ function infinity_etu_promo_card() {
             <?php esc_html_e('Command your own ship in a living galaxy. The year is 2175 — the frontier is open, and the first wave of pilots is signing up now.', 'infinity'); ?>
         </p>
         <?php infinity_etu_wishlist_cta(array('size' => 'md', 'campaign' => 'promo_card')); ?>
-        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url($urls['etu']); ?>" target="_blank" rel="noopener">
+        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url(infinity_project_href($urls['etu'], 'widget', 'promo_card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'widget', 'promo_card'); ?>>
             <?php esc_html_e('Sign up free — join the first wave', 'infinity'); ?>
         </a>
     </div>
@@ -311,7 +311,7 @@ function infinity_parkers_promo_card() {
         <p class="promo-copy">
             <?php esc_html_e('Real orbital mechanics you can bend with your hands. Spin up a solar system, break it, fix it, share it — no install, right in your browser.', 'infinity'); ?>
         </p>
-        <a class="promo-btn promo-btn-primary" href="<?php echo esc_url($urls['parkers']); ?>" target="_blank" rel="noopener">
+        <a class="promo-btn promo-btn-primary" href="<?php echo esc_url(infinity_project_href($urls['parkers'], 'widget', 'promo_card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('parkers', 'widget', 'promo_card'); ?>>
             <?php esc_html_e('Launch the simulation', 'infinity'); ?> &rarr;
         </a>
     </div>
@@ -333,7 +333,7 @@ function infinity_landscaping_promo_card() {
         <p class="promo-copy">
             <?php esc_html_e('Stone, soil, and honest work — the analog side of the operation.', 'infinity'); ?>
         </p>
-        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url($urls['landscaping']); ?>" target="_blank" rel="noopener">
+        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url(infinity_project_href($urls['landscaping'], 'widget', 'promo_card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('landscaping', 'widget', 'promo_card'); ?>>
             <?php esc_html_e('Visit TelfordLandscaping.com', 'infinity'); ?> &rarr;
         </a>
     </div>
