@@ -289,7 +289,7 @@ function infinity_etu_promo_card() {
             <?php esc_html_e('Command your own ship in a living galaxy. The year is 2175 — the frontier is open, and the first wave of pilots is signing up now.', 'infinity'); ?>
         </p>
         <?php infinity_etu_wishlist_cta(array('size' => 'md', 'campaign' => 'promo_card')); ?>
-        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url($urls['etu']); ?>" target="_blank" rel="noopener">
+        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url(infinity_project_href($urls['etu'], 'widget', 'promo_card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'widget', 'promo_card'); ?>>
             <?php esc_html_e('Sign up free — join the first wave', 'infinity'); ?>
         </a>
     </div>
@@ -311,7 +311,7 @@ function infinity_parkers_promo_card() {
         <p class="promo-copy">
             <?php esc_html_e('Real orbital mechanics you can bend with your hands. Spin up a solar system, break it, fix it, share it — no install, right in your browser.', 'infinity'); ?>
         </p>
-        <a class="promo-btn promo-btn-primary" href="<?php echo esc_url($urls['parkers']); ?>" target="_blank" rel="noopener">
+        <a class="promo-btn promo-btn-primary" href="<?php echo esc_url(infinity_project_href($urls['parkers'], 'widget', 'promo_card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('parkers', 'widget', 'promo_card'); ?>>
             <?php esc_html_e('Launch the simulation', 'infinity'); ?> &rarr;
         </a>
     </div>
@@ -333,7 +333,7 @@ function infinity_landscaping_promo_card() {
         <p class="promo-copy">
             <?php esc_html_e('Stone, soil, and honest work — the analog side of the operation.', 'infinity'); ?>
         </p>
-        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url($urls['landscaping']); ?>" target="_blank" rel="noopener">
+        <a class="promo-btn promo-btn-outline" href="<?php echo esc_url(infinity_project_href($urls['landscaping'], 'widget', 'promo_card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('landscaping', 'widget', 'promo_card'); ?>>
             <?php esc_html_e('Visit TelfordLandscaping.com', 'infinity'); ?> &rarr;
         </a>
     </div>

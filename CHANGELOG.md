@@ -38,6 +38,22 @@ entries are in release order, newest first.
   project sites that share this site's GA4 property. When it is on,
   links to those sites drop their UTM tags so the session carries
   across.
+- **Homepage and promo-card links tagged the same way:** the property
+  strip, the ETU / Parker's / Landscaping bands, their feature grids and
+  the three promo-card widgets now carry UTM tags (placements
+  `home_strip`, `home_*_band`, `widget`) plus the event attributes. That
+  way homepage clicks can be matched to arrivals on each project site.
+- **Cross-site GA4 rollup** (`tools/ga4-rollup.mjs`, `tools/ga4-sites.json`):
+  one report across elliottelford.com, Parker's Physics, ETU and Telford
+  Landscaping, each in its own GA4 property.
+  - It covers traffic per site against the previous period, hand-offs
+    (impressions → clicks on this site → arrivals and key events on the
+    destination), which placement sent each visitor, and a site-to-site
+    referral matrix.
+  - It needs no dependencies (Node 18+) and signs in with one service
+    account.
+  - It looks properties up from their `G-` measurement ids. Run it with
+    `--discover` to list what the account can see.
 - The feature grid and the wishlist CTA now carry `data-project`,
   `data-placement` and `data-cta` attributes, which the RUM dashboard
   also reads.

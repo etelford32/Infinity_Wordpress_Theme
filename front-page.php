@@ -284,7 +284,7 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                     $infinity_logo = infinity_property_logo_url($infinity_prop['key'], $infinity_prop['url']);
                 ?>
                 <a class="property-card property-card-<?php echo esc_attr($infinity_prop['key']); ?> property-live"
-                   href="<?php echo esc_url($infinity_prop['url']); ?>" target="_blank" rel="noopener"
+                   href="<?php echo esc_url(infinity_project_href($infinity_prop['url'], 'home_strip', 'card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs($infinity_prop['key'], 'home_strip', 'card'); ?>
                    <?php if ($infinity_prop['embed']) : ?>data-preview="<?php echo esc_url($infinity_prop['url']); ?>"<?php endif; ?>>
                     <span class="property-live-screen">
                         <span class="property-live-placeholder">
@@ -500,7 +500,7 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                         <?php esc_html_e('The year is 2175 and the frontier is open. Command your own ship in a living galaxy built on real orbital mechanics — the same physics running in the simulations on this site. Wishlist it on Steam, then create a free account to follow development and fly with the first wave of pilots.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
-                        <?php infinity_etu_wishlist_cta(array('campaign' => 'homepage_band')); ?>                        <a class="fp-btn-secondary" href="<?php echo esc_url($etu_site_url); ?>" target="_blank" rel="noopener">
+                        <?php infinity_etu_wishlist_cta(array('campaign' => 'homepage_band')); ?>                        <a class="fp-btn-secondary" href="<?php echo esc_url(infinity_project_href($etu_site_url, 'home_etu_band', 'secondary')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'home_etu_band', 'secondary'); ?>>
                             <?php esc_html_e('Sign up at ExploreTheUniverse2175.com', 'infinity'); ?>
                         </a>
                     </div>
@@ -524,14 +524,14 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                         <?php esc_html_e('A real-time Earth weather simulation: live cloud layers, precipitation rates, temperature and wind analysis, barometrics, storm fronts, and the aurora itself — with predictive analytics reaching two weeks out. All riding real physics, right in your browser.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
-                        <a class="fp-btn-primary fp-btn-big" href="<?php echo esc_url($parkers_url); ?>" target="_blank" rel="noopener">
+                        <a class="fp-btn-primary fp-btn-big" href="<?php echo esc_url(infinity_project_href($parkers_url, 'home_parkers_band', 'primary')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('parkers', 'home_parkers_band', 'primary'); ?>>
                             <?php esc_html_e('Explore Earth Weather in Real-Time', 'infinity'); ?> &rarr;
                         </a>
                         <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url(home_url('/simulations/')); ?>">
                             <?php esc_html_e('Browse simulations here', 'infinity'); ?>
                         </a>
                     </div>
-                    <?php infinity_render_feature_grid('parkers', __("Parker's Physics features", 'infinity')); ?>
+                    <?php infinity_render_feature_grid('parkers', __("Parker's Physics features", 'infinity'), 'home_parkers_band'); ?>
                 </div>
                 <?php $infinity_pp_logo = infinity_parkers_logo_big(); ?>
                 <div class="fp-band-media pp-stage<?php echo $infinity_pp_logo ? '' : ' pp-no-logo'; ?>" aria-hidden="true">
@@ -556,11 +556,11 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                         <?php esc_html_e('The analog side of the operation — real dirt, real stone, real results. Project write-ups will land here on the blog.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
-                        <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url($landscaping_url); ?>" target="_blank" rel="noopener">
+                        <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url(infinity_project_href($landscaping_url, 'home_landscaping_band', 'primary')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('landscaping', 'home_landscaping_band', 'primary'); ?>>
                             <?php esc_html_e('Visit TelfordLandscaping.com', 'infinity'); ?> &rarr;
                         </a>
                     </div>
-                    <?php infinity_render_feature_grid('landscaping', __('Telford Landscaping features', 'infinity')); ?>
+                    <?php infinity_render_feature_grid('landscaping', __('Telford Landscaping features', 'infinity'), 'home_landscaping_band'); ?>
                 </div>
             </div>
         </div>

@@ -1,0 +1,9 @@
+{
+  "_comment": "Sites in the cross-site rollup (tools/ga4-rollup.mjs). measurementId is the G- id the site ships; the numeric propertyId is looked up from it, or set propertyId to skip the lookup. 'match' is the text a session source must contain to count as coming from that site. Exactly one site is the hub whose project_click events are joined to arrivals on the others.",
+  "sites": [
+    { "key": "hub",         "name": "elliottelford.com",         "domain": "elliottelford.com",          "match": "elliottelford",          "hub": true },
+    { "key": "parkers",     "name": "Parker's Physics",          "domain": "parkersphysics.com",         "match": "parkersphysics",         "measurementId": "G-W8WFYFDDGC" },
+    { "key": "etu",         "name": "Explore the Universe 2175", "domain": "exploretheuniverse2175.com", "match": "exploretheuniverse2175", "measurementId": "G-6RCVW65DDL" },
+    { "key": "landscaping", "name": "Telford Landscaping",       "domain": "telfordlandscaping.com",     "match": "telfordlandscaping",     "measurementId": "G-GMYQFMRVWS" }
+  ]
+}
