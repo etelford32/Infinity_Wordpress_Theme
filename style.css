@@ -4473,13 +4473,32 @@ html[data-mode="light"] .theme-toggle-knob {
    ========================================================================== */
 
 /* ==========================================================================
-   20.0 Hero interactions, phase 1: feed button, read transition
-   ========================================================================== */
+   23.0 Page transitions (cross-document View Transitions)
+   ==========================================================================
+   Same-site navigations crossfade instead of flashing white. CSS only:
+   browsers without cross-document view transitions (Firefox today)
+   navigate exactly as before. Paired with prerendering
+   (inc/speculative-loading.php) the new page is usually painted
+   already, so the fade is all the visitor sees of the load.
 
-/* ==========================================================================
-   21.0 Black hole: drag
-   ========================================================================== */
+   The header gets its own name so it holds still while the page under
+   it changes, instead of fading out and back in with everything else. */
 
-/* ==========================================================================
-   22.0 Projects funnel (page-projects.php)
-   ========================================================================== */
+@view-transition {
+  navigation: auto;
+}
+
+.site-header {
+  view-transition-name: site-header;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}

@@ -980,6 +980,7 @@ require_once INFINITY_DIR . '/inc/analytics-hero.php';
 require_once INFINITY_DIR . '/inc/ga-events.php';
 require_once INFINITY_DIR . '/inc/post-media.php';
 require_once INFINITY_DIR . '/inc/lazy-load.php';
+require_once INFINITY_DIR . '/inc/speculative-loading.php';
 
 // Page excerpts: the projects page uses its excerpt as the hero lede
 add_action('init', function () {
