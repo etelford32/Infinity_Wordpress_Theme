@@ -1,9 +1,66 @@
 {
-  "_comment": "Sites in the cross-site rollup (tools/ga4-rollup.mjs). measurementId is the G- id the site ships; the numeric propertyId is looked up from it, or set propertyId to skip the lookup. 'match' is the text a session source must contain to count as coming from that site. Exactly one site is the hub whose project_click events are joined to arrivals on the others.",
+  "_comment": "The four GA4 properties, as code. ga4-config.mjs applies 'outcomes' (marked as key events) and 'dimensions' (event-scoped custom dimensions) to each property; ga4-rollup.mjs reports across them. 'match' is the text a session source must contain to count as coming from that site. Exactly one site is the hub, whose project_click events are joined to arrivals on the others. Run ga4-rollup.mjs --discover to re-check property ids.",
   "sites": [
-    { "key": "hub",         "name": "elliottelford.com",         "domain": "elliottelford.com",          "match": "elliottelford",          "hub": true },
-    { "key": "parkers",     "name": "Parker's Physics",          "domain": "parkersphysics.com",         "match": "parkersphysics",         "measurementId": "G-W8WFYFDDGC" },
-    { "key": "etu",         "name": "Explore the Universe 2175", "domain": "exploretheuniverse2175.com", "match": "exploretheuniverse2175", "measurementId": "G-6RCVW65DDL" },
-    { "key": "landscaping", "name": "Telford Landscaping",       "domain": "telfordlandscaping.com",     "match": "telfordlandscaping",     "measurementId": "G-GMYQFMRVWS" }
+    {
+      "key": "hub",
+      "name": "elliottelford.com",
+      "domain": "elliottelford.com",
+      "match": "elliottelford",
+      "hub": true,
+      "propertyId": "338066556",
+      "outcomes": ["wishlist_click", "project_click", "sign_up"],
+      "dimensions": [
+        { "param": "project", "name": "Project", "description": "Which project a funnel event is about (etu, parkers, landscaping)" },
+        { "param": "placement", "name": "Placement", "description": "Where on the site the link sits (projects_hero, home_strip...)" },
+        { "param": "cta", "name": "CTA", "description": "Which button: primary, secondary, wishlist, intent, feature, card" },
+        { "param": "page_context", "name": "Page context", "description": "Page type: home, projects, article, page, archive" },
+        { "param": "intent", "name": "Intent", "description": "Projects-page intent tile used" },
+        { "param": "source", "name": "Signup source", "description": "Which subscribe form a sign_up came from" }
+      ]
+    },
+    {
+      "key": "parkers",
+      "name": "Parker's Physics",
+      "domain": "parkersphysics.com",
+      "match": "parkersphysics",
+      "measurementId": "G-W8WFYFDDGC",
+      "propertyId": "459092653",
+      "outcomes": ["sign_up"],
+      "dimensions": [
+        { "param": "method", "name": "Auth method", "description": "email, invite, google, apple, magic_link" },
+        { "param": "plan", "name": "Plan", "description": "Plan chosen at signup" }
+      ]
+    },
+    {
+      "key": "etu",
+      "name": "Explore the Universe 2175",
+      "domain": "exploretheuniverse2175.com",
+      "match": "exploretheuniverse2175",
+      "measurementId": "G-6RCVW65DDL",
+      "propertyId": "517881062",
+      "outcomes": ["wishlist_steam", "sign_up"],
+      "dimensions": [
+        { "param": "placement", "name": "Placement", "description": "Which wishlist button (header, hero, dashboard...)" },
+        { "param": "experiment_id", "name": "Experiment", "description": "A/B experiment id from experiment_exposure" },
+        { "param": "variant_id", "name": "Variant", "description": "A/B variant from experiment_exposure" }
+      ]
+    },
+    {
+      "key": "landscaping",
+      "name": "Telford Landscaping",
+      "domain": "telfordlandscaping.com",
+      "match": "telfordlandscaping",
+      "measurementId": "G-GMYQFMRVWS",
+      "propertyId": "519122527",
+      "outcomes": ["generate_lead", "contact_click"],
+      "dimensions": [
+        { "param": "cta_id", "name": "CTA id", "description": "Which CTA was clicked" },
+        { "param": "cta_location", "name": "CTA location", "description": "Where the CTA sits on the page" },
+        { "param": "method", "name": "Contact method", "description": "phone or email (contact_click)" },
+        { "param": "service", "name": "Service", "description": "Which lead form was used" },
+        { "param": "error_type", "name": "Error type", "description": "validation / server / network (lead_form_error)" },
+        { "param": "lead_city", "name": "Lead city", "description": "City given on a lead" }
+      ]
+    }
   ]
 }

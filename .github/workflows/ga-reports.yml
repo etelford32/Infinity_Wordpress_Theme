@@ -1,0 +1,113 @@
+# Cross-site GA4 rollups, emailed.
+#
+#   Daily   every morning: yesterday vs the same weekday last week
+#   Weekly  Mondays, in addition: the last 7 days vs the 7 before
+#
+# Both cover elliottelford.com, Parker's Physics, ETU and Telford
+# Landscaping (tools/ga4-sites.json) and go out by email only.
+#
+# THIS REPOSITORY IS PUBLIC, and so are its Actions logs and artifacts.
+# The report therefore never touches either: it is written to the
+# runner's temp directory, emailed, and discarded with the runner. Do
+# not add an artifact upload or a `cat` of the report to this file.
+#
+# ---------------------------------------------------------------------
+# One-time setup: GitHub repo → Settings → Secrets and variables →
+# Actions → New repository secret, three times:
+#
+#   GA_SERVICE_ACCOUNT_KEY  the service account's JSON key file, pasted
+#                           whole (needs Viewer on all four properties)
+#   RESEND_API_KEY          a Resend API key with sending access
+#   REPORT_EMAIL_TO         where reports go (comma-separate several)
+#
+# Optional: REPORT_EMAIL_FROM, e.g. "GA Rollup <reports@telfordlandscaping.com>"
+# once that domain is verified in Resend. Until then the default
+# onboarding@resend.dev sender only delivers to the Resend account's
+# own email address.
+#
+# Run one now: Actions → GA4 rollups → Run workflow.
+
+name: GA4 rollups
+
+on:
+  schedule:
+    # 14:17 UTC = 6:17am PST / 7:17am PDT, after GA has processed most
+    # of yesterday. GitHub may start scheduled runs a little late.
+    - cron: "17 14 * * *"
+  workflow_dispatch:
+    inputs:
+      report:
+        description: "Which report to send"
+        type: choice
+        options: [daily, weekly, both]
+        default: daily
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ga-reports
+  cancel-in-progress: false
+
+jobs:
+  rollup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: tools
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check secrets
+        env:
+          GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
+        run: |
+          missing=""
+          [ -n "$GA_SERVICE_ACCOUNT_KEY" ] || missing="$missing GA_SERVICE_ACCOUNT_KEY"
+          [ -n "$RESEND_API_KEY" ] || missing="$missing RESEND_API_KEY"
+          [ -n "$REPORT_EMAIL_TO" ] || missing="$missing REPORT_EMAIL_TO"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing (see the top of .github/workflows/ga-reports.yml)"
+            exit 1
+          fi
+
+      - name: Pick reports
+        id: pick
+        run: |
+          want="${{ github.event.inputs.report }}"
+          if [ -z "$want" ]; then
+            # Scheduled run: daily always, weekly on Mondays
+            want=daily
+            [ "$(date -u +%u)" = "1" ] && want=both
+          fi
+          echo "daily=$([ "$want" = daily ] || [ "$want" = both ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "weekly=$([ "$want" = weekly ] || [ "$want" = both ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "Sending: $want"
+
+      - name: Daily rollup
+        if: steps.pick.outputs.daily == 'true'
+        env:
+          GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
+          REPORT_EMAIL_FROM: ${{ secrets.REPORT_EMAIL_FROM }}
+        run: |
+          node tools/ga4-rollup.mjs --days 1 --compare lastweek --out "$RUNNER_TEMP/daily.md"
+          node tools/ga4-email.mjs "$RUNNER_TEMP/daily.md"
+
+      - name: Weekly rollup
+        if: steps.pick.outputs.weekly == 'true'
+        env:
+          GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
+          REPORT_EMAIL_FROM: ${{ secrets.REPORT_EMAIL_FROM }}
+        run: |
+          node tools/ga4-rollup.mjs --days 7 --compare previous --out "$RUNNER_TEMP/weekly.md"
+          node tools/ga4-email.mjs "$RUNNER_TEMP/weekly.md"

@@ -3,6 +3,40 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## Unreleased (tools only; the theme itself is unchanged)
+
+- **GA4 settings as code** (`tools/ga4-config.mjs`): applies the key
+  events ("outcomes") and event-scoped custom dimensions listed per site
+  in `tools/ga4-sites.json` to all four properties.
+  - Run it with `--dry-run` first to see what it would change, or with
+    `--site <key>` to apply one site only.
+  - It never deletes anything, and it needs the Editor role on each
+    property.
+  - It replaces `tools/ga4-setup.py`, which only knew about this site.
+- **The outcomes each site sends:**
+  - Landscaping: `generate_lead` and `contact_click`
+  - Parker's Physics: `sign_up`
+  - ETU: `wishlist_steam` and `sign_up`, set up in advance. ETUWebsite
+    doesn't send these to GA yet.
+  - elliottelford.com: `project_click`, `wishlist_click` and `sign_up`
+- **The rollup now reports outcomes:**
+  - A new Outcomes section shows each site's outcomes, the change from
+    the comparison period, and how many came from elliottelford.com or
+    from another of the sites.
+  - The hand-off, placement and referral tables count outcomes instead
+    of key events, so they work before the events are marked as key
+    events.
+  - `--compare lastweek` compares a day with the same weekday one week
+    earlier.
+  - Reports are titled "Daily rollup" or "Weekly rollup" with real
+    dates.
+- **Scheduled emails** (`.github/workflows/ga-reports.yml` and
+  `tools/ga4-email.mjs`): a daily rollup every morning, plus a weekly
+  one on Mondays, sent through Resend.
+  - The repo is public, so the report goes only to email. It is never
+    printed to the Actions log or uploaded as an artifact.
+- The shared Google sign-in code now lives in `tools/ga4/google.mjs`.
+
 ## 3.15.0
 
 - **Projects page funnel** (`page-projects.php`): `/projects/` now has its
