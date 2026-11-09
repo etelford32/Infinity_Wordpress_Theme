@@ -10,6 +10,7 @@
  */
 
 get_header();
+infinity_the_reading_progress();
 ?>
 
 <article id="post-<?php the_ID(); ?>" <?php post_class('single-post'); ?>>
@@ -56,11 +57,21 @@ get_header();
         infinity_the_post_header_media();
         ?>
 
-        <?php $infinity_sidebar = infinity_sidebar_layout('post'); ?>
+        <?php
+        // Render the body first: the content filter collects the
+        // headings the table of contents lists (inc/reading-tools.php).
+        ob_start();
+        the_content();
+        $infinity_content = ob_get_clean();
+
+        $infinity_sidebar = infinity_sidebar_layout('post');
+        ?>
         <div class="<?php echo esc_attr(infinity_entry_layout_classes($infinity_sidebar)); ?> container">
             <div class="entry-content">
                 <?php
-                the_content();
+                infinity_the_toc('inline');
+
+                echo $infinity_content; // phpcs:ignore WordPress.Security.EscapeOutput -- filtered post content
 
                 wp_link_pages(array(
                     'before' => '<div class="page-links">' . esc_html__('Pages:', 'infinity'),

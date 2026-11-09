@@ -65,6 +65,18 @@ React frontend for running physics simulations.
   and 90-day retention (`inc/analytics-rum.php`, `assets/js/rum.js`)
 - 🧭 **Navigation options** — sticky header, breadcrumbs, back-to-top button
   (all toggleable in the Customizer)
+- 🔎 **Quick search** — `/`, Ctrl/⌘+K or the header button opens
+  search-as-you-type over posts, pages, projects and topics, with keyboard
+  navigation; a plain link to the search page without JS
+  (`inc/quick-search.php`)
+- 📖 **Reading tools** — "On this page" table of contents (inline, and
+  pinned in the sticky sidebar on wide screens), copy-link anchors on every
+  h2/h3, and a reading progress bar (`inc/reading-tools.php`)
+- ⚡ **Speed** — per-template stylesheets (`assets/css/front-page.css`,
+  `projects.css`, `bands.css`, `single.css`) minified at deploy
+  (`tools/minify-css.py`), self-hosted variable fonts (`assets/fonts/`),
+  prerendering of hovered links (`inc/speculative-loading.php`) and
+  crossfading page transitions
 
 ### SEO layer (no SEO plugin required)
 - Meta description + Open Graph tags, JSON-LD structured data (WebSite,
@@ -200,6 +212,9 @@ Infinity_Wordpress_Theme/
 ├── template-app.php           # Full-screen React app template
 ├── inc/
 │   ├── analytics-rum.php      # Site & Speed dashboard + RUM ingest
+│   ├── quick-search.php       # Search dialog + /search endpoint
+│   ├── reading-tools.php      # TOC, heading anchors, progress bar
+│   ├── speculative-loading.php  # Prerender rules for hovered links
 │   ├── seo-cleanup.php        # Sitemap slimming, noindex rules, 301s
 │   ├── subscribe.php          # Built-in email subscriptions
 │   ├── property-promos.php    # Property cards + widgets
@@ -213,12 +228,17 @@ Infinity_Wordpress_Theme/
 │   ├── woocommerce-integration.php  # loaded only if WooCommerce active
 │   └── graphql-extensions.php       # loaded only if WPGraphQL active
 ├── assets/
+│   ├── css/                   # per-template sheets (front-page, projects, bands,
+│   │                          # single, music, post-media); *.min.css built at deploy
+│   ├── fonts/                 # Orbitron + Oxanium variable WOFF2 (SIL OFL)
 │   ├── js/                    # blackhole, logo-orbits, tag-globe, theme-toggle,
-│   │                          # property-previews, steam-fit, subscribe, rum, navigation
+│   │                          # property-previews, steam-fit, subscribe, rum, navigation,
+│   │                          # reading-tools, quick-search
 │   └── img/                   # bundled key art fallbacks
 ├── frontend/                  # Optional Vite + React + R3F simulation app
 └── tools/
-    └── audit-links.py         # Sitemap + internal-link audit crawler
+    ├── audit-links.py         # Sitemap + internal-link audit crawler
+    └── minify-css.py          # Writes *.min.css during deploy
 ```
 
 ## 🔌 REST API
@@ -232,6 +252,7 @@ Base URL: `/wp-json/infinity/v1/`
 | `/user/stats` | GET | Premium status, usage, remaining runs |
 | `/blueprint/{id}/vote` | POST | Upvote/downvote a blueprint |
 | `/blueprint/{id}/fork` | POST | Fork a blueprint config |
+| `/search?q=` | GET | Quick search results (posts, pages, projects, topics); cacheable 5 min |
 
 The subscribe endpoint (`inc/subscribe.php`) accepts public signups with
 honeypot and rate limiting; `/rum` (`inc/analytics-rum.php`) ingests

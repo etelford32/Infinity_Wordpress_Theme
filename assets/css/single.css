@@ -202,3 +202,247 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Reading tools (inc/reading-tools.php, assets/js/reading-tools.js)
+   ========================================================================== */
+
+/* ---- Section links beside h2/h3 ---- */
+
+.single-post .entry-content :is(h2, h3)[id] {
+  /* Land a jumped-to heading below the header, not under it */
+  scroll-margin-top: var(--spacing-xl);
+}
+
+body:has(.site-header.sticky-header) .single-post .entry-content :is(h2, h3)[id] {
+  scroll-margin-top: calc(var(--spacing-xl) + 80px);
+}
+
+.heading-anchor {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1.6em;
+  height: 1.6em;
+  margin-left: 0.3em;
+  vertical-align: middle;
+  border-radius: var(--radius-sm);
+  font-size: 0.6em;
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+.heading-anchor svg {
+  width: 1em;
+  height: 1em;
+}
+
+:is(h2, h3):hover > .heading-anchor,
+.heading-anchor:focus-visible,
+.heading-anchor.is-copied {
+  opacity: 1;
+}
+
+.heading-anchor:hover,
+.heading-anchor:focus-visible {
+  color: var(--color-accent-primary);
+}
+
+/* No hover on touch screens: keep the icon faintly visible */
+@media (hover: none) {
+  .heading-anchor {
+    opacity: 0.45;
+  }
+}
+
+.heading-anchor.is-copied::after {
+  content: attr(data-copy-label);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 6px);
+  transform: translateY(-50%);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  font-family: var(--font-family-primary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---- Table of contents ---- */
+
+.post-toc {
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+
+.post-toc details {
+  border: 1px solid var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-bg-secondary) 80%, transparent);
+}
+
+.post-toc-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  list-style: none;
+}
+
+.post-toc-summary::-webkit-details-marker {
+  display: none;
+}
+
+.post-toc-title {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+/* Chevron on the collapsible (inline) copy */
+.post-toc-inline .post-toc-title::before {
+  content: '';
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  margin-right: 0.6em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.15em) rotate(-45deg);
+  transition: transform var(--transition-fast);
+}
+
+.post-toc-inline details[open] .post-toc-title::before {
+  transform: translateY(-0.25em) rotate(45deg);
+}
+
+.post-toc-sidebar .post-toc-summary {
+  cursor: default;
+  pointer-events: none;
+}
+
+.post-toc-meta {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.single-post .entry-content .post-toc-list,
+.post-toc-list,
+.post-toc-sub {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.post-toc-list {
+  padding: 0 var(--spacing-sm) var(--spacing-sm);
+}
+
+.post-toc-sub {
+  padding-left: var(--spacing-md);
+}
+
+.single-post .entry-content .post-toc li {
+  margin: 0;
+}
+
+.post-toc a {
+  display: block;
+  padding: 5px var(--spacing-sm);
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.post-toc a:hover {
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-accent-primary) 8%, transparent);
+}
+
+.post-toc a[aria-current] {
+  color: var(--color-accent-primary);
+  border-left-color: var(--color-accent-primary);
+  font-weight: 600;
+}
+
+.post-toc-inline {
+  margin: 0 0 var(--spacing-xl);
+}
+
+/* The sidebar copy rides at the top of the sticky sidebar; it scrolls
+   on its own if the list is taller than the screen. */
+.post-toc-sidebar .post-toc-list {
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Wide screens with a sidebar: the sidebar copy replaces the inline one.
+   Narrower (sidebar stacked under the post): inline copy only. */
+@media (min-width: 1025px) {
+  .entry-layout.has-sidebar .post-toc-inline {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .post-toc-sidebar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.post-toc) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---- Reading progress ---- */
+
+.reading-progress {
+  position: fixed;
+  top: var(--wp-admin--admin-bar--height, 0px);
+  left: 0;
+  right: 0;
+  z-index: calc(var(--z-modal) + 2);
+  height: 3px;
+  pointer-events: none;
+}
+
+.reading-progress[hidden] {
+  display: none;
+}
+
+.reading-progress-bar {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary), var(--color-accent-tertiary));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+@media print {
+  .reading-progress,
+  .heading-anchor,
+  .post-toc-sidebar {
+    display: none !important;
+  }
+}

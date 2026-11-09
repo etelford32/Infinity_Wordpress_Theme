@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.17.0
+Version: 3.18.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -4482,13 +4482,16 @@ html[data-mode="light"] .theme-toggle-knob {
    already, so the fade is all the visitor sees of the load.
 
    The header gets its own name so it holds still while the page under
-   it changes, instead of fading out and back in with everything else. */
+   it changes, instead of fading out and back in with everything else.
+   Only while a transition runs: a view-transition-name makes the
+   header a stacking context, and at rest that would trap the mobile
+   menu drawer (which lives inside the header) under the page overlay. */
 
 @view-transition {
   navigation: auto;
 }
 
-.site-header {
+:root:active-view-transition .site-header {
   view-transition-name: site-header;
 }
 
@@ -4500,5 +4503,328 @@ html[data-mode="light"] .theme-toggle-knob {
 @media (prefers-reduced-motion: reduce) {
   @view-transition {
     navigation: none;
+  }
+}
+
+/* ==========================================================================
+   24.0 Quick search (inc/quick-search.php, assets/js/quick-search.js)
+   ========================================================================== */
+
+.search-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg-tertiary) 70%, transparent);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.search-toggle:hover,
+.search-toggle:focus-visible {
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+}
+
+.search-toggle:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+.search-toggle .inf-icon {
+  flex-shrink: 0;
+}
+
+.search-toggle-kbd,
+.quick-search kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--color-text-tertiary) 45%, transparent);
+  border-bottom-width: 2px;
+  font-family: var(--font-family-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+/* Icon-only below the desktop header layout, and wherever the header
+   has collapsed on scroll */
+@media (max-width: 1279px) {
+  .search-toggle {
+    padding: 0;
+    width: 40px;
+  }
+
+  .search-toggle .search-toggle-label,
+  .search-toggle .search-toggle-kbd {
+    display: none;
+  }
+}
+
+.sticky-header.is-scrolled .search-toggle-label,
+.sticky-header.is-scrolled .search-toggle-kbd {
+  display: none;
+}
+
+.sticky-header.is-scrolled .search-toggle {
+  padding: 0;
+  width: 40px;
+}
+
+/* The drawer copy: phones only, where the header button is hidden */
+.nav-search {
+  display: none;
+}
+
+@media (max-width: 479.98px) {
+  .header-actions .search-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .nav-search {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding: 12px var(--spacing-md);
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, transparent);
+    background: var(--color-bg-primary);
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-base);
+    text-decoration: none;
+  }
+
+  .nav-search .search-toggle-kbd {
+    display: none;
+  }
+}
+
+/* The dialog */
+html.qs-open {
+  overflow: hidden;
+}
+
+.quick-search {
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(72vh, 640px);
+  margin: 10vh auto auto;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, var(--color-bg-tertiary));
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.quick-search[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.quick-search::backdrop {
+  background: rgba(5, 8, 15, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.qs-form {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-bg-tertiary);
+}
+
+.qs-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.quick-search.is-loading .qs-icon {
+  animation: qs-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes qs-pulse {
+  50% { opacity: 0.35; }
+}
+
+.qs-input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-lg);
+  outline: none;
+}
+
+.qs-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.qs-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.qs-close {
+  flex-shrink: 0;
+  padding: 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.qs-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--spacing-sm);
+}
+
+.qs-heading {
+  margin: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.qs-results,
+.qs-list,
+.qs-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.qs-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px var(--spacing-sm);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.qs-list .qs-link:hover,
+.qs-list .qs-link:focus-visible,
+.qs-option[aria-selected="true"] > .qs-link {
+  background: color-mix(in srgb, var(--color-accent-primary) 16%, transparent);
+  outline: none;
+}
+
+.qs-option[aria-selected="true"] > .qs-link {
+  box-shadow: inset 2px 0 0 var(--color-accent-primary);
+}
+
+.qs-title {
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.qs-title mark {
+  background: none;
+  color: var(--color-accent-tertiary);
+}
+
+.qs-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.qs-kind-topic .qs-title::before {
+  content: '#';
+  margin-right: 4px;
+  color: var(--color-accent-primary);
+}
+
+.qs-all .qs-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent-primary);
+}
+
+.qs-empty {
+  margin: 0;
+  padding: var(--spacing-lg) var(--spacing-sm);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.qs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 var(--spacing-sm) var(--spacing-sm);
+}
+
+.qs-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.qs-chip:hover,
+.qs-chip:focus-visible {
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+}
+
+.qs-foot {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-top: 1px solid var(--color-bg-tertiary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.qs-foot kbd + kbd {
+  margin-left: 2px;
+}
+
+/* Phones: near full screen, no keyboard legend */
+@media (max-width: 640px) {
+  .quick-search {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    margin-top: 8px;
+  }
+}
+
+@media (hover: none) {
+  .qs-foot {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-search.is-loading .qs-icon {
+    animation: none;
   }
 }

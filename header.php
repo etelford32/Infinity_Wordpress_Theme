@@ -82,6 +82,11 @@
 
             <nav id="site-navigation" class="main-navigation" role="navigation" aria-label="<?php esc_attr_e('Primary Menu', 'infinity'); ?>">
                 <?php
+                // Phones: the header has no room for the search button,
+                // so the drawer leads with it (style.css 24.0)
+                infinity_quick_search_button('nav-search');
+                ?>
+                <?php
                 wp_nav_menu(array(
                     'theme_location' => 'primary',
                     'menu_id'        => 'primary-menu',
@@ -100,22 +105,25 @@
             $infinity_steam_url   = get_option('infinity_steam_url', 'https://store.steampowered.com/app/4094340/Explore_the_Universe_2175/');
             $infinity_parkers_url = get_option('infinity_parkers_url', 'https://parkersphysics.com');
             ?>
-            <?php if ($infinity_steam_url || $infinity_parkers_url) : ?>
-                <div class="header-actions">
-                    <?php if ($infinity_parkers_url) : ?>
-                        <a class="header-cta header-cta-parkers" href="<?php echo esc_url($infinity_parkers_url); ?>" target="_blank" rel="noopener noreferrer">
-                            <?php infinity_brand_mark('parkers', 34); ?>
-                            <span class="header-cta-label"><?php echo esc_html(get_option('infinity_parkers_label', "Parker's Physics")); ?></span>
-                        </a>
-                    <?php endif; ?>
-                    <?php if ($infinity_steam_url) : ?>
-                        <a class="header-cta header-cta-etu" href="<?php echo esc_url($infinity_steam_url); ?>" target="_blank" rel="noopener noreferrer">
-                            <?php infinity_brand_mark('etu', 28); ?>
-                            <span class="header-cta-label"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
-                        </a>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
+            <div class="header-actions">
+                <?php
+                // Quick search (inc/quick-search.php): "/" or Ctrl/⌘+K
+                // anywhere on the site opens the same dialog
+                infinity_quick_search_button();
+                ?>
+                <?php if ($infinity_parkers_url) : ?>
+                    <a class="header-cta header-cta-parkers" href="<?php echo esc_url($infinity_parkers_url); ?>" target="_blank" rel="noopener noreferrer">
+                        <?php infinity_brand_mark('parkers', 34); ?>
+                        <span class="header-cta-label"><?php echo esc_html(get_option('infinity_parkers_label', "Parker's Physics")); ?></span>
+                    </a>
+                <?php endif; ?>
+                <?php if ($infinity_steam_url) : ?>
+                    <a class="header-cta header-cta-etu" href="<?php echo esc_url($infinity_steam_url); ?>" target="_blank" rel="noopener noreferrer">
+                        <?php infinity_brand_mark('etu', 28); ?>
+                        <span class="header-cta-label"><?php echo esc_html(get_option('infinity_steam_label', 'Explore the Universe')); ?></span>
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
     </header>
 

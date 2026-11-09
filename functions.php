@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.17.0');
+define('INFINITY_VERSION', '3.18.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -981,6 +981,8 @@ require_once INFINITY_DIR . '/inc/ga-events.php';
 require_once INFINITY_DIR . '/inc/post-media.php';
 require_once INFINITY_DIR . '/inc/lazy-load.php';
 require_once INFINITY_DIR . '/inc/speculative-loading.php';
+require_once INFINITY_DIR . '/inc/reading-tools.php';
+require_once INFINITY_DIR . '/inc/quick-search.php';
 
 // Page excerpts: the projects page uses its excerpt as the hero lede
 add_action('init', function () {
