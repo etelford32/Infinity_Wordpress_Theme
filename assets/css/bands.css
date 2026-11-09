@@ -1,0 +1,90 @@
+/**
+ * Infinity — bands.css
+ *
+ * Property bands and big buttons shared by the front page and the
+ * projects funnel. Loaded after style.css on both, before the
+ * page's own sheet.
+ *
+ * Split out of style.css in 3.18.0 so other pages don't download it.
+ * These rules now come after style.css in the cascade. Any rule that
+ * a later style.css rule used to override was left in style.css, so
+ * the move changed no computed style.
+ */
+
+.fp-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Front page responsive */
+@media (max-width: 900px) {
+
+  .fp-band-reverse .fp-band-copy {
+    order: 1;
+  }
+
+  .fp-band-reverse .fp-band-media {
+    order: 2;
+  }
+}
+
+.property-live-screen iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 800px;
+  border: 0;
+  transform-origin: top left;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.property-live.is-live .property-live-screen iframe {
+  opacity: 1;
+}
+
+.fp-btn-primary.fp-btn-big {
+  animation: big-btn-glow 2.8s ease-in-out infinite;
+}
+
+.fp-btn-primary.fp-btn-big::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%);
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  animation: cta-sheen 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.fp-btn-big:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-btn-primary.fp-btn-big,
+  .fp-btn-primary.fp-btn-big::after {
+    animation: none;
+  }
+}
+
+.property-live-video {
+  object-fit: cover;
+}
+
+.fp-band-landscaping .band-feature {
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+.fp-band-landscaping .band-feature:hover {
+  border-color: #4ade80;
+  box-shadow: 0 6px 22px rgba(22, 163, 74, 0.3);
+}
+
+.fp-band-landscaping .band-feature:hover .band-feature-label {
+  color: #4ade80;
+}
