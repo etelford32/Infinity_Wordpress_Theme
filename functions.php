@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.17.0');
+define('INFINITY_VERSION', '3.18.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -1134,6 +1134,7 @@ function infinity_enqueue_navigation_scripts() {
     // Pass settings to JavaScript
     wp_localize_script('infinity-navigation', 'infinityNav', array(
         'stickyHeader'   => get_theme_mod('infinity_sticky_header', false),
+        'stickyAutoHide' => get_theme_mod('infinity_sticky_header_autohide', true),
         'backToTopText'  => __('Back to top', 'infinity'),
     ));
 
@@ -1292,9 +1293,26 @@ function infinity_navigation_customize_register($wp_customize) {
 
     $wp_customize->add_control('infinity_sticky_header', array(
         'label'       => esc_html__('Enable Sticky Header', 'infinity'),
-        'description' => esc_html__('Header will remain fixed at the top while scrolling.', 'infinity'),
+        'description' => esc_html__('Keep the header pinned to the top while scrolling. It compacts after the first scroll on every screen size, including phones.', 'infinity'),
         'section'     => 'infinity_navigation',
         'type'        => 'checkbox',
+    ));
+
+    // Sticky Header: auto-hide on scroll down
+    $wp_customize->add_setting('infinity_sticky_header_autohide', array(
+        'default'           => true,
+        'sanitize_callback' => 'rest_sanitize_boolean',
+        'transport'         => 'refresh',
+    ));
+
+    $wp_customize->add_control('infinity_sticky_header_autohide', array(
+        'label'           => esc_html__('Hide Sticky Header While Scrolling Down', 'infinity'),
+        'description'     => esc_html__('Tuck the header away while reading down the page and bring it back on the first scroll up. Turn off to keep it on screen at all times.', 'infinity'),
+        'section'         => 'infinity_navigation',
+        'type'            => 'checkbox',
+        'active_callback' => function () {
+            return (bool) get_theme_mod('infinity_sticky_header', false);
+        },
     ));
 
     // Show Breadcrumbs Option
