@@ -37,6 +37,50 @@ entries are in release order, newest first.
     printed to the Actions log or uploaded as an artifact.
 - The shared Google sign-in code now lives in `tools/ga4/google.mjs`.
 
+## 3.19.0
+
+- **Narrow-phone header fix (320–420px).** The Parker's Physics and
+  ETU buttons no longer overlap the site name, and the menu button no
+  longer wraps onto a second row.
+  - The mobile bar is now a single row that can't wrap. The site name
+    is the part that gives way: on phones up to 420px it can take two
+    lines, and anything longer ends in an ellipsis.
+  - Below 480px the bar had a fixed 64px height, so a wrapped row spilled
+    out over the page. It's now a minimum height.
+  - Phones up to 420px get tighter gutters and gaps and a slightly
+    smaller logo.
+  - Sticky or not, the header layout is the same.
+- **Sticky header:**
+  - **Phones:** the collapsed bar drops the light/dark toggle instead of
+    putting it beside the title, so it's about 53px tall. Before, it was
+    about 65px and squeezed the title. The toggle comes back at the top
+    of the page.
+  - **Logged-in users:** the header now sits below the WordPress admin
+    bar. Before, the admin bar covered its top 32–46px.
+  - **Anchor jumps:** `scroll-padding-top` is set to the collapsed
+    height, so links from other pages, `:target` and find-in-page land
+    below the header too. The header's heights are also exposed to CSS
+    as `--header-height` and `--header-height-collapsed`.
+  - **Re-measuring:** the header is measured again on a width change
+    (a ResizeObserver, which covers rotation and the 1024px breakpoint),
+    when the logo or button images load, and after webfonts load.
+  - **iOS and macOS overscroll:** the bounce at either end of the page
+    no longer hides or shows the header.
+  - **Keyboard:** tabbing into a hidden header brings it back.
+  - **New Customizer option:** *Navigation & UX → Hide Sticky Header
+    While Scrolling Down*. It's on by default, which matches the old
+    behaviour. Turn it off to keep the header on screen at all times.
+- **1024–1279px header (iPad landscape, small laptops).** Since 3.18.0
+  added the search button, the action buttons dropped onto a row of
+  their own at 1024–1130px. That made a three-row header, about 200px
+  tall and pinned to the screen with Sticky Header on. In this range the
+  buttons are now a little tighter and the tagline stops at 240px with
+  an ellipsis, so the header is two rows again.
+- **Section links no longer double the header gap.** Heading anchors on
+  posts and project blocks on the projects page each added a fixed 80px
+  for the sticky header. The page-wide `scroll-padding-top` already
+  clears it, so with Sticky Header on they now add only a small gap.
+
 ## 3.18.0
 
 Speed and reading: a lighter stylesheet, self-hosted fonts, links that

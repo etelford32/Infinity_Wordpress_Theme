@@ -214,9 +214,10 @@
   scroll-margin-top: var(--spacing-xl);
 }
 
-body:has(.site-header.sticky-header) .single-post .entry-content :is(h2, h3)[id] {
-  scroll-margin-top: calc(var(--spacing-xl) + 80px);
-}
+/* With the sticky header on, navigation.js sets the root's
+   scroll-padding-top to the header's real collapsed height, and that
+   already applies to every jump — adding the header here as well would
+   land headings twice as far down. */
 
 .heading-anchor {
   position: relative;

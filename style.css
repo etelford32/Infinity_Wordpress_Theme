@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.18.0
+Version: 3.19.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -771,6 +771,28 @@ code {
 @media (min-width: 1280px) {
   .header-cta-label {
     font-size: 16px;
+  }
+}
+
+/* 1024–1279 (iPad landscape, small laptops): branding, search and both
+   labelled CTAs have to share the top row. With the search button added
+   they came to ~1040px and the actions dropped onto a row of their own,
+   making a three-row header — 200px pinned with Sticky Header on. The
+   buttons tighten and the tagline stops at a fixed width (it already
+   ends in an ellipsis), which keeps both labels and the two-row layout. */
+@media (min-width: 1024px) and (max-width: 1279.98px) {
+  .site-title-group {
+    max-width: 240px;
+  }
+
+  .header-cta {
+    gap: 8px;
+    padding: 8px 12px 8px 8px;
+  }
+
+  .header-cta-label {
+    font-size: 14px;
+    letter-spacing: 0.03em;
   }
 }
 
@@ -1627,17 +1649,40 @@ body.mobile-menu-open .sticky-header {
      brand | actions | menu across the bar. */
   .site-header .container {
     gap: var(--spacing-sm);
+    /* One row, always. With wrapping allowed, a long site name or a
+       narrow phone sent the menu button (or the whole actions group)
+       onto a second row that the bar was not tall enough to hold. The
+       drawer is position: fixed here, so nothing else is in the row. */
+    flex-wrap: nowrap;
   }
 
   .header-actions {
     margin-left: auto;
   }
 
+  .mobile-menu-toggle {
+    flex-shrink: 0;
+  }
+
   /* The tagline is what made the branding wider than the phone, which
      pushed the CTAs and the menu button clean off the viewport. The
-     site description is still in the document head and the footer. */
+     site description is still in the document head and the footer.
+
+     The branding is the one item that gives way: every box between it
+     and the title needs min-width: 0, or the title's text sets a floor
+     the row cannot go under and it slides beneath the CTAs instead. */
   .site-branding {
-    flex-shrink: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .site-logo-link {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .site-title-group {
+    flex: 1 1 auto;
   }
 
   .site-tagline {
@@ -1815,8 +1860,10 @@ body.mobile-menu-open .sticky-header {
 }
 
 @media (max-width: 480px) {
+  /* A minimum, not a fixed height: a fixed 64px clipped nothing, it
+     just let anything taller spill out over the top of the page. */
   .site-header .container {
-    height: 64px;
+    min-height: 64px;
   }
 
   .main-navigation {
@@ -1833,6 +1880,136 @@ body.mobile-menu-open .sticky-header {
 
   .breadcrumb-separator:not(:last-of-type) {
     display: none;
+  }
+}
+
+/* Narrow phones (iPhone SE/mini, small Androids, 320–420px).
+
+   Budget at 320: 24px of gutter leaves 296. The menu button is 44 and
+   the two CTA marks ~100, so the brand gets ~135px including the logo.
+   Rather than cut the name to a few letters and an ellipsis, it may
+   take two lines here — the bar already has the height for that,
+   because the theme toggle sits beneath it. */
+@media (max-width: 420px) {
+  .site-header .container {
+    gap: 6px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .site-logo-link {
+    gap: 6px;
+  }
+
+  .cosmic-logo {
+    --logo-size: 38px;
+  }
+
+  .bh-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .bh-logo-img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .site-title {
+    font-size: var(--font-size-base, 1rem);
+    line-height: 1.1;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .header-cta {
+    padding: 5px 6px;
+  }
+
+  .mobile-menu-toggle {
+    width: 40px;
+    margin-right: -4px;
+  }
+}
+
+@media (max-width: 340px) {
+  .header-cta .inf-brand-mark {
+    height: 22px;
+  }
+
+  .header-cta .inf-brand-mark-etu {
+    height: 17px;
+  }
+}
+
+/* WordPress's admin bar is fixed above everything for logged-in users,
+   so a fixed header at top: 0 had its top 32px (46px on tablets)
+   buried under it. Below 601px the admin bar scrolls away with the
+   page, and the header goes back to the very top. */
+.admin-bar .sticky-header {
+  top: 32px;
+}
+
+@media screen and (max-width: 782px) {
+  .admin-bar .sticky-header {
+    top: 46px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .admin-bar .sticky-header {
+    top: 0;
+  }
+}
+
+/* Collapsed on a phone. Laying the theme toggle beside the title (as
+   the desktop collapse does) would take ~50px from a row that has
+   none to spare, so on the single-row bar it folds away instead: the
+   collapsed bar is just logo, name, buttons and menu. It is back as
+   soon as the reader returns to the top. */
+@media (max-width: 1023.98px) {
+  .sticky-header.is-scrolled .site-branding {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .sticky-header.is-scrolled .theme-toggle {
+    display: none;
+  }
+
+  .sticky-header.is-scrolled .container {
+    min-height: 56px;
+  }
+
+  .sticky-header.is-scrolled .header-cta {
+    min-height: 40px;
+    padding: 5px 9px;
+  }
+}
+
+@media (max-width: 420px) {
+  .sticky-header.is-scrolled .container {
+    min-height: 52px;
+  }
+
+  /* the desktop collapse steps the title DOWN to lg; on a narrow phone
+     it is already smaller than that, so it would step back up */
+  .sticky-header.is-scrolled .site-title {
+    font-size: var(--font-size-base, 1rem);
+  }
+
+  .sticky-header.is-scrolled .header-cta {
+    min-height: 36px;
+    padding: 4px 6px;
   }
 }
 

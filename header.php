@@ -15,7 +15,8 @@
 </a>
 
 <div id="page" class="site">
-    <header id="masthead" class="site-header<?php echo get_theme_mod('infinity_sticky_header', false) ? ' sticky-header' : ''; ?>" role="banner">
+    <?php $infinity_sticky = (bool) get_theme_mod('infinity_sticky_header', false); ?>
+    <header id="masthead" class="site-header<?php echo $infinity_sticky ? ' sticky-header' : ''; ?>"<?php if ($infinity_sticky && !get_theme_mod('infinity_sticky_header_autohide', true)) : ?> data-autohide="false"<?php endif; ?> role="banner">
         <div class="container">
             <div class="site-branding">
                 <?php if (has_custom_logo()) : ?>

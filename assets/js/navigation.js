@@ -154,11 +154,15 @@
      * Sticky Header
      *
      * Past the first inch of scroll the header collapses (see the
-     * "Collapse on scroll" block in style.css), and sustained downward
-     * scrolling tucks it away entirely until the reader heads back up.
+     * "Collapse on scroll" block in style.css), and — unless auto-hide
+     * is switched off in the Customizer — sustained downward scrolling
+     * tucks it away entirely until the reader heads back up.
      */
     function initStickyHeader() {
         if (!header || !header.classList.contains('sticky-header')) return;
+
+        const root = document.documentElement;
+        const autoHide = header.getAttribute('data-autohide') !== 'false';
 
         // Scroll needed before the header compacts, and the travel in
         // each direction before it tucks away or comes back. Working in
@@ -171,6 +175,16 @@
         let lastScrollTop = 0;
         let travel = 0;
         let ticking = false;
+
+        // iOS and macOS rubber-band past both ends of the page, which
+        // reads as a burst of scrolling in the wrong direction: the
+        // bounce at the bottom would pull the header back down, the one
+        // at the top would hide it. Only the real scroll range counts.
+        function currentScroll() {
+            const max = Math.max(0, root.scrollHeight - window.innerHeight);
+            const y = window.pageYOffset || root.scrollTop;
+            return Math.min(Math.max(y, 0), max);
+        }
 
         function measure() {
             // The header overlays the page, so the body needs padding
@@ -202,10 +216,24 @@
             header.classList.remove('is-measuring');
 
             document.body.style.paddingTop = expandedHeight + 'px';
+
+            // Exposed for any CSS that has to sit under the header, and
+            // used as scroll-padding so the browser's own anchor jumps
+            // (links from other pages, :target, find-in-page, focus
+            // moving to an off-screen field) clear it too — not just
+            // the clicks initSmoothScroll intercepts.
+            root.style.setProperty('--header-height', expandedHeight + 'px');
+            root.style.setProperty('--header-height-collapsed', collapsedHeight + 'px');
+            root.style.scrollPaddingTop = (collapsedHeight + 8) + 'px';
+        }
+
+        function show() {
+            travel = 0;
+            header.classList.remove('is-hidden');
         }
 
         function handleScroll() {
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollTop = currentScroll();
             const delta = scrollTop - lastScrollTop;
 
             if (scrollTop > COLLAPSE_AT) {
@@ -214,23 +242,25 @@
                 header.classList.remove('is-scrolled');
             }
 
-            // Accumulate travel per direction, resetting on a turn
-            travel = (delta > 0) ? Math.max(0, travel) + delta : Math.min(0, travel) + delta;
+            if (autoHide) {
+                // Accumulate travel per direction, resetting on a turn
+                travel = (delta > 0) ? Math.max(0, travel) + delta : Math.min(0, travel) + delta;
 
-            // Never pull the header out from under an open menu, away
-            // from whatever the keyboard is focused on inside it, or
-            // while the reader is still near the top of the page.
-            const pinned = document.body.classList.contains('mobile-menu-open')
-                || header.contains(document.activeElement)
-                || scrollTop <= expandedHeight;
+                // Never pull the header out from under an open menu,
+                // away from whatever the keyboard is focused on inside
+                // it, or while the reader is still near the top.
+                const pinned = document.body.classList.contains('mobile-menu-open')
+                    || header.contains(document.activeElement)
+                    || scrollTop <= expandedHeight;
 
-            if (pinned || travel < -SHOW_TRAVEL) {
-                header.classList.remove('is-hidden');
-            } else if (travel > HIDE_TRAVEL) {
-                header.classList.add('is-hidden');
+                if (pinned || travel < -SHOW_TRAVEL) {
+                    header.classList.remove('is-hidden');
+                } else if (travel > HIDE_TRAVEL) {
+                    header.classList.add('is-hidden');
+                }
             }
 
-            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            lastScrollTop = scrollTop;
         }
 
         window.addEventListener('scroll', function() {
@@ -243,22 +273,53 @@
             }
         }, { passive: true });
 
-        // Re-measure whenever the header's own box can change: a resize
-        // can cross the 1024px line where the header goes from one row
-        // to two, and a late webfont changes its height without any
-        // resize event at all.
-        let resizeTimer = null;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(measure, 150);
-        });
+        // Tabbing into a tucked-away header (the skip link's neighbours,
+        // the menu toggle) must bring it back, not focus something
+        // that is off the top of the screen.
+        header.addEventListener('focusin', show);
+
+        // Re-measure whenever the header's own box can change: crossing
+        // the 1024px line where it goes from one row to two, a rotation,
+        // a late webfont, the logo image arriving. A ResizeObserver sees
+        // all of these; the collapse transition also resizes the header,
+        // so reads are debounced until it has settled. measure() puts
+        // the header back exactly as it found it, so it does not
+        // re-trigger the observer.
+        let measureTimer = null;
+        function scheduleMeasure() {
+            clearTimeout(measureTimer);
+            measureTimer = setTimeout(measure, 150);
+        }
+
+        if ('ResizeObserver' in window) {
+            let lastWidth = 0;
+            new ResizeObserver(function(entries) {
+                // Height changes alone are the collapse animating;
+                // only a width change can alter the expanded height.
+                const width = Math.round(entries[0].contentRect.width);
+                if (width !== lastWidth) {
+                    lastWidth = width;
+                    scheduleMeasure();
+                }
+            }).observe(header);
+        } else {
+            window.addEventListener('resize', scheduleMeasure);
+        }
 
         if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(measure);
         }
 
+        // Images inside the header (custom logo, CTA marks) can change
+        // its height without changing its width.
+        header.querySelectorAll('img').forEach(function(img) {
+            if (!img.complete) {
+                img.addEventListener('load', scheduleMeasure, { once: true });
+            }
+        });
+
         measure();
-        lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        lastScrollTop = currentScroll();
         handleScroll();
     }
 
