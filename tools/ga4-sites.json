@@ -1,9 +1,9 @@
 {
-  "_comment": "Sites in the cross-site rollup (tools/ga4-rollup.mjs). measurementId is the G- id the site ships; the numeric propertyId is looked up from it, or set propertyId to skip the lookup. 'match' is the text a session source must contain to count as coming from that site. Exactly one site is the hub whose project_click events are joined to arrivals on the others.",
+  "_comment": "Sites in the cross-site rollup (tools/ga4-rollup.mjs). measurementId is the G- id the site ships; the numeric propertyId is looked up from it, or set propertyId to skip the lookup (all four are set; run ga4-rollup.mjs --discover to re-check them). 'match' is the text a session source must contain to count as coming from that site. Exactly one site is the hub whose project_click events are joined to arrivals on the others.",
   "sites": [
-    { "key": "hub",         "name": "elliottelford.com",         "domain": "elliottelford.com",          "match": "elliottelford",          "hub": true },
-    { "key": "parkers",     "name": "Parker's Physics",          "domain": "parkersphysics.com",         "match": "parkersphysics",         "measurementId": "G-W8WFYFDDGC" },
-    { "key": "etu",         "name": "Explore the Universe 2175", "domain": "exploretheuniverse2175.com", "match": "exploretheuniverse2175", "measurementId": "G-6RCVW65DDL" },
-    { "key": "landscaping", "name": "Telford Landscaping",       "domain": "telfordlandscaping.com",     "match": "telfordlandscaping",     "measurementId": "G-GMYQFMRVWS" }
+    {"key": "hub", "name": "elliottelford.com", "domain": "elliottelford.com", "match": "elliottelford", "hub": true, "propertyId": "338066556"},
+    {"key": "parkers", "name": "Parker's Physics", "domain": "parkersphysics.com", "match": "parkersphysics", "measurementId": "G-W8WFYFDDGC", "propertyId": "459092653"},
+    {"key": "etu", "name": "Explore the Universe 2175", "domain": "exploretheuniverse2175.com", "match": "exploretheuniverse2175", "measurementId": "G-6RCVW65DDL", "propertyId": "517881062"},
+    {"key": "landscaping", "name": "Telford Landscaping", "domain": "telfordlandscaping.com", "match": "telfordlandscaping", "measurementId": "G-GMYQFMRVWS", "propertyId": "519122527"}
   ]
 }
