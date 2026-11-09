@@ -3,163 +3,119 @@
  * Cross-site GA4 rollup: elliottelford.com, Parker's Physics,
  * Explore the Universe 2175 and Telford Landscaping in one report.
  *
- * Each site reports into its own GA4 property. This signs in once as a
- * service account, finds every property from the measurement ids in
- * tools/ga4-sites.json, and joins them:
+ * Each site reports into its own GA4 property (tools/ga4-sites.json).
+ * This signs in once as a service account and joins them:
  *
- *   1. Per-site traffic, this period vs the one before
- *   2. Hand-offs: clicks out of elliottelford.com (project_click),
- *      sessions that arrived on each project from a sibling site, and
- *      the key events those visitors went on to complete
- *   3. Which placement on elliottelford.com sent them (utm_campaign)
- *   4. The full site-to-site referral matrix
+ *   1. Outcomes on every site — leads, sign-ups, wishlist clicks — and
+ *      how many came from a sibling site
+ *   2. Traffic per site against the comparison period
+ *   3. Hand-offs: impressions and clicks on elliottelford.com, then
+ *      arrivals and outcomes on each project's own property
+ *   4. Which placement on elliottelford.com sent them (utm_campaign)
+ *   5. The full site-to-site referral matrix
  *
- * No npm install: Node 18+ only (built-in fetch and crypto).
+ * Outcomes are counted from each site's "outcomes" list in the config,
+ * so they show up whether or not they are marked as key events yet.
  *
- * Auth, one of:
- *   --key path/to/service-account.json
- *   GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
- *   GA_SERVICE_ACCOUNT_KEY='{"client_email":...}'  (raw or base64, as on Vercel)
- * The service account needs Viewer on all four GA4 properties, and the
- * Google Analytics Data API + Admin API enabled in its Cloud project.
+ * Node 18+, no npm install. Auth: --key <service-account.json>, or the
+ * GA_SERVICE_ACCOUNT_KEY / GOOGLE_APPLICATION_CREDENTIALS env vars. The
+ * account needs Viewer on all four properties.
  *
- * Usage:
- *   node tools/ga4-rollup.mjs --key ~/keys/ga.json               # last 28 days
- *   node tools/ga4-rollup.mjs --key ~/keys/ga.json --days 7
- *   node tools/ga4-rollup.mjs --key ~/keys/ga.json --out report.md --json report.json
- *   node tools/ga4-rollup.mjs --key ~/keys/ga.json --discover    # list visible properties
+ *   node tools/ga4-rollup.mjs --key ~/.config/ga/ga-reporting.json              # last 28 days
+ *   node tools/ga4-rollup.mjs --key ... --days 1 --compare lastweek             # daily
+ *   node tools/ga4-rollup.mjs --key ... --days 7 --out rollup.md --json rollup.json
+ *   node tools/ga4-rollup.mjs --key ... --discover                              # list properties
+ *
+ * --compare previous (default) compares with the N days before;
+ * --compare lastweek compares with the same days one week earlier, which
+ * keeps a daily report from comparing a Sunday with a Saturday.
  */
 
-import { createSign } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ADMIN_API, DATA_API, api, die, getToken, listAll, loadAccount, parseArgs } from './ga4/google.mjs';
 
-const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const DATA_API = 'https://analyticsdata.googleapis.com/v1beta';
-const ADMIN_API = 'https://analyticsadmin.googleapis.com/v1beta';
-const SCOPE = 'https://www.googleapis.com/auth/analytics.readonly';
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 /* ---------------------------------------------------------------- args */
 
-function parseArgs(argv) {
-  const a = { days: 28, config: join(HERE, 'ga4-sites.json') };
-  for (let i = 0; i < argv.length; i++) {
-    const k = argv[i];
-    const next = () => argv[++i];
-    if (k === '--key') a.key = next();
-    else if (k === '--days') a.days = parseInt(next(), 10);
-    else if (k === '--out') a.out = next();
-    else if (k === '--json') a.json = next();
-    else if (k === '--config') a.config = next();
-    else if (k === '--discover') a.discover = true;
-    else if (k === '-h' || k === '--help') a.help = true;
-    else die(`Unknown option ${k}`);
-  }
-  if (!(a.days > 0 && a.days <= 365)) die('--days must be 1–365');
-  return a;
+const args = parseArgs(process.argv.slice(2), {
+  defaults: { days: '28', compare: 'previous', config: join(HERE, 'ga4-sites.json'), tz: 'America/Los_Angeles' },
+  options: {
+    '--key': { name: 'key' },
+    '--days': { name: 'days' },
+    '--compare': { name: 'compare' },
+    '--out': { name: 'out' },
+    '--json': { name: 'json' },
+    '--config': { name: 'config' },
+    '--title': { name: 'title' },
+    '--tz': { name: 'tz' },
+    '--discover': { name: 'discover', flag: true },
+  },
+});
+if (args.help) {
+  console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('*/')[0]);
+  process.exit(0);
+}
+const DAYS = parseInt(args.days, 10);
+if (!(DAYS > 0 && DAYS <= 365)) die('--days must be 1–365');
+if (!['previous', 'lastweek'].includes(args.compare)) die('--compare must be previous or lastweek');
+if (args.compare === 'lastweek' && DAYS > 7) die('--compare lastweek only works for --days 7 or fewer');
+
+/* ----------------------------------------------------------- periods */
+
+function ranges() {
+  const current = { startDate: `${DAYS}daysAgo`, endDate: 'yesterday', name: 'current' };
+  const previous = args.compare === 'lastweek'
+    ? { startDate: `${DAYS + 7}daysAgo`, endDate: '8daysAgo', name: 'previous' }
+    : { startDate: `${DAYS * 2}daysAgo`, endDate: `${DAYS + 1}daysAgo`, name: 'previous' };
+  return { current, previous, both: [current, previous] };
 }
 
-function die(msg) {
-  console.error(msg);
-  process.exit(1);
+// Human labels for the periods, in the properties' time zone
+function dayLabel(daysAgo) {
+  const d = new Date(Date.now() - daysAgo * 864e5);
+  return d.toLocaleDateString('en-US', { timeZone: args.tz, weekday: 'short', month: 'short', day: 'numeric' });
 }
-
-/* ---------------------------------------------------------------- auth */
-
-function loadAccount(keyPath) {
-  let raw;
-  const path = keyPath || process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (path) {
-    try { raw = readFileSync(path.replace(/^~/, process.env.HOME || '~'), 'utf8'); }
-    catch (e) { die(`Can't read key file ${path}: ${e.message}`); }
-  } else if (process.env.GA_SERVICE_ACCOUNT_KEY) {
-    raw = process.env.GA_SERVICE_ACCOUNT_KEY.trim();
-    if (!raw.startsWith('{')) raw = Buffer.from(raw, 'base64').toString('utf8');
-  } else {
-    die('No credentials. Pass --key path/to/service-account.json (see the top of this file).');
-  }
-  let acct;
-  try { acct = JSON.parse(raw); } catch { die('The key is not valid JSON.'); }
-  if (!acct.client_email || !acct.private_key) die('The key is missing client_email or private_key.');
-  acct.private_key = acct.private_key.replace(/\\n/g, '\n');
-  return acct;
-}
-
-const b64url = (s) => Buffer.from(s).toString('base64url');
-
-async function getToken(acct) {
-  const now = Math.floor(Date.now() / 1000);
-  const head = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-  const claims = b64url(JSON.stringify({ iss: acct.client_email, scope: SCOPE, aud: TOKEN_URL, iat: now, exp: now + 3600 }));
-  const signer = createSign('RSA-SHA256');
-  signer.update(`${head}.${claims}`);
-  const assertion = `${head}.${claims}.${b64url(signer.sign(acct.private_key))}`;
-  const res = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.access_token) die(`Google sign-in failed: ${data.error_description || data.error || res.status}`);
-  return data.access_token;
-}
-
-async function api(token, method, url, body) {
-  const res = await fetch(url, {
-    method,
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const err = new Error(data.error?.message || `HTTP ${res.status}`);
-    err.status = res.status;
-    throw err;
-  }
-  return data;
+function periodLabel() {
+  const cur = DAYS === 1 ? dayLabel(1) : `${dayLabel(DAYS)} – ${dayLabel(1)}`;
+  const prevEnd = args.compare === 'lastweek' ? 8 : DAYS + 1;
+  const prevStart = args.compare === 'lastweek' ? DAYS + 7 : DAYS * 2;
+  const prev = prevStart === prevEnd ? dayLabel(prevEnd) : `${dayLabel(prevStart)} – ${dayLabel(prevEnd)}`;
+  return { cur, prev };
 }
 
 /* ----------------------------------------------------- property lookup */
 
 async function listStreams(token) {
   const out = [];
-  let page = '';
-  do {
-    const d = await api(token, 'GET', `${ADMIN_API}/accountSummaries?pageSize=200${page ? `&pageToken=${page}` : ''}`);
-    for (const acct of d.accountSummaries || []) {
-      for (const p of acct.propertySummaries || []) {
-        const s = await api(token, 'GET', `${ADMIN_API}/${p.property}/dataStreams?pageSize=200`);
-        for (const st of s.dataStreams || []) {
-          if (!st.webStreamData) continue;
-          out.push({
-            property: p.property.split('/')[1],
-            propertyName: p.displayName,
-            account: acct.displayName,
-            measurementId: st.webStreamData.measurementId,
-            uri: st.webStreamData.defaultUri || '',
-          });
-        }
+  for (const acct of await listAll(token, '/accountSummaries', 'accountSummaries')) {
+    for (const p of acct.propertySummaries || []) {
+      for (const st of await listAll(token, `/${p.property}/dataStreams`, 'dataStreams')) {
+        if (!st.webStreamData) continue;
+        out.push({
+          property: p.property.split('/')[1],
+          propertyName: p.displayName,
+          account: acct.displayName,
+          measurementId: st.webStreamData.measurementId,
+          uri: st.webStreamData.defaultUri || '',
+        });
       }
     }
-    page = d.nextPageToken || '';
-  } while (page);
+  }
   return out;
 }
 
 async function resolveSites(token, sites) {
-  const needLookup = sites.some((s) => !s.propertyId);
-  const streams = needLookup ? await listStreams(token) : [];
+  const streams = sites.some((s) => !s.propertyId) ? await listStreams(token) : [];
   return sites.map((s) => {
-    if (s.propertyId) return s;
+    if (s.propertyId) return { ...s };
     const hit = streams.find((st) =>
       (s.measurementId && st.measurementId === s.measurementId) ||
       (!s.measurementId && st.uri.includes(s.domain)));
-    if (!hit) {
-      return { ...s, missing: `the service account can't see a GA4 stream for ${s.measurementId || s.domain}. Add it as Viewer on that property.` };
-    }
-    return { ...s, propertyId: hit.property, measurementId: hit.measurementId };
+    if (!hit) return { ...s, missing: `the service account can't see a GA4 stream for ${s.measurementId || s.domain}. Add it as Viewer on that property.` };
+    return { ...s, propertyId: hit.property };
   });
 }
 
@@ -176,60 +132,56 @@ function rows(report) {
   });
 }
 
-function ranges(days) {
-  return [
-    { startDate: `${days}daysAgo`, endDate: 'yesterday', name: 'current' },
-    { startDate: `${days * 2}daysAgo`, endDate: `${days + 1}daysAgo`, name: 'previous' },
-  ];
-}
+// "elliottelford.com", "www.parkersphysics.com" → that site's key
+const siteForSource = (sites, source) => sites.find((x) => (source || '').toLowerCase().includes(x.match));
 
-// Matches a session source to a sibling site: "elliottelford.com",
-// "www.parkersphysics.com", "exploretheuniverse2175.com / referral"...
-function siteForSource(sites, source) {
-  const s = (source || '').toLowerCase();
-  return sites.find((x) => s.includes(x.match));
-}
-
-async function siteReport(token, site, sites, days) {
+async function siteReport(token, site, sites) {
   const run = (body) => api(token, 'POST', `${DATA_API}/properties/${site.propertyId}:runReport`, body);
-  const out = { summary: { current: {}, previous: {} }, inbound: [], outbound: [], errors: [] };
+  const R = ranges();
+  const out = { summary: { current: {}, previous: {} }, inbound: [], outcomes: [], outbound: [], errors: [] };
+  const fromOf = (src) => siteForSource(sites, src)?.key || '';
 
-  // 1. Traffic, both periods
-  const summaryMetrics = ['activeUsers', 'sessions', 'engagedSessions', 'keyEvents'];
-  const sum = rows(await run({
-    dateRanges: ranges(days),
-    metrics: summaryMetrics.map((name) => ({ name })),
-  }));
-  for (const r of sum) out.summary[r.dateRange || 'current'] = r;
+  // Traffic, both periods
+  for (const r of rows(await run({
+    dateRanges: R.both,
+    metrics: ['activeUsers', 'sessions', 'engagedSessions'].map((name) => ({ name })),
+  }))) out.summary[r.dateRange || 'current'] = r;
 
-  // 2. Sessions that arrived from a sibling site, by source + campaign
-  const siblingFilter = {
-    orGroup: {
-      expressions: sites.filter((x) => x.key !== site.key).map((x) => ({
-        filter: { fieldName: 'sessionSource', stringFilter: { matchType: 'CONTAINS', value: x.match, caseSensitive: false } },
-      })),
-    },
-  };
+  // Sessions that arrived from a sibling site, by source + campaign
+  const siblings = sites.filter((x) => x.key !== site.key);
   out.inbound = rows(await run({
-    dateRanges: [ranges(days)[0]],
+    dateRanges: [R.current],
     dimensions: [{ name: 'sessionSource' }, { name: 'sessionCampaignName' }],
-    metrics: [{ name: 'sessions' }, { name: 'engagedSessions' }, { name: 'keyEvents' }, { name: 'activeUsers' }],
-    dimensionFilter: siblingFilter,
-    limit: 500,
-  })).map((r) => ({ ...r, from: siteForSource(sites, r.sessionSource)?.key || r.sessionSource }));
+    metrics: [{ name: 'sessions' }, { name: 'engagedSessions' }],
+    dimensionFilter: { orGroup: { expressions: siblings.map((x) => ({
+      filter: { fieldName: 'sessionSource', stringFilter: { matchType: 'CONTAINS', value: x.match, caseSensitive: false } },
+    })) } },
+    limit: 1000,
+  })).map((r) => ({ ...r, from: fromOf(r.sessionSource) })).filter((r) => r.from && r.from !== site.key);
 
-  // 3. On the hub only: clicks out to each project, by placement
+  // Outcomes, both periods, by where the session came from
+  if ((site.outcomes || []).length) {
+    out.outcomes = rows(await run({
+      dateRanges: R.both,
+      dimensions: [{ name: 'eventName' }, { name: 'sessionSource' }, { name: 'sessionCampaignName' }],
+      metrics: [{ name: 'eventCount' }],
+      dimensionFilter: { filter: { fieldName: 'eventName', inListFilter: { values: site.outcomes } } },
+      limit: 5000,
+    })).map((r) => ({ ...r, dateRange: r.dateRange || 'current', from: fromOf(r.sessionSource) }));
+  }
+
+  // On the hub: impressions and clicks out to each project, by placement
   if (site.hub) {
     try {
       out.outbound = rows(await run({
-        dateRanges: [ranges(days)[0]],
+        dateRanges: [R.current],
         dimensions: [{ name: 'eventName' }, { name: 'customEvent:project' }, { name: 'customEvent:placement' }],
-        metrics: [{ name: 'eventCount' }, { name: 'totalUsers' }],
+        metrics: [{ name: 'eventCount' }],
         dimensionFilter: { filter: { fieldName: 'eventName', inListFilter: { values: ['project_click', 'wishlist_click', 'project_impression'] } } },
         limit: 1000,
       }));
     } catch (e) {
-      out.errors.push(`Outbound clicks: ${e.message} (are the "project" and "placement" custom dimensions set up on this property?)`);
+      out.errors.push(`Outbound clicks: ${e.message} (are the "project" and "placement" custom dimensions set up? Run tools/ga4-config.mjs.)`);
     }
   }
   return out;
@@ -237,108 +189,124 @@ async function siteReport(token, site, sites, days) {
 
 /* ------------------------------------------------------------ assemble */
 
-const fmt = (n) => (n == null || Number.isNaN(n) ? '–' : Math.round(n).toLocaleString('en-US'));
+const num = (n) => (n == null || Number.isNaN(n) ? '–' : Math.round(n).toLocaleString('en-US'));
 const pct = (n) => (n == null || !Number.isFinite(n) ? '–' : `${(n * 100).toFixed(1)}%`);
+const sum = (list, f) => list.reduce((a, r) => a + (f ? f(r) : r), 0);
 function delta(cur, prev) {
   if (!prev) return cur ? 'new' : '–';
   const d = (cur - prev) / prev;
   return `${d >= 0 ? '+' : ''}${(d * 100).toFixed(0)}%`;
 }
 function table(head, body) {
-  if (!body.length) return '_No data in this period._\n';
+  if (!body.length) return '_Nothing in this period._\n';
   return [`| ${head.join(' | ')} |`, `|${head.map(() => '---').join('|')}|`, ...body.map((r) => `| ${r.join(' | ')} |`)].join('\n') + '\n';
 }
+const HUB_CLICKS = ['project_click', 'wishlist_click'];
+const campaignOf = (r) => (r.sessionCampaignName && !r.sessionCampaignName.startsWith('(') ? r.sessionCampaignName : '(no utm_campaign)');
 
-function build(sites, results, days) {
+function build(sites, results) {
   const by = Object.fromEntries(sites.map((s) => [s.key, s]));
   const live = sites.filter((s) => results[s.key]);
-  const hub = sites.find((s) => s.hub);
+  const dests = live.filter((s) => !s.hub);
+  const hub = live.find((s) => s.hub);
+  const { cur, prev } = periodLabel();
   const md = [];
-  const json = { generated: new Date().toISOString(), days, sites: {}, handoffs: [], matrix: [] };
+  const json = { generated: new Date().toISOString(), days: DAYS, compare: args.compare, period: { current: cur, previous: prev }, sites: {}, outcomes: [], handoffs: [], placements: [], matrix: [] };
 
-  md.push(`# Cross-site GA4 rollup`);
-  md.push(`Last ${days} complete days (to yesterday), compared with the ${days} days before. Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC.\n`);
+  // Outcomes first: they are the point
+  const outcomeRows = [];
+  let outCur = 0, outPrev = 0, outFromSiblings = 0;
+  for (const s of live) {
+    const o = results[s.key].outcomes;
+    for (const ev of s.outcomes || []) {
+      const c = o.filter((r) => r.eventName === ev && r.dateRange === 'current');
+      const p = o.filter((r) => r.eventName === ev && r.dateRange === 'previous');
+      const total = sum(c, (r) => r.eventCount);
+      const prevTotal = sum(p, (r) => r.eventCount);
+      const fromHub = hub && !s.hub ? sum(c.filter((r) => r.from === hub.key), (r) => r.eventCount) : null;
+      const fromOther = sum(c.filter((r) => r.from && r.from !== s.key && (!hub || r.from !== hub.key || s.hub)), (r) => r.eventCount);
+      // Clicks out of the hub are the start of a journey whose outcome is
+      // counted on the destination; adding both would count it twice
+      if (!(s.hub && HUB_CLICKS.includes(ev))) {
+        outCur += total; outPrev += prevTotal; outFromSiblings += (fromHub || 0) + fromOther;
+      }
+      json.outcomes.push({ site: s.key, event: ev, count: total, previous: prevTotal, fromHub, fromOtherSites: fromOther });
+      outcomeRows.push([s.name, `\`${ev}\``, num(total), delta(total, prevTotal), fromHub == null ? '–' : num(fromHub), num(fromOther)]);
+    }
+  }
 
-  // Per-site traffic
-  md.push(`## Traffic by site`);
-  const totals = { current: {}, previous: {} };
+  const title = args.title || `${DAYS === 1 ? 'Daily rollup' : DAYS === 7 ? 'Weekly rollup' : `${DAYS}-day rollup`} — ${cur}`;
+  md.push(`# ${title}`);
+  md.push(`**${num(outCur)} outcomes** across the sites (${delta(outCur, outPrev)} vs ${prev}), ${num(outFromSiblings)} of them from visitors another of your sites sent (clicks out of ${hub ? hub.name : 'the hub'} not counted here).\n`);
+  json.headline = { outcomes: outCur, previous: outPrev, fromSiblings: outFromSiblings };
+
+  md.push(`## Outcomes`);
+  md.push(table(['Site', 'Outcome', 'Count', 'Change', 'From hub', 'From other sites'], outcomeRows));
+  md.push(`_Change is against ${prev}. "From hub" means visitors ${hub ? hub.name : 'the hub'} sent. Outcomes are the events listed per site in tools/ga4-sites.json. Steam wishlists themselves are only in Steamworks; these count wishlist clicks._\n`);
+
+  // Traffic
+  md.push(`## Traffic`);
+  const tot = { c: { u: 0, s: 0, e: 0 }, p: { u: 0, s: 0 } };
   const trafficRows = live.map((s) => {
     const { current: c = {}, previous: p = {} } = results[s.key].summary;
     json.sites[s.key] = { name: s.name, propertyId: s.propertyId, current: c, previous: p };
-    for (const k of ['activeUsers', 'sessions', 'engagedSessions', 'keyEvents']) {
-      totals.current[k] = (totals.current[k] || 0) + (c[k] || 0);
-      totals.previous[k] = (totals.previous[k] || 0) + (p[k] || 0);
-    }
-    return [s.name, fmt(c.activeUsers), delta(c.activeUsers, p.activeUsers), fmt(c.sessions), delta(c.sessions, p.sessions), pct(c.sessions ? c.engagedSessions / c.sessions : null), fmt(c.keyEvents), delta(c.keyEvents, p.keyEvents)];
+    tot.c.u += c.activeUsers || 0; tot.c.s += c.sessions || 0; tot.c.e += c.engagedSessions || 0;
+    tot.p.u += p.activeUsers || 0; tot.p.s += p.sessions || 0;
+    return [s.name, num(c.activeUsers), delta(c.activeUsers, p.activeUsers), num(c.sessions), delta(c.sessions, p.sessions), pct(c.sessions ? c.engagedSessions / c.sessions : null)];
   });
-  trafficRows.push(['**All sites**', fmt(totals.current.activeUsers), delta(totals.current.activeUsers, totals.previous.activeUsers), fmt(totals.current.sessions), delta(totals.current.sessions, totals.previous.sessions), pct(totals.current.engagedSessions / totals.current.sessions), fmt(totals.current.keyEvents), delta(totals.current.keyEvents, totals.previous.keyEvents)]);
-  md.push(table(['Site', 'Users', 'Δ', 'Sessions', 'Δ', 'Engaged', 'Key events', 'Δ'], trafficRows));
-  md.push(`_"All sites" users are summed across properties, so one person who visits two sites counts twice._\n`);
+  trafficRows.push(['**All sites**', num(tot.c.u), delta(tot.c.u, tot.p.u), num(tot.c.s), delta(tot.c.s, tot.p.s), pct(tot.c.s ? tot.c.e / tot.c.s : null)]);
+  md.push(table(['Site', 'Users', 'Change', 'Sessions', 'Change', 'Engaged'], trafficRows));
+  md.push(`_All-sites users are summed across properties, so someone who visits two sites counts twice._\n`);
 
   // Hand-offs from the hub
-  if (hub && results[hub.key]) {
+  if (hub) {
     md.push(`## Hand-offs from ${hub.name}`);
-    const out = results[hub.key].outbound;
-    const handRows = [];
-    for (const dest of live.filter((s) => !s.hub)) {
-      const ev = (name) => out.filter((r) => r.eventName === name && r['customEvent:project'] === dest.key).reduce((a, r) => a + r.eventCount, 0);
-      const seen = ev('project_impression');
-      const clicks = ev('project_click');
-      const arrivals = results[dest.key].inbound.filter((r) => r.from === hub.key);
-      const sessions = arrivals.reduce((a, r) => a + r.sessions, 0);
-      const engaged = arrivals.reduce((a, r) => a + r.engagedSessions, 0);
-      const keyEv = arrivals.reduce((a, r) => a + r.keyEvents, 0);
-      json.handoffs.push({ project: dest.key, impressions: seen, clicks, wishlistClicks: ev('wishlist_click'), arrivals: sessions, engagedArrivals: engaged, keyEvents: keyEv });
-      handRows.push([dest.name, fmt(seen), fmt(clicks), seen ? pct(clicks / seen) : '–', fmt(sessions), clicks ? pct(sessions / clicks) : '–', fmt(engaged), fmt(keyEv)]);
-    }
-    md.push(table(['Project', 'Seen', 'Clicks', 'Click rate', 'Arrived', 'Arrival rate', 'Engaged', 'Key events there'], handRows));
-    md.push(`- **Seen / Clicks** are measured on ${hub.name} (\`project_impression\` / \`project_click\`). **Arrived** is sessions on the project's own property whose source is ${hub.match}.`);
-    md.push(`- Steam wishlists happen on Steam, so ETU's "Key events there" only counts what visitors did on exploretheuniverse2175.com. Wishlist clicks: ${fmt(json.handoffs.find((h) => h.project === 'etu')?.wishlistClicks)}. Actual wishlists are in Steamworks → UTM report.`);
-    md.push(`- An arrival rate well under 100% is normal (ad blockers, back-button bounces, consent). A sudden drop usually means a broken link or lost UTM tags.\n`);
+    const outb = results[hub.key].outbound;
+    const ev = (name, key) => sum(outb.filter((r) => r.eventName === name && r['customEvent:project'] === key), (r) => r.eventCount);
+    const handRows = dests.map((d) => {
+      const seen = ev('project_impression', d.key);
+      const clicks = ev('project_click', d.key);
+      const arr = results[d.key].inbound.filter((r) => r.from === hub.key);
+      const arrived = sum(arr, (r) => r.sessions);
+      const engaged = sum(arr, (r) => r.engagedSessions);
+      const outcomes = sum(results[d.key].outcomes.filter((r) => r.dateRange === 'current' && r.from === hub.key), (r) => r.eventCount);
+      json.handoffs.push({ project: d.key, impressions: seen, clicks, wishlistClicks: ev('wishlist_click', d.key), arrived, engaged, outcomes });
+      return [d.name, num(seen), num(clicks), seen ? pct(clicks / seen) : '–', num(arrived), clicks ? pct(arrived / clicks) : '–', num(engaged), num(outcomes)];
+    });
+    md.push(table(['Project', 'Seen', 'Clicks', 'Click rate', 'Arrived', 'Arrival rate', 'Engaged', 'Outcomes there'], handRows));
+    md.push(`_Seen and Clicks are measured on ${hub.name}; Arrived and Outcomes on the project's own property. Arrival rates under 100% are normal (ad blockers, consent, back-button); a sudden drop usually means a broken link._\n`);
     for (const e of results[hub.key].errors) md.push(`> ⚠ ${e}\n`);
 
-    // Which placement sent the traffic
+    // Placement
     md.push(`### Which placement sent them`);
     const place = {};
-    for (const r of out.filter((r) => r.eventName === 'project_click')) {
-      const k = `${r['customEvent:placement']}|${r['customEvent:project']}`;
-      place[k] = place[k] || { placement: r['customEvent:placement'], project: r['customEvent:project'], clicks: 0, arrivals: 0, keyEvents: 0 };
-      place[k].clicks += r.eventCount;
+    const slot = (placement, project) => (place[`${placement}|${project}`] ||= { placement, project, clicks: 0, arrived: 0, outcomes: 0 });
+    for (const r of outb.filter((r) => r.eventName === 'project_click')) slot(r['customEvent:placement'], r['customEvent:project']).clicks += r.eventCount;
+    for (const d of dests) {
+      for (const r of results[d.key].inbound.filter((r) => r.from === hub.key)) slot(campaignOf(r), d.key).arrived += r.sessions;
+      for (const r of results[d.key].outcomes.filter((r) => r.dateRange === 'current' && r.from === hub.key)) slot(campaignOf(r), d.key).outcomes += r.eventCount;
     }
-    for (const dest of live.filter((s) => !s.hub)) {
-      for (const r of results[dest.key].inbound.filter((r) => r.from === hub.key)) {
-        const campaign = r.sessionCampaignName && !r.sessionCampaignName.startsWith('(') ? r.sessionCampaignName : '(no utm_campaign)';
-        const k = `${campaign}|${dest.key}`;
-        place[k] = place[k] || { placement: campaign, project: dest.key, clicks: 0, arrivals: 0, keyEvents: 0 };
-        place[k].arrivals += r.sessions;
-        place[k].keyEvents += r.keyEvents;
-      }
-    }
-    const placeRows = Object.values(place).sort((a, b) => b.clicks + b.arrivals - (a.clicks + a.arrivals));
-    json.placements = placeRows;
-    md.push(table(['Placement', 'Project', 'Clicks', 'Arrived', 'Key events there'],
-      placeRows.map((r) => [`\`${r.placement}\``, by[r.project]?.name || r.project, fmt(r.clicks), fmt(r.arrivals), fmt(r.keyEvents)])));
-    md.push(`_Placements match where the link carried utm_campaign (the projects page does; most older links don't yet), so unmatched clicks and arrivals show on separate rows._\n`);
+    json.placements = Object.values(place).sort((a, b) => b.clicks + b.arrived - (a.clicks + a.arrived));
+    md.push(table(['Placement', 'Project', 'Clicks', 'Arrived', 'Outcomes there'],
+      json.placements.map((r) => [`\`${r.placement}\``, by[r.project]?.name || r.project, num(r.clicks), num(r.arrived), num(r.outcomes)])));
   }
 
-  // Full matrix
+  // Matrix
   md.push(`## Site-to-site referrals`);
-  const mRows = [];
-  for (const dest of live) {
+  for (const d of live) {
     const agg = {};
-    for (const r of results[dest.key].inbound) {
-      if (r.from === dest.key) continue;
-      agg[r.from] = agg[r.from] || { sessions: 0, engaged: 0, keyEvents: 0 };
-      agg[r.from].sessions += r.sessions;
-      agg[r.from].engaged += r.engagedSessions;
-      agg[r.from].keyEvents += r.keyEvents;
+    for (const r of results[d.key].inbound) {
+      const a = (agg[r.from] ||= { sessions: 0, engaged: 0, outcomes: 0 });
+      a.sessions += r.sessions; a.engaged += r.engagedSessions;
     }
-    for (const [from, v] of Object.entries(agg)) {
-      json.matrix.push({ from, to: dest.key, ...v });
-      mRows.push([by[from]?.name || from, dest.name, fmt(v.sessions), pct(v.engaged / v.sessions), fmt(v.keyEvents)]);
+    for (const r of results[d.key].outcomes.filter((r) => r.dateRange === 'current' && r.from && r.from !== d.key)) {
+      (agg[r.from] ||= { sessions: 0, engaged: 0, outcomes: 0 }).outcomes += r.eventCount;
     }
+    for (const [from, v] of Object.entries(agg)) json.matrix.push({ from, to: d.key, ...v });
   }
-  md.push(table(['From', 'To', 'Sessions', 'Engaged', 'Key events'], mRows.sort((a, b) => Number(b[2].replace(/,/g, '')) - Number(a[2].replace(/,/g, '')))));
+  json.matrix.sort((a, b) => b.sessions - a.sessions);
+  md.push(table(['From', 'To', 'Sessions', 'Engaged', 'Outcomes'],
+    json.matrix.map((m) => [by[m.from]?.name || m.from, by[m.to].name, num(m.sessions), pct(m.sessions ? m.engaged / m.sessions : null), num(m.outcomes)])));
 
   const missing = sites.filter((s) => s.missing || s.failed);
   if (missing.length) {
@@ -346,16 +314,11 @@ function build(sites, results, days) {
     for (const s of missing) md.push(`- **${s.name}**: ${s.missing || s.failed}`);
     md.push('');
   }
+  md.push(`_${cur} vs ${prev}. Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC. GA can take up to 48 hours to settle, so the latest day may still rise._`);
   return { md: md.join('\n'), json };
 }
 
 /* ---------------------------------------------------------------- main */
-
-const args = parseArgs(process.argv.slice(2));
-if (args.help) {
-  console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('*/')[0]);
-  process.exit(0);
-}
 
 const acct = loadAccount(args.key);
 const token = await getToken(acct);
@@ -374,11 +337,12 @@ catch (e) { die(`Can't read ${args.config}: ${e.message}`); }
 const sites = await resolveSites(token, config.sites);
 const results = {};
 await Promise.all(sites.filter((s) => !s.missing).map(async (s) => {
-  try { results[s.key] = await siteReport(token, s, sites, args.days); }
+  try { results[s.key] = await siteReport(token, s, sites); }
   catch (e) { s.failed = e.status === 403 ? `no access (${acct.client_email} needs Viewer on property ${s.propertyId})` : e.message; }
 }));
+if (!Object.keys(results).length) die('No property could be read:\n' + sites.map((s) => `  ${s.name}: ${s.missing || s.failed}`).join('\n'));
 
-const { md, json } = build(sites, results, args.days);
+const { md, json } = build(sites, results);
 if (args.out) writeFileSync(args.out, md);
 if (args.json) writeFileSync(args.json, JSON.stringify(json, null, 2));
 if (!args.out) console.log(md);
