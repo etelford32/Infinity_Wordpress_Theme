@@ -317,6 +317,9 @@ function infinity_rum_render_page() {
 
     $views    = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE event='view' AND ts > DATE_SUB(NOW(), INTERVAL %d DAY)", $days));
     $sessions = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(DISTINCT session) FROM $table WHERE event='view' AND session != '' AND ts > DATE_SUB(NOW(), INTERVAL %d DAY)", $days));
+    // Views of pages the speculation rules prerendered before the click
+    // (rum.js tags them; inc/speculative-loading.php)
+    $prerendered = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE event='view' AND target='prerender' AND ts > DATE_SUB(NOW(), INTERVAL %d DAY)", $days));
     $signups  = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE event='subscribe' AND ts > DATE_SUB(NOW(), INTERVAL %d DAY)", $days));
     $band_seen = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE event='seen' AND target='subscribe-band' AND ts > DATE_SUB(NOW(), INTERVAL %d DAY)", $days));
     $scrolled  = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE event='exit' AND scroll_pct >= 50 AND ts > DATE_SUB(NOW(), INTERVAL %d DAY)", $days));
@@ -432,6 +435,7 @@ function infinity_rum_render_page() {
             <div class="rum-card"><h3><?php esc_html_e('Pageviews', 'infinity'); ?></h3><div class="v"><?php echo esc_html(number_format_i18n($views)); ?></div></div>
             <div class="rum-card"><h3><?php esc_html_e('Sessions', 'infinity'); ?></h3><div class="v"><?php echo esc_html(number_format_i18n($sessions)); ?></div></div>
             <div class="rum-card"><h3><?php esc_html_e('Avg engaged time', 'infinity'); ?></h3><div class="v"><?php echo esc_html($avg_eng ? round($avg_eng) . 's' : '—'); ?></div></div>
+            <div class="rum-card"><h3><?php esc_html_e('Prerendered views', 'infinity'); ?></h3><div class="v"><?php echo esc_html($views ? round(100 * $prerendered / $views) . '%' : '—'); ?></div></div>
             <div class="rum-card"><h3><?php esc_html_e('Signups', 'infinity'); ?></h3><div class="v"><?php echo esc_html(number_format_i18n($signups)); ?></div></div>
             <div class="rum-card <?php echo esc_attr($vital_class('lcp', $p75['lcp'])); ?>"><h3>LCP p75</h3><div class="v"><?php echo esc_html($fmt_ms($p75['lcp'])); ?></div></div>
             <div class="rum-card <?php echo esc_attr($vital_class('inp', $p75['inp'])); ?>"><h3>INP p75</h3><div class="v"><?php echo esc_html($fmt_ms($p75['inp'])); ?></div></div>

@@ -4,7 +4,7 @@ Theme URI: https://github.com/etelford32/Infinity_Wordpress_Theme
 Author: Elliot Telford & Claude
 Author URI: https://github.com/etelford32
 Description: A cutting-edge WordPress theme for creating interactive astrophysical simulations using Three.js, React, and TypeScript. Features include real-time physics simulations, user-generated content, gamification, community galleries, and integrated subscription management. Perfect for educators, astronomy enthusiasts, researchers, and simulation creators.
-Version: 3.17.0
+Version: 3.18.0
 Requires at least: 6.0
 Tested up to: 6.4
 Requires PHP: 8.0
@@ -32,6 +32,42 @@ Use it to make something cool, have fun, and share what you've learned with othe
  * 6.0 - Accessibility
  * 7.0 - Responsive Design
  */
+
+/* ==========================================================================
+   0.0 Fonts — self-hosted (SIL OFL, see assets/fonts/)
+   ==========================================================================
+   Variable fonts: one file covers every weight in use (Orbitron 500-900,
+   Oxanium 700-800). Same origin as the page, so no extra DNS/TLS
+   handshake, and a browser only downloads a face when something on the
+   page uses it, so Oxanium costs nothing on pages without the ETU
+   wishlist CTA. header.php preloads Orbitron. */
+
+@font-face {
+  font-family: "Orbitron";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("assets/fonts/orbitron-latin-wght.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Oxanium";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("assets/fonts/oxanium-latin-ext-wght.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Oxanium";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("assets/fonts/oxanium-latin-wght.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
 /* ==========================================================================
    1.0 Base Styles
@@ -2252,11 +2288,6 @@ body.mobile-menu-open .sticky-header {
   color: #fff;
 }
 
-.fp-btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-}
-
 .fp-btn-secondary {
   border: 2px solid var(--color-accent-primary);
   color: var(--color-accent-primary);
@@ -2296,28 +2327,10 @@ body.mobile-menu-open .sticky-header {
   color: var(--color-accent-primary);
 }
 
-.fp-latest-list time {
-  flex-shrink: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
-}
-
 /* Front page responsive */
 @media (max-width: 900px) {
   .fp-featured-card,
   .fp-band-inner {
-    grid-template-columns: 1fr;
-  }
-
-  .fp-band-reverse .fp-band-copy {
-    order: 1;
-  }
-
-  .fp-band-reverse .fp-band-media {
-    order: 2;
-  }
-
-  .fp-latest-list {
     grid-template-columns: 1fr;
   }
 
@@ -2870,26 +2883,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   pointer-events: none;
 }
 
-/* CSS fallback when WebGL is unavailable */
-#fp-blackhole.fp-blackhole-fallback {
-  background:
-    radial-gradient(ellipse 62% 20% at 50% 50%, transparent 22%, color-mix(in srgb, var(--color-accent-primary) 55%, transparent) 34%, color-mix(in srgb, var(--color-accent-secondary) 35%, transparent) 48%, transparent 68%),
-    radial-gradient(circle at 50% 50%, #000 0%, #000 9%, transparent 11%);
-}
-
-.fp-hero-blackhole .fp-hero-inner {
-  position: relative;
-  z-index: 1;
-  text-align: left;
-}
-
-.fp-hero-blackhole .fp-hero-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-width: 46rem;
-}
-
 .fp-hero-blackhole .fp-hero-title {
   font-size: clamp(2.4rem, 6.5vw, 4.8rem);
   font-weight: 900;
@@ -3001,31 +2994,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   margin-bottom: var(--spacing-lg);
 }
 
-@keyframes tagline-shimmer {
-  0%, 100% { background-position: 0% 0; }
-  50%      { background-position: 100% 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fp-hero-blackhole .fp-hero-tagline { animation: none; }
-}
-
-.fp-hero-blackhole .fp-pillar-nav {
-  justify-content: flex-start;
-}
-
-.fp-hero-blackhole .fp-pillar-nav a {
-  background: color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
-  backdrop-filter: blur(6px);
-}
-
-@media (max-width: 720px) {
-  .fp-hero-blackhole .fp-hero-title {
-    white-space: normal;
-    word-break: break-word;
-  }
-}
-
 /* Header logo: perfectly still — no spin, no pulse. The motion is a
    12-particle 3D swarm rendered by logo-orbits.js onto two canvases
    (back = behind the logo, front = above it) so particles truly orbit.
@@ -3105,12 +3073,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   }
 }
 
-@media (max-width: 640px) {
-  .fp-hero-blackhole {
-    padding: var(--spacing-3xl) 0;
-  }
-}
-
 /* Custom logo centered inside the orbital rings (Parker's band) */
 .cosmic-logo-center-img {
   position: absolute;
@@ -3176,62 +3138,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   max-width: 900px;
   height: auto;
   overflow: visible;
-}
-
-.fp-wordmark text {
-  font-family: var(--font-family-display);
-  font-size: 88px;
-  font-weight: 900;
-  letter-spacing: 0;
-}
-
-/* Giant soft shadow + extrusion: the wordmark reads as monumental */
-.wm-shadow { fill: #04060e; opacity: 0.9; }
-.wm-depth  { fill: #0d1128; }
-
-.wm-face {
-  fill: url(#wm-face-grad);
-  stroke: rgba(238, 242, 255, 0.26);
-  stroke-width: 0.8;
-}
-
-/* Neon racers: dashed strokes rolling along the glyph outlines.
-   Each color has a slightly different dash period and speed, so the
-   light balls drift against each other — overlapping where the
-   screen blend ADDS them to white, separating again to pure color. */
-.wm-trail,
-.wm-ball {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  mix-blend-mode: screen;
-}
-
-.wm-trail { stroke-width: 3; opacity: 0.8; }
-.wm-ball  { stroke-width: 4.5; }
-
-/* Longer tails, deeper glow shading, faster laps */
-.wm-trail-c { stroke: #22d3ee; stroke-dasharray: 170 344; animation: wm-roll-514 2.6s linear infinite; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
-.wm-ball-c  { stroke: #dbfcff; stroke-dasharray: 14 500; animation: wm-roll-514-lead 2.6s linear infinite; filter: drop-shadow(0 0 6px #22d3ee) drop-shadow(0 0 16px rgba(34, 211, 238, 0.7)); }
-
-.wm-trail-m { stroke: #ff4fd8; stroke-dasharray: 150 377; animation: wm-roll-527 3.4s linear infinite reverse; filter: drop-shadow(0 0 4px rgba(255, 79, 216, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
-.wm-ball-m  { stroke: #ffd9f6; stroke-dasharray: 13 514; animation: wm-roll-527-lead 3.4s linear infinite reverse; filter: drop-shadow(0 0 6px #ff4fd8) drop-shadow(0 0 16px rgba(255, 79, 216, 0.7)); }
-
-.wm-trail-a { stroke: #ffb84d; stroke-dasharray: 140 363; animation: wm-roll-503 2s linear infinite; filter: drop-shadow(0 0 4px rgba(255, 184, 77, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
-.wm-ball-a  { stroke: #fff3dd; stroke-dasharray: 12 491; animation: wm-roll-503-lead 2s linear infinite; filter: drop-shadow(0 0 6px #ffb84d) drop-shadow(0 0 16px rgba(255, 184, 77, 0.7)); }
-
-@keyframes wm-roll-514 { to { stroke-dashoffset: -514; } }
-@keyframes wm-roll-514-lead { from { stroke-dashoffset: -156; } to { stroke-dashoffset: -670; } }
-@keyframes wm-roll-527 { to { stroke-dashoffset: -527; } }
-@keyframes wm-roll-527-lead { from { stroke-dashoffset: -137; } to { stroke-dashoffset: -664; } }
-@keyframes wm-roll-503 { to { stroke-dashoffset: -503; } }
-@keyframes wm-roll-503-lead { from { stroke-dashoffset: -128; } to { stroke-dashoffset: -631; } }
-
-@media (prefers-reduced-motion: reduce) {
-  .wm-traces text {
-    animation: none !important;
-    opacity: 0.25;
-  }
 }
 
 /* ==========================================================================
@@ -3375,44 +3281,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
    17.0 Hero Steam card, latest pills, live property previews
    ========================================================================== */
 
-/* Hero goes two-column on wide screens: copy left, Steam card right */
-@media (min-width: 1100px) {
-  .fp-hero-blackhole .fp-hero-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 500px;
-    gap: var(--spacing-2xl);
-    align-items: center;
-  }
-}
-
-/* The Steam widget lays itself out for 646px and steam-fit.js scales
-   it down to whatever column it gets, so a 500px column renders it at
-   0.72 — small, and soft everywhere it was downscaled. Give it its
-   width back where there is room for it.
-
-   That width comes from the section, not from the copy beside it. The
-   hero container opens past its usual 1280px, so the wordmark keeps
-   more room than it has today rather than paying for the card: at
-   1480px the copy column goes 684px -> 724px while the widget goes
-   0.72 -> 0.91, and both grow again at 1700px. */
-@media (min-width: 1480px) {
-  .fp-hero-blackhole > .container { max-width: 1440px; }
-
-  .fp-hero-blackhole .fp-hero-inner {
-    grid-template-columns: minmax(0, 1fr) 620px;
-  }
-}
-
-@media (min-width: 1700px) {
-  .fp-hero-blackhole > .container { max-width: 1560px; }
-
-  .fp-hero-blackhole .fp-hero-inner {
-    /* the widget's native width plus the card's own padding, so
-       steam-fit.js stops scaling it at all */
-    grid-template-columns: minmax(0, 1fr) calc(646px + var(--spacing-md) * 2);
-  }
-}
-
 /* Lifted, glowing Steam widget card */
 .hero-steam-card {
   position: relative;
@@ -3426,15 +3294,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
     0 0 34px rgba(27, 110, 194, 0.35);
   backdrop-filter: blur(8px);
   animation: hero-card-float 7s ease-in-out infinite;
-}
-
-@media (min-width: 1100px) {
-  .hero-steam-card { margin-top: 0; }
-}
-
-@keyframes hero-card-float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
 }
 
 .hero-steam-card-kicker {
@@ -3472,10 +3331,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   color: var(--color-text-tertiary);
   text-align: center;
   margin: var(--spacing-sm) 0 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-steam-card { animation: none; }
 }
 
 /* Fresh-article pills under the hero nav */
@@ -3519,36 +3374,12 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   transform: translateY(-1px);
 }
 
-/* Live property previews: placeholder monogram, then a scaled
-   iframe of the actual site fades in once lazily loaded */
-.property-strip-live .property-card {
-  padding: 0;
-  overflow: hidden;
-}
-
 .property-live-screen {
   position: relative;
   display: block;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--color-bg-tertiary);
-}
-
-.property-live-screen iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1280px;
-  height: 800px;
-  border: 0;
-  transform-origin: top left;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-.property-live.is-live .property-live-screen iframe {
-  opacity: 1;
 }
 
 .property-live-placeholder {
@@ -3574,10 +3405,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   background:
     radial-gradient(ellipse at 30% 20%, rgba(22, 163, 74, 0.3), transparent 65%),
     var(--color-bg-secondary);
-}
-
-.property-live.is-live .property-live-placeholder {
-  opacity: 0;
 }
 
 .property-live-mono {
@@ -3686,36 +3513,9 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   border-radius: 14px;
 }
 
-.fp-btn-primary.fp-btn-big {
-  animation: big-btn-glow 2.8s ease-in-out infinite;
-}
-
 @keyframes big-btn-glow {
   0%, 100% { box-shadow: 0 4px 18px color-mix(in srgb, var(--color-accent-primary) 45%, transparent); }
   50%      { box-shadow: 0 4px 34px color-mix(in srgb, var(--color-accent-primary) 80%, transparent), 0 0 60px color-mix(in srgb, var(--color-accent-secondary) 35%, transparent); }
-}
-
-.fp-btn-primary.fp-btn-big::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%);
-  background-size: 260% 100%;
-  background-position: 130% 0;
-  animation: cta-sheen 3.8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.fp-btn-big:hover {
-  transform: translateY(-2px) scale(1.02);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fp-btn-primary.fp-btn-big,
-  .fp-btn-primary.fp-btn-big::after {
-    animation: none;
-  }
 }
 
 /* Tag globe */
@@ -3729,15 +3529,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
 .fp-tagverse-header {
   justify-content: center;
   text-align: center;
-}
-
-.fp-tagverse-header > div {
-  margin: 0 auto;
-}
-
-.fp-tagverse .fp-section-intro {
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .tag-globe {
@@ -3771,13 +3562,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
 .tag-globe-item:hover {
   border-color: currentColor;
   text-shadow: 0 0 18px currentColor;
-}
-
-.tag-globe-count {
-  font-size: 0.62em;
-  opacity: 0.65;
-  margin-left: 5px;
-  vertical-align: super;
 }
 
 @media (max-width: 640px) {
@@ -4045,10 +3829,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   pointer-events: none;
 }
 
-.property-live-video {
-  object-fit: cover;
-}
-
 /* Band feature highlight grids */
 .band-features {
   display: grid;
@@ -4073,15 +3853,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   transform: translateY(-2px);
   border-color: var(--color-accent-primary);
   box-shadow: 0 6px 22px color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
-}
-
-.fp-band-landscaping .band-feature {
-  border-color: rgba(22, 163, 74, 0.3);
-}
-
-.fp-band-landscaping .band-feature:hover {
-  border-color: #4ade80;
-  box-shadow: 0 6px 22px rgba(22, 163, 74, 0.3);
 }
 
 .band-feature-icon {
@@ -4109,10 +3880,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
 
 .band-feature:hover .band-feature-label {
   color: var(--color-accent-primary);
-}
-
-.fp-band-landscaping .band-feature:hover .band-feature-label {
-  color: #4ade80;
 }
 
 /* ==========================================================================
@@ -4205,23 +3972,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   50%      { filter: drop-shadow(0 0 30px rgba(249, 115, 22, 0.5)) drop-shadow(0 22px 44px rgba(59, 130, 246, 0.22)); }
 }
 
-/* Monogram fallback until a logo is found in the media library */
-.pp-holo-mono {
-  display: none;
-  font-family: var(--font-family-display);
-  font-size: 5rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #60a5fa 0%, #f0f4ff 50%, #fb923c 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 26px rgba(59, 130, 246, 0.5));
-}
-
-.pp-no-logo .pp-holo-mono {
-  display: block;
-}
-
 /* Light sweep across the hologram */
 .pp-holo-shimmer {
   position: absolute;
@@ -4269,12 +4019,6 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   pointer-events: none;
 }
 
-.pp-stage .pp-holo,
-.pp-stage .pp-holo-pad {
-  position: relative;
-  z-index: 1;
-}
-
 /* Parker's stage restacked: logo is the backdrop, disk animates over it */
 .pp-backdrop {
   position: absolute;
@@ -4287,25 +4031,10 @@ body:has(.site-header.sticky-header) .entry-layout.sidebar-sticky .post-sidebar 
   animation: pp-backdrop-breathe 12s ease-in-out infinite;
 }
 
-@keyframes pp-backdrop-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.045); }
-}
-
 .pp-stage {
   border-radius: var(--radius-lg);
   overflow: hidden;
   min-height: 320px;
-}
-
-.pp-stage #pp-blackhole {
-  z-index: 1;
-  mix-blend-mode: screen;
-}
-
-.pp-stage .pp-holo-mono {
-  position: relative;
-  z-index: 2;
 }
 
 /* The Earth icon actually turns: meridians sweep like a globe */
@@ -4394,30 +4123,6 @@ html[data-mode="light"] .theme-toggle-knob {
   }
 }
 
-/* The tag globe stays deliberately dark in both modes: it is a star
-   map, and space stays black. Re-pinning the palette vars on the
-   section means every chip, pill and note inside it keeps its
-   dark-mode styling. */
-[data-theme="science-light"] .fp-tagverse,
-[data-theme="light-playful"] .fp-tagverse {
-  --color-bg-primary: #0a0e1a;
-  --color-bg-secondary: #141824;
-  --color-bg-tertiary: #1e2330;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #b8c0d4;
-  --color-text-tertiary: #7a8199;
-  --color-accent-primary: #6366f1;
-  --color-accent-secondary: #8b5cf6;
-  --color-accent-tertiary: #06b6d4;
-  color-scheme: dark;
-}
-
-/* Explicit deep-space backdrop so the dark set-piece reads as a panel
-   once the body behind it goes light */
-.fp-tagverse {
-  background-color: #0a0e1a;
-}
-
 /* ==========================================================================
    21.1 Hero black hole: a genuine daylight mode
 
@@ -4433,135 +4138,12 @@ html[data-mode="light"] .theme-toggle-knob {
    light skins — the same idiom the toggle knob above already uses.
    ========================================================================== */
 
-.fp-hero-blackhole {
-  background-color: #0a0e1a;
-  color: #f0f2ff;
-  transition: background-color var(--transition-base), color var(--transition-base);
-}
-
-[data-mode="light"] .fp-hero-blackhole {
-  background-color: #eef2fb;
-  background-image:
-    radial-gradient(120% 95% at 18% 0%, #ffffff 0%, rgba(255, 255, 255, 0) 62%),
-    radial-gradient(85% 75% at 86% 100%, color-mix(in srgb, var(--color-accent-secondary) 18%, transparent) 0%, transparent 72%);
-  color: #10162e;
-}
-
-/* Wordmark: dark polished metal on paper. The extrusion lightens too,
-   so the letters read as raised rather than punched through the page. */
-[data-mode="light"] .wm-shadow { fill: #94a3c4; opacity: 0.5; }
-[data-mode="light"] .wm-depth  { fill: #2b3566; }
-
-[data-mode="light"] .wm-face {
-  /* paint fallback: a page cached before the new <defs> shipped still
-     gets solid letters instead of an unresolved reference */
-  fill: url(#wm-face-grad-light) #2b3566;
-  stroke: rgba(15, 23, 42, 0.3);
-}
-
-/* Screen blending adds nothing to white, and the near-white "ball"
-   colors would disappear outright — on paper the tracers composite
-   straight, in saturated ink. */
-[data-mode="light"] .wm-trail,
-[data-mode="light"] .wm-ball {
-  mix-blend-mode: normal;
-}
-
-[data-mode="light"] .wm-trail-c { stroke: #0e7490; filter: drop-shadow(0 0 3px rgba(14, 116, 144, 0.5)); }
-[data-mode="light"] .wm-ball-c  { stroke: #06b6d4; filter: drop-shadow(0 0 5px rgba(6, 182, 212, 0.75)); }
-[data-mode="light"] .wm-trail-m { stroke: #a21caf; filter: drop-shadow(0 0 3px rgba(162, 28, 175, 0.5)); }
-[data-mode="light"] .wm-ball-m  { stroke: #e879f9; filter: drop-shadow(0 0 5px rgba(232, 121, 249, 0.75)); }
-[data-mode="light"] .wm-trail-a { stroke: #b45309; filter: drop-shadow(0 0 3px rgba(180, 83, 9, 0.5)); }
-[data-mode="light"] .wm-ball-a  { stroke: #f59e0b; filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.75)); }
-
-/* Hero text furniture: every glow below was a dark drop-shadow tuned
-   to sit on black. On paper they become a pale lift instead. */
-[data-mode="light"] .fp-hero-blackhole .fp-hero-title {
-  filter: drop-shadow(0 2px 16px rgba(148, 163, 200, 0.6));
-}
-
-[data-mode="light"] .fp-hero-blackhole .fp-hero-tagline {
-  background-image: linear-gradient(95deg, #b45309 0%, #ea580c 25%, #1e293b 52%, #0e7490 78%, #b45309 100%);
-  /* the tagline crosses the disk on wide screens — a white halo keeps
-     it legible where it passes over the bright inner ring */
-  filter:
-    drop-shadow(0 1px 2px rgba(255, 255, 255, 0.95))
-    drop-shadow(0 0 12px rgba(255, 255, 255, 0.8));
-}
-
-[data-mode="light"] .fp-hero-latest-label {
-  color: #b45309;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
-}
-
-[data-mode="light"] .fp-hero-latest-pill {
-  border-color: color-mix(in srgb, #b45309 40%, transparent);
-}
-
-[data-mode="light"] .fp-hero-latest-pill:hover {
-  color: #b45309;
-  border-color: #b45309;
-}
-
 [data-mode="light"] .fp-hero-link {
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
 }
 
 [data-mode="light"] .fp-hero-link:hover {
   color: #b45309;
-}
-
-/* The Steam card keeps its Valve-blue identity but needs a body that
-   sits on paper instead of a pane of night */
-[data-mode="light"] .hero-steam-card {
-  background: linear-gradient(165deg, #ffffff, #e6effb);
-  border-color: rgba(27, 110, 194, 0.45);
-  box-shadow:
-    0 18px 40px rgba(30, 58, 95, 0.18),
-    0 0 24px rgba(102, 192, 244, 0.22);
-}
-
-[data-mode="light"] .hero-steam-card-kicker {
-  color: #1b6ec2;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fp-hero-blackhole {
-    transition: none;
-  }
-}
-
-/* blackhole.js adds .bh-armed to the section while the pointer is
-   close enough to the hole for a click to visibly do something, so the
-   backdrop advertises itself without the whole hero looking clickable.
-   Everything stacked above the canvas keeps its own cursor, so reading
-   and selecting the hero copy is unaffected. */
-.bh-armed {
-  cursor: crosshair;
-}
-
-/* Text and controls layered over the canvas keep their own cursors, so
-   reading and selecting the hero copy is unaffected. Scoping this to
-   the elements themselves rather than their container leaves the
-   crosshair on the bare backdrop between them — which is exactly where
-   a click does nothing but feed the hole. */
-.bh-armed h1,
-.bh-armed h2,
-.bh-armed p,
-.bh-armed span,
-.bh-armed svg,
-.bh-armed img,
-.bh-armed iframe,
-.bh-armed .hero-steam-card {
-  cursor: auto;
-}
-
-/* links and buttons — and whatever they wrap — still read as clickable */
-.bh-armed a,
-.bh-armed a *,
-.bh-armed button,
-.bh-armed button * {
-  cursor: pointer;
 }
 
 /* ==========================================================================
@@ -4841,16 +4423,6 @@ html[data-mode="light"] .theme-toggle-knob {
   margin-top: var(--spacing-md);
 }
 
-/* In the hero the button spans the Steam card, right under the widget */
-.hero-steam-card-cta {
-  margin-top: var(--spacing-md);
-}
-
-.hero-steam-card-cta .etu-wishlist {
-  display: flex;
-  width: 100%;
-}
-
 @media (max-width: 479.98px) {
   .etu-wishlist {
     --etu-emblem-h: 34px;
@@ -4900,781 +4472,359 @@ html[data-mode="light"] .theme-toggle-knob {
    tokens, because it sits on the shader, not on the page.
    ========================================================================== */
 
-.fp-hero-blackhole {
-  display: flex;
-  align-items: center;
-  min-height: min(calc(100svh - 72px), 960px);
-  padding: var(--spacing-2xl) 0;
+/* ==========================================================================
+   23.0 Page transitions (cross-document View Transitions)
+   ==========================================================================
+   Same-site navigations crossfade instead of flashing white. CSS only:
+   browsers without cross-document view transitions (Firefox today)
+   navigate exactly as before. Paired with prerendering
+   (inc/speculative-loading.php) the new page is usually painted
+   already, so the fade is all the visitor sees of the load.
+
+   The header gets its own name so it holds still while the page under
+   it changes, instead of fading out and back in with everything else.
+   Only while a transition runs: a view-transition-name makes the
+   header a stacking context, and at rest that would trap the mobile
+   menu drawer (which lives inside the header) under the page overlay. */
+
+@view-transition {
+  navigation: auto;
 }
 
-.fp-hero-blackhole > .container {
-  width: 100%;
+:root:active-view-transition .site-header {
+  view-transition-name: site-header;
 }
 
-.fp-hero-blackhole .fp-hero-copy {
-  max-width: 44rem;
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
 }
-
-.fp-hero-blackhole .fp-hero-title-svg {
-  margin: 0 0 var(--spacing-xs);
-  max-width: 40rem;
-}
-
-.fp-hero-blackhole .fp-hero-tagline {
-  margin-bottom: var(--spacing-lg);
-}
-
-@media (min-width: 1100px) {
-  .fp-hero-blackhole .fp-hero-inner {
-    align-items: end;
-  }
-
-  /* The card sits low in its column so the hole above it has room */
-  .fp-hero-blackhole .hero-steam-card {
-    align-self: end;
-  }
-}
-
-/* ---- Lead article card ---- */
-.fp-lead {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--spacing-md);
-  width: 100%;
-  padding: var(--spacing-md);
-  border-radius: var(--radius-xl);
-  color: #f0f2ff;
-  background: linear-gradient(160deg, rgba(20, 26, 46, 0.82), rgba(10, 14, 26, 0.88));
-  border: 1px solid rgba(255, 184, 77, 0.32);
-  box-shadow:
-    0 18px 48px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
-}
-
-@media (min-width: 640px) {
-  .fp-lead.fp-lead-has-media {
-    grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
-    align-items: stretch;
-  }
-
-  /* Side by side, the image fills the card's height instead of
-     holding its own ratio, which would push the column wider */
-  .fp-lead-has-media .fp-lead-media {
-    aspect-ratio: auto;
-    min-height: 150px;
-  }
-}
-
-.fp-lead:hover,
-.fp-lead:focus-within {
-  border-color: rgba(255, 184, 77, 0.7);
-  box-shadow:
-    0 22px 56px rgba(0, 0, 0, 0.55),
-    0 0 36px rgba(255, 140, 50, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
-}
-
-.fp-lead-media {
-  display: block;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  aspect-ratio: 16 / 10;
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.fp-lead-media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: cover;
-  transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-.fp-lead:hover .fp-lead-media img {
-  transform: scale(1.04);
-}
-
-.fp-lead-body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.fp-lead-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 12px;
-  margin: 0 0 var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.fp-lead-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #ffb84d;
-}
-
-.fp-lead-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.fp-lead-badge.is-new .fp-lead-dot {
-  animation: fp-lead-pulse 2.2s ease-out infinite;
-}
-
-@keyframes fp-lead-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 184, 77, 0.7), 0 0 8px currentColor; }
-  70%  { box-shadow: 0 0 0 9px rgba(255, 184, 77, 0), 0 0 8px currentColor; }
-  100% { box-shadow: 0 0 0 0 rgba(255, 184, 77, 0), 0 0 8px currentColor; }
-}
-
-.fp-lead-cat {
-  position: relative;
-  z-index: 2; /* above the stretched title link */
-  color: #8fd8ff;
-  text-decoration: none;
-}
-
-.fp-lead-cat:hover {
-  color: #ffffff;
-  text-decoration: underline;
-}
-
-.fp-lead-title {
-  margin: 0 0 var(--spacing-xs);
-  color: #f0f2ff;
-  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  /* long titles stop at three lines rather than pushing the card out
-     of the first screen */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.fp-lead-title a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* The whole card is the click target; the title link stretches over it */
-.fp-lead-title a::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: inherit;
-}
-
-.fp-lead-title a:focus-visible {
-  outline: none;
-}
-
-.fp-lead:has(.fp-lead-title a:focus-visible) {
-  outline: 2px solid #ffb84d;
-  outline-offset: 3px;
-}
-
-.fp-lead-excerpt {
-  margin: 0 0 var(--spacing-sm);
-  color: #b8c0d4;
-  font-size: var(--font-size-sm);
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.fp-lead-foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
-  margin: auto 0 0;
-  font-size: var(--font-size-xs);
-  color: #8a93ad;
-}
-
-.fp-lead-cta {
-  margin-left: auto;
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  color: #ffb84d;
-  transition: transform var(--transition-fast);
-}
-
-.fp-lead:hover .fp-lead-cta {
-  transform: translateX(3px);
-}
-
-/* Quick links and section nav sit closer under the card */
-.fp-hero-blackhole .fp-hero-latest {
-  margin-top: var(--spacing-md);
-}
-
-.fp-hero-blackhole .fp-pillar-nav {
-  margin-top: var(--spacing-md);
-}
-
-.fp-hero-blackhole .fp-pillar-nav a {
-  padding: 6px 13px;
-  font-size: var(--font-size-xs);
-}
-
-@media (max-width: 640px) {
-  .fp-hero-blackhole {
-    min-height: 0;
-    padding: var(--spacing-xl) 0 var(--spacing-2xl);
-  }
-
-  .fp-lead-cta {
-    margin-left: 0;
-    flex-basis: 100%;
-    margin-top: 4px;
-  }
-}
-
-/* ---- Paper ---- */
-[data-mode="light"] .fp-lead {
-  color: #10162e;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(238, 243, 252, 0.92));
-  border-color: rgba(180, 83, 9, 0.28);
-  box-shadow:
-    0 16px 40px rgba(30, 58, 95, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-[data-mode="light"] .fp-lead:hover,
-[data-mode="light"] .fp-lead:focus-within {
-  border-color: rgba(180, 83, 9, 0.6);
-  box-shadow:
-    0 20px 48px rgba(30, 58, 95, 0.2),
-    0 0 28px rgba(234, 88, 12, 0.14);
-}
-
-[data-mode="light"] .fp-lead-title { color: #10162e; }
-[data-mode="light"] .fp-lead-badge { color: #b45309; }
-[data-mode="light"] .fp-lead-cat { color: #0e7490; }
-[data-mode="light"] .fp-lead-cat:hover { color: #10162e; }
-[data-mode="light"] .fp-lead-excerpt { color: #3b4566; }
-[data-mode="light"] .fp-lead-foot { color: #5b6585; }
-[data-mode="light"] .fp-lead-cta { color: #b45309; }
-[data-mode="light"] .fp-lead:has(.fp-lead-title a:focus-visible) { outline-color: #b45309; }
 
 @media (prefers-reduced-motion: reduce) {
-  .fp-lead,
-  .fp-lead-media img,
-  .fp-lead-cta {
-    transition: none;
-  }
-
-  .fp-lead:hover,
-  .fp-lead:focus-within {
-    transform: none;
-  }
-
-  .fp-lead:hover .fp-lead-media img {
-    transform: none;
-  }
-
-  .fp-lead-badge.is-new .fp-lead-dot {
-    animation: none;
+  @view-transition {
+    navigation: none;
   }
 }
 
 /* ==========================================================================
-   20.0 Hero interactions, phase 1: feed button, read transition
+   24.0 Quick search (inc/quick-search.php, assets/js/quick-search.js)
    ========================================================================== */
 
-/* Accessible twin of the backdrop click. In the copy column's flow on
-   narrow screens; blackhole.js floats it beside the hole on wide ones. */
-.bh-feed-btn {
+.search-toggle {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  margin-top: var(--spacing-md);
-  padding: 7px 14px 7px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 184, 77, 0.45);
-  background: rgba(10, 14, 26, 0.55);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  color: #ffd9a0;
-  font: inherit;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast), opacity var(--transition-base);
+  height: 40px;
+  min-width: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg-tertiary) 70%, transparent);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.bh-feed-btn[hidden] {
+.search-toggle:hover,
+.search-toggle:focus-visible {
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+}
+
+.search-toggle:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+.search-toggle .inf-icon {
+  flex-shrink: 0;
+}
+
+.search-toggle-kbd,
+.quick-search kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--color-text-tertiary) 45%, transparent);
+  border-bottom-width: 2px;
+  font-family: var(--font-family-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--color-text-tertiary);
+}
+
+/* Icon-only below the desktop header layout, and wherever the header
+   has collapsed on scroll */
+@media (max-width: 1279px) {
+  .search-toggle {
+    padding: 0;
+    width: 40px;
+  }
+
+  .search-toggle .search-toggle-label,
+  .search-toggle .search-toggle-kbd {
+    display: none;
+  }
+}
+
+.sticky-header.is-scrolled .search-toggle-label,
+.sticky-header.is-scrolled .search-toggle-kbd {
   display: none;
 }
 
-.bh-feed-btn.is-floating {
-  position: absolute;
-  z-index: 2;
-  margin: 0;
-  opacity: 0.7;
+.sticky-header.is-scrolled .search-toggle {
+  padding: 0;
+  width: 40px;
 }
 
-.bh-feed-btn:hover,
-.bh-feed-btn:focus-visible {
-  opacity: 1;
-  color: #ffffff;
-  border-color: #ffb84d;
-  background: rgba(40, 24, 10, 0.7);
+/* The drawer copy: phones only, where the header button is hidden */
+.nav-search {
+  display: none;
 }
 
-.bh-feed-btn:focus-visible {
-  outline: 2px solid #ffb84d;
-  outline-offset: 3px;
-}
-
-/* A tiny black hole: dark core, hot ring */
-.bh-feed-icon {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #05060c;
-  box-shadow: 0 0 0 2px #ffb84d, 0 0 8px 2px rgba(255, 140, 50, 0.6);
-}
-
-.bh-feed-btn.is-pulsing .bh-feed-icon::after {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  border: 2px solid #ffd9a0;
-  animation: bh-feed-ring 900ms ease-out forwards;
-}
-
-@keyframes bh-feed-ring {
-  from { transform: scale(1); opacity: 1; }
-  to   { transform: scale(3.2); opacity: 0; }
-}
-
-[data-mode="light"] .bh-feed-btn {
-  color: #9a3412;
-  border-color: rgba(180, 83, 9, 0.45);
-  background: rgba(255, 255, 255, 0.75);
-}
-
-[data-mode="light"] .bh-feed-btn:hover,
-[data-mode="light"] .bh-feed-btn:focus-visible {
-  color: #10162e;
-  border-color: #b45309;
-  background: #ffffff;
-}
-
-/* Read transition: the card is stretched along the line to the hole
-   and squeezed across it (rotate into that frame, scale, rotate back),
-   drifting toward the hole as it dims. blackhole.js sets the vector. */
-.fp-lead.is-falling {
-  pointer-events: none;
-  transition:
-    transform 340ms cubic-bezier(0.55, 0, 0.85, 0.35),
-    opacity 340ms ease-in,
-    filter 340ms ease-in;
-  transform:
-    translate(var(--bh-dx, 0), var(--bh-dy, 0))
-    rotate(var(--bh-ang, 0rad)) scale(1.22, 0.5) rotate(calc(var(--bh-ang, 0rad) * -1));
-  opacity: 0.25;
-  filter: blur(2px) saturate(1.6) brightness(1.3);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bh-feed-btn {
-    transition: none;
+@media (max-width: 479.98px) {
+  .header-actions .search-toggle {
+    display: none;
   }
 }
 
-/* ==========================================================================
-   21.0 Black hole: drag
-   ========================================================================== */
+@media (max-width: 1023.98px) {
+  .nav-search {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding: 12px var(--spacing-md);
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, transparent);
+    background: var(--color-bg-primary);
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-base);
+    text-decoration: none;
+  }
 
-/* A backdrop drag winds the spin and tilts the camera */
-.bh-dragging,
-.bh-dragging * {
-  cursor: grabbing !important;
-  -webkit-user-select: none;
-  user-select: none;
+  .nav-search .search-toggle-kbd {
+    display: none;
+  }
 }
 
-
-/* The lensed galaxy can be grabbed: any of its images, arcs included */
-.bh-over-galaxy,
-.bh-over-galaxy.bh-armed {
-  cursor: grab;
+/* The dialog */
+html.qs-open {
+  overflow: hidden;
 }
 
-.bh-grab-galaxy,
-.bh-grab-galaxy * {
-  cursor: grabbing !important;
-  -webkit-user-select: none;
-  user-select: none;
+.quick-search {
+  width: min(640px, calc(100vw - 32px));
+  max-height: min(72vh, 640px);
+  margin: 10vh auto auto;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, var(--color-bg-tertiary));
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
 }
 
-/* Marker on the lensed galaxy's primary image, shown with the readout */
-.bh-gal-tag {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 420ms ease;
+.quick-search[open] {
+  display: flex;
+  flex-direction: column;
 }
 
-.bh-gal-tag.is-on {
-  opacity: 1;
+.quick-search::backdrop {
+  background: rgba(5, 8, 15, 0.62);
+  backdrop-filter: blur(4px);
 }
 
-.bh-gal-ring {
-  position: absolute;
-  left: -22px;
-  top: -22px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px dashed rgba(143, 196, 255, 0.6);
-  animation: bh-gal-spin 9s linear infinite;
+.qs-form {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-bg-tertiary);
 }
 
-.bh-gal-label {
-  position: absolute;
-  left: 28px;
-  top: -8px;
-  white-space: nowrap;
-  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+.qs-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.quick-search.is-loading .qs-icon {
+  animation: qs-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes qs-pulse {
+  50% { opacity: 0.35; }
+}
+
+.qs-input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-lg);
+  outline: none;
+}
+
+.qs-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.qs-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.qs-close {
+  flex-shrink: 0;
+  padding: 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.qs-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--spacing-sm);
+}
+
+.qs-heading {
+  margin: var(--spacing-sm) var(--spacing-sm) var(--spacing-xs);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
   letter-spacing: 0.08em;
-  color: #a9d2ff;
-  text-shadow: 0 1px 6px rgba(5, 8, 18, 0.95);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
 }
 
-@keyframes bh-gal-spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (max-width: 1099px) {
-  .bh-gal-tag { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bh-gal-tag { transition: none; }
-  .bh-gal-ring { animation: none; }
-}
-
-/* ==========================================================================
-   22.0 Projects funnel (page-projects.php)
-   ========================================================================== */
-
-.pj-hero {
-  padding: var(--spacing-3xl) 0 var(--spacing-2xl);
-  background:
-    radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--color-accent-primary) 18%, transparent) 0%, transparent 55%),
-    radial-gradient(ellipse at 88% 100%, color-mix(in srgb, var(--color-accent-tertiary) 12%, transparent) 0%, transparent 55%);
-}
-
-.pj-title {
-  font-family: var(--font-family-display);
-  font-size: clamp(2.2rem, 5vw, var(--font-size-5xl));
-  margin: 0 0 var(--spacing-sm);
-}
-
-.pj-lede {
-  font-size: var(--font-size-xl);
-  color: var(--color-text-secondary);
-  max-width: 44rem;
-  margin: 0 0 var(--spacing-xl);
-}
-
-/* Intent tiles: one click straight to the site that matches */
-.pj-intents {
+.qs-results,
+.qs-list,
+.qs-chips {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-md);
 }
 
-.pj-intent {
-  --pj-accent: var(--color-accent-primary);
-  position: relative;
+.qs-link {
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in srgb, var(--pj-accent) 35%, transparent);
-  background: color-mix(in srgb, var(--color-bg-secondary) 85%, transparent);
-  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.pj-intent-etu { --pj-accent: #66c0f4; }
-.pj-intent-parkers { --pj-accent: var(--color-accent-tertiary); }
-.pj-intent-landscaping { --pj-accent: #4ade80; }
-
-.pj-intent:hover,
-.pj-intent:focus-within {
-  border-color: var(--pj-accent);
-  transform: translateY(-3px);
-  box-shadow: 0 10px 32px color-mix(in srgb, var(--pj-accent) 28%, transparent);
-}
-
-.pj-intent-go {
-  display: flex;
-  gap: var(--spacing-md);
-  align-items: flex-start;
-  flex: 1;
-  padding: var(--spacing-lg);
-  color: inherit;
+  gap: 2px;
+  padding: 10px var(--spacing-sm);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
   text-decoration: none;
 }
 
-.pj-intent-icon {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  flex-shrink: 0;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--pj-accent) 14%, transparent);
+.qs-list .qs-link:hover,
+.qs-list .qs-link:focus-visible,
+.qs-option[aria-selected="true"] > .qs-link {
+  background: color-mix(in srgb, var(--color-accent-primary) 16%, transparent);
+  outline: none;
 }
 
-.pj-intent-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+.qs-option[aria-selected="true"] > .qs-link {
+  box-shadow: inset 2px 0 0 var(--color-accent-primary);
 }
 
-.pj-intent-label {
-  font-family: var(--font-family-display);
-  font-weight: 700;
-  font-size: var(--font-size-lg);
-  line-height: 1.25;
-  color: var(--color-text-primary);
-}
-
-.pj-intent-sub {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
-}
-
-.pj-intent-name {
-  margin-top: var(--spacing-sm);
-  font-weight: 700;
-  font-size: var(--font-size-sm);
-  color: var(--pj-accent);
-}
-
-.pj-intent-more {
-  align-self: flex-start;
-  margin: 0 var(--spacing-lg) var(--spacing-md);
-  font-size: var(--font-size-xs);
+.qs-title {
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-  text-decoration: none;
+  line-height: 1.35;
 }
 
-.pj-intent-more:hover {
-  color: var(--pj-accent);
+.qs-title mark {
+  background: none;
+  color: var(--color-accent-tertiary);
 }
 
-/* Project blocks */
-.pj-project {
-  scroll-margin-top: 80px;
-}
-
-.pj-project + .pj-project {
-  border-top: 1px solid var(--color-bg-tertiary);
-}
-
-.pj-media img,
-.pj-media video {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
-}
-
-.pj-media-contain,
-.pj-media-icon {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 16 / 10;
-  border-radius: var(--radius-lg);
-  background:
-    radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--color-accent-tertiary) 22%, transparent), transparent 65%),
-    var(--color-bg-primary);
-}
-
-.pj-media-contain img {
-  width: auto;
-  max-width: 70%;
-  max-height: 80%;
-  box-shadow: none;
-}
-
-.pj-project-landscaping .pj-media-icon {
-  background:
-    radial-gradient(ellipse at 50% 40%, rgba(22, 163, 74, 0.28), transparent 65%),
-    var(--color-bg-primary);
-}
-
-.pj-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: var(--spacing-sm) 0 0;
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
+.qs-meta {
   font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #4ade80;
-  background: rgba(22, 163, 74, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: var(--color-text-tertiary);
 }
 
-.pj-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.pj-proof {
-  list-style: none;
-  margin: var(--spacing-md) 0 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.pj-proof li {
-  position: relative;
-  padding-left: 26px;
-  color: var(--color-text-secondary);
-  line-height: 1.5;
-}
-
-.pj-proof li::before {
-  content: '';
-  position: absolute;
-  left: 2px;
-  top: 0.45em;
-  width: 12px;
-  height: 7px;
-  border-left: 2px solid var(--color-accent-tertiary);
-  border-bottom: 2px solid var(--color-accent-tertiary);
-  transform: rotate(-45deg);
-}
-
-.pj-actions {
-  align-items: center;
-  margin-top: var(--spacing-lg);
-}
-
-/* Closing strip */
-.pj-close {
-  text-align: center;
-}
-
-.pj-close .fp-section-intro {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.pj-close-links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-lg);
-}
-
-.pj-close-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 18px;
-  border-radius: var(--radius-full);
-  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, transparent);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  font-size: var(--font-size-sm);
-  transition: border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.pj-close-link strong {
-  color: var(--color-text-primary);
-}
-
-.pj-close-link:hover {
-  border-color: var(--color-accent-primary);
+.qs-kind-topic .qs-title::before {
+  content: '#';
+  margin-right: 4px;
   color: var(--color-accent-primary);
 }
 
-.pj-notes .entry-content {
-  max-width: 48rem;
-  margin-top: var(--spacing-md);
+.qs-all .qs-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent-primary);
 }
 
-@media (max-width: 900px) {
-  .pj-intents {
-    grid-template-columns: 1fr;
-  }
+.qs-empty {
+  margin: 0;
+  padding: var(--spacing-lg) var(--spacing-sm);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
 
-  /* On phones the pitch and the button come before the picture */
-  .pj-project .fp-band-copy {
-    order: 1;
-  }
+.qs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 var(--spacing-sm) var(--spacing-sm);
+}
 
-  .pj-project .fp-band-media {
-    order: 2;
+.qs-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 30%, transparent);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.qs-chip:hover,
+.qs-chip:focus-visible {
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+}
+
+.qs-foot {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-top: 1px solid var(--color-bg-tertiary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.qs-foot kbd + kbd {
+  margin-left: 2px;
+}
+
+/* Phones: near full screen, no keyboard legend */
+@media (max-width: 640px) {
+  .quick-search {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+    margin-top: 8px;
   }
 }
 
-@media (max-width: 560px) {
-  .pj-hero {
-    padding-top: var(--spacing-2xl);
-  }
-
-  .pj-actions > .fp-btn-big {
-    width: 100%;
-    justify-content: center;
+@media (hover: none) {
+  .qs-foot {
+    display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pj-intent,
-  .pj-intent:hover {
-    transform: none;
+  .quick-search.is-loading .qs-icon {
+    animation: none;
   }
 }

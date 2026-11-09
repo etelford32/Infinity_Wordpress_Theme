@@ -1,0 +1,920 @@
+/**
+ * Infinity — front-page.css
+ *
+ * Front page only: black hole hero, lead article, wordmark,
+ * pillar sections, tag globe. Loaded after style.css when is_front_page().
+ *
+ * Split out of style.css in 3.18.0 so other pages don't download it.
+ * These rules now come after style.css in the cascade. Any rule that
+ * a later style.css rule used to override was left in style.css, so
+ * the move changed no computed style.
+ */
+
+.fp-latest-list time {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* Front page responsive */
+@media (max-width: 900px) {
+
+  .fp-latest-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* CSS fallback when WebGL is unavailable */
+#fp-blackhole.fp-blackhole-fallback {
+  background:
+    radial-gradient(ellipse 62% 20% at 50% 50%, transparent 22%, color-mix(in srgb, var(--color-accent-primary) 55%, transparent) 34%, color-mix(in srgb, var(--color-accent-secondary) 35%, transparent) 48%, transparent 68%),
+    radial-gradient(circle at 50% 50%, #000 0%, #000 9%, transparent 11%);
+}
+
+.fp-hero-blackhole .fp-hero-inner {
+  position: relative;
+  z-index: 1;
+  text-align: left;
+}
+
+.fp-hero-blackhole .fp-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 46rem;
+}
+
+@keyframes tagline-shimmer {
+  0%, 100% { background-position: 0% 0; }
+  50%      { background-position: 100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-hero-blackhole .fp-hero-tagline { animation: none; }
+}
+
+.fp-hero-blackhole .fp-pillar-nav {
+  justify-content: flex-start;
+}
+
+.fp-hero-blackhole .fp-pillar-nav a {
+  background: color-mix(in srgb, var(--color-bg-primary) 70%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+@media (max-width: 720px) {
+  .fp-hero-blackhole .fp-hero-title {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 640px) {
+  .fp-hero-blackhole {
+    padding: var(--spacing-3xl) 0;
+  }
+}
+
+.fp-wordmark text {
+  font-family: var(--font-family-display);
+  font-size: 88px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+/* Giant soft shadow + extrusion: the wordmark reads as monumental */
+.wm-shadow { fill: #04060e; opacity: 0.9; }
+.wm-depth  { fill: #0d1128; }
+
+.wm-face {
+  fill: url(#wm-face-grad);
+  stroke: rgba(238, 242, 255, 0.26);
+  stroke-width: 0.8;
+}
+
+/* Neon racers: dashed strokes rolling along the glyph outlines.
+   Each color has a slightly different dash period and speed, so the
+   light balls drift against each other — overlapping where the
+   screen blend ADDS them to white, separating again to pure color. */
+.wm-trail,
+.wm-ball {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  mix-blend-mode: screen;
+}
+
+.wm-trail { stroke-width: 3; opacity: 0.8; }
+.wm-ball  { stroke-width: 4.5; }
+
+/* Longer tails, deeper glow shading, faster laps */
+.wm-trail-c { stroke: #22d3ee; stroke-dasharray: 170 344; animation: wm-roll-514 2.6s linear infinite; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
+.wm-ball-c  { stroke: #dbfcff; stroke-dasharray: 14 500; animation: wm-roll-514-lead 2.6s linear infinite; filter: drop-shadow(0 0 6px #22d3ee) drop-shadow(0 0 16px rgba(34, 211, 238, 0.7)); }
+
+.wm-trail-m { stroke: #ff4fd8; stroke-dasharray: 150 377; animation: wm-roll-527 3.4s linear infinite reverse; filter: drop-shadow(0 0 4px rgba(255, 79, 216, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
+.wm-ball-m  { stroke: #ffd9f6; stroke-dasharray: 13 514; animation: wm-roll-527-lead 3.4s linear infinite reverse; filter: drop-shadow(0 0 6px #ff4fd8) drop-shadow(0 0 16px rgba(255, 79, 216, 0.7)); }
+
+.wm-trail-a { stroke: #ffb84d; stroke-dasharray: 140 363; animation: wm-roll-503 2s linear infinite; filter: drop-shadow(0 0 4px rgba(255, 184, 77, 0.9)) drop-shadow(0 3px 8px rgba(2, 6, 16, 0.8)); }
+.wm-ball-a  { stroke: #fff3dd; stroke-dasharray: 12 491; animation: wm-roll-503-lead 2s linear infinite; filter: drop-shadow(0 0 6px #ffb84d) drop-shadow(0 0 16px rgba(255, 184, 77, 0.7)); }
+
+@keyframes wm-roll-514 { to { stroke-dashoffset: -514; } }
+@keyframes wm-roll-514-lead { from { stroke-dashoffset: -156; } to { stroke-dashoffset: -670; } }
+@keyframes wm-roll-527 { to { stroke-dashoffset: -527; } }
+@keyframes wm-roll-527-lead { from { stroke-dashoffset: -137; } to { stroke-dashoffset: -664; } }
+@keyframes wm-roll-503 { to { stroke-dashoffset: -503; } }
+@keyframes wm-roll-503-lead { from { stroke-dashoffset: -128; } to { stroke-dashoffset: -631; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .wm-traces text {
+    animation: none !important;
+    opacity: 0.25;
+  }
+}
+
+/* ==========================================================================
+   17.0 Hero Steam card, latest pills, live property previews
+   ========================================================================== */
+
+/* Hero goes two-column on wide screens: copy left, Steam card right */
+@media (min-width: 1100px) {
+  .fp-hero-blackhole .fp-hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 500px;
+    gap: var(--spacing-2xl);
+    align-items: center;
+  }
+}
+
+/* The Steam widget lays itself out for 646px and steam-fit.js scales
+   it down to whatever column it gets, so a 500px column renders it at
+   0.72 — small, and soft everywhere it was downscaled. Give it its
+   width back where there is room for it.
+
+   That width comes from the section, not from the copy beside it. The
+   hero container opens past its usual 1280px, so the wordmark keeps
+   more room than it has today rather than paying for the card: at
+   1480px the copy column goes 684px -> 724px while the widget goes
+   0.72 -> 0.91, and both grow again at 1700px. */
+@media (min-width: 1480px) {
+  .fp-hero-blackhole > .container { max-width: 1440px; }
+
+  .fp-hero-blackhole .fp-hero-inner {
+    grid-template-columns: minmax(0, 1fr) 620px;
+  }
+}
+
+@media (min-width: 1700px) {
+  .fp-hero-blackhole > .container { max-width: 1560px; }
+
+  .fp-hero-blackhole .fp-hero-inner {
+    /* the widget's native width plus the card's own padding, so
+       steam-fit.js stops scaling it at all */
+    grid-template-columns: minmax(0, 1fr) calc(646px + var(--spacing-md) * 2);
+  }
+}
+
+@media (min-width: 1100px) {
+  .hero-steam-card { margin-top: 0; }
+}
+
+@keyframes hero-card-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-steam-card { animation: none; }
+}
+
+/* Live property previews: placeholder monogram, then a scaled
+   iframe of the actual site fades in once lazily loaded */
+.property-strip-live .property-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.property-live.is-live .property-live-placeholder {
+  opacity: 0;
+}
+
+.fp-tagverse-header > div {
+  margin: 0 auto;
+}
+
+.fp-tagverse .fp-section-intro {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tag-globe-count {
+  font-size: 0.62em;
+  opacity: 0.65;
+  margin-left: 5px;
+  vertical-align: super;
+}
+
+/* Monogram fallback until a logo is found in the media library */
+.pp-holo-mono {
+  display: none;
+  font-family: var(--font-family-display);
+  font-size: 5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #60a5fa 0%, #f0f4ff 50%, #fb923c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 26px rgba(59, 130, 246, 0.5));
+}
+
+.pp-no-logo .pp-holo-mono {
+  display: block;
+}
+
+.pp-stage .pp-holo,
+.pp-stage .pp-holo-pad {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes pp-backdrop-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.045); }
+}
+
+.pp-stage #pp-blackhole {
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+.pp-stage .pp-holo-mono {
+  position: relative;
+  z-index: 2;
+}
+
+/* The tag globe stays deliberately dark in both modes: it is a star
+   map, and space stays black. Re-pinning the palette vars on the
+   section means every chip, pill and note inside it keeps its
+   dark-mode styling. */
+[data-theme="science-light"] .fp-tagverse,
+[data-theme="light-playful"] .fp-tagverse {
+  --color-bg-primary: #0a0e1a;
+  --color-bg-secondary: #141824;
+  --color-bg-tertiary: #1e2330;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b8c0d4;
+  --color-text-tertiary: #7a8199;
+  --color-accent-primary: #6366f1;
+  --color-accent-secondary: #8b5cf6;
+  --color-accent-tertiary: #06b6d4;
+  color-scheme: dark;
+}
+
+/* Explicit deep-space backdrop so the dark set-piece reads as a panel
+   once the body behind it goes light */
+.fp-tagverse {
+  background-color: #0a0e1a;
+}
+
+/* ==========================================================================
+   21.1 Hero black hole: a genuine daylight mode
+
+   The hero used to be pinned dark alongside the tag globe, which left
+   it stuck in night while the rest of the page followed the toggle.
+   It now restages instead of inverting: the event horizon stays black
+   (a hole is black on any paper), blackhole.js re-casts the disk as
+   pigment, and the wordmark trades polished chrome for dark metal so
+   it still reads as engraved.
+
+   [data-mode="light"] is written to <html> by the pre-paint boot
+   script and kept in sync by the toggle, so one selector covers both
+   light skins — the same idiom the toggle knob above already uses.
+   ========================================================================== */
+
+.fp-hero-blackhole {
+  background-color: #0a0e1a;
+  color: #f0f2ff;
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+[data-mode="light"] .fp-hero-blackhole {
+  background-color: #eef2fb;
+  background-image:
+    radial-gradient(120% 95% at 18% 0%, #ffffff 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(85% 75% at 86% 100%, color-mix(in srgb, var(--color-accent-secondary) 18%, transparent) 0%, transparent 72%);
+  color: #10162e;
+}
+
+/* Wordmark: dark polished metal on paper. The extrusion lightens too,
+   so the letters read as raised rather than punched through the page. */
+[data-mode="light"] .wm-shadow { fill: #94a3c4; opacity: 0.5; }
+[data-mode="light"] .wm-depth  { fill: #2b3566; }
+
+[data-mode="light"] .wm-face {
+  /* paint fallback: a page cached before the new <defs> shipped still
+     gets solid letters instead of an unresolved reference */
+  fill: url(#wm-face-grad-light) #2b3566;
+  stroke: rgba(15, 23, 42, 0.3);
+}
+
+/* Screen blending adds nothing to white, and the near-white "ball"
+   colors would disappear outright — on paper the tracers composite
+   straight, in saturated ink. */
+[data-mode="light"] .wm-trail,
+[data-mode="light"] .wm-ball {
+  mix-blend-mode: normal;
+}
+
+[data-mode="light"] .wm-trail-c { stroke: #0e7490; filter: drop-shadow(0 0 3px rgba(14, 116, 144, 0.5)); }
+[data-mode="light"] .wm-ball-c  { stroke: #06b6d4; filter: drop-shadow(0 0 5px rgba(6, 182, 212, 0.75)); }
+[data-mode="light"] .wm-trail-m { stroke: #a21caf; filter: drop-shadow(0 0 3px rgba(162, 28, 175, 0.5)); }
+[data-mode="light"] .wm-ball-m  { stroke: #e879f9; filter: drop-shadow(0 0 5px rgba(232, 121, 249, 0.75)); }
+[data-mode="light"] .wm-trail-a { stroke: #b45309; filter: drop-shadow(0 0 3px rgba(180, 83, 9, 0.5)); }
+[data-mode="light"] .wm-ball-a  { stroke: #f59e0b; filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.75)); }
+
+/* Hero text furniture: every glow below was a dark drop-shadow tuned
+   to sit on black. On paper they become a pale lift instead. */
+[data-mode="light"] .fp-hero-blackhole .fp-hero-title {
+  filter: drop-shadow(0 2px 16px rgba(148, 163, 200, 0.6));
+}
+
+[data-mode="light"] .fp-hero-blackhole .fp-hero-tagline {
+  background-image: linear-gradient(95deg, #b45309 0%, #ea580c 25%, #1e293b 52%, #0e7490 78%, #b45309 100%);
+  /* the tagline crosses the disk on wide screens — a white halo keeps
+     it legible where it passes over the bright inner ring */
+  filter:
+    drop-shadow(0 1px 2px rgba(255, 255, 255, 0.95))
+    drop-shadow(0 0 12px rgba(255, 255, 255, 0.8));
+}
+
+[data-mode="light"] .fp-hero-latest-label {
+  color: #b45309;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+[data-mode="light"] .fp-hero-latest-pill {
+  border-color: color-mix(in srgb, #b45309 40%, transparent);
+}
+
+[data-mode="light"] .fp-hero-latest-pill:hover {
+  color: #b45309;
+  border-color: #b45309;
+}
+
+/* The Steam card keeps its Valve-blue identity but needs a body that
+   sits on paper instead of a pane of night */
+[data-mode="light"] .hero-steam-card {
+  background: linear-gradient(165deg, #ffffff, #e6effb);
+  border-color: rgba(27, 110, 194, 0.45);
+  box-shadow:
+    0 18px 40px rgba(30, 58, 95, 0.18),
+    0 0 24px rgba(102, 192, 244, 0.22);
+}
+
+[data-mode="light"] .hero-steam-card-kicker {
+  color: #1b6ec2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-hero-blackhole {
+    transition: none;
+  }
+}
+
+/* blackhole.js adds .bh-armed to the section while the pointer is
+   close enough to the hole for a click to visibly do something, so the
+   backdrop advertises itself without the whole hero looking clickable.
+   Everything stacked above the canvas keeps its own cursor, so reading
+   and selecting the hero copy is unaffected. */
+.bh-armed {
+  cursor: crosshair;
+}
+
+/* Text and controls layered over the canvas keep their own cursors, so
+   reading and selecting the hero copy is unaffected. Scoping this to
+   the elements themselves rather than their container leaves the
+   crosshair on the bare backdrop between them — which is exactly where
+   a click does nothing but feed the hole. */
+.bh-armed h1,
+.bh-armed h2,
+.bh-armed p,
+.bh-armed span,
+.bh-armed svg,
+.bh-armed img,
+.bh-armed iframe,
+.bh-armed .hero-steam-card {
+  cursor: auto;
+}
+
+/* links and buttons — and whatever they wrap — still read as clickable */
+.bh-armed a,
+.bh-armed a *,
+.bh-armed button,
+.bh-armed button * {
+  cursor: pointer;
+}
+
+/* In the hero the button spans the Steam card, right under the widget */
+.hero-steam-card-cta {
+  margin-top: var(--spacing-md);
+}
+
+.hero-steam-card-cta .etu-wishlist {
+  display: flex;
+  width: 100%;
+}
+
+/* ==========================================================================
+   19.0 Hero, v2 — the newest article above the fold
+   The hero is sized to the viewport so the lead article is always in the
+   first screen. Copy (wordmark, tagline, lead card, quick links, section
+   nav) runs down the left; the black hole is the visual centrepiece on
+   the right, with the Steam card anchored beneath it. The hero keeps its
+   own fixed night / paper palettes (section 18) rather than the skin's
+   tokens, because it sits on the shader, not on the page.
+   ========================================================================== */
+
+.fp-hero-blackhole {
+  display: flex;
+  align-items: center;
+  min-height: min(calc(100svh - 72px), 960px);
+  padding: var(--spacing-2xl) 0;
+}
+
+.fp-hero-blackhole > .container {
+  width: 100%;
+}
+
+.fp-hero-blackhole .fp-hero-copy {
+  max-width: 44rem;
+}
+
+.fp-hero-blackhole .fp-hero-title-svg {
+  margin: 0 0 var(--spacing-xs);
+  max-width: 40rem;
+}
+
+.fp-hero-blackhole .fp-hero-tagline {
+  margin-bottom: var(--spacing-lg);
+}
+
+@media (min-width: 1100px) {
+  .fp-hero-blackhole .fp-hero-inner {
+    align-items: end;
+  }
+
+  /* The card sits low in its column so the hole above it has room */
+  .fp-hero-blackhole .hero-steam-card {
+    align-self: end;
+  }
+}
+
+/* ---- Lead article card ---- */
+.fp-lead {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  width: 100%;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-xl);
+  color: #f0f2ff;
+  background: linear-gradient(160deg, rgba(20, 26, 46, 0.82), rgba(10, 14, 26, 0.88));
+  border: 1px solid rgba(255, 184, 77, 0.32);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+@media (min-width: 640px) {
+  .fp-lead.fp-lead-has-media {
+    grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  /* Side by side, the image fills the card's height instead of
+     holding its own ratio, which would push the column wider */
+  .fp-lead-has-media .fp-lead-media {
+    aspect-ratio: auto;
+    min-height: 150px;
+  }
+}
+
+.fp-lead:hover,
+.fp-lead:focus-within {
+  border-color: rgba(255, 184, 77, 0.7);
+  box-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.55),
+    0 0 36px rgba(255, 140, 50, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.fp-lead-media {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  aspect-ratio: 16 / 10;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.fp-lead-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  transition: transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.fp-lead:hover .fp-lead-media img {
+  transform: scale(1.04);
+}
+
+.fp-lead-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fp-lead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fp-lead-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #ffb84d;
+}
+
+.fp-lead-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.fp-lead-badge.is-new .fp-lead-dot {
+  animation: fp-lead-pulse 2.2s ease-out infinite;
+}
+
+@keyframes fp-lead-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 184, 77, 0.7), 0 0 8px currentColor; }
+  70%  { box-shadow: 0 0 0 9px rgba(255, 184, 77, 0), 0 0 8px currentColor; }
+  100% { box-shadow: 0 0 0 0 rgba(255, 184, 77, 0), 0 0 8px currentColor; }
+}
+
+.fp-lead-cat {
+  position: relative;
+  z-index: 2; /* above the stretched title link */
+  color: #8fd8ff;
+  text-decoration: none;
+}
+
+.fp-lead-cat:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.fp-lead-title {
+  margin: 0 0 var(--spacing-xs);
+  color: #f0f2ff;
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  /* long titles stop at three lines rather than pushing the card out
+     of the first screen */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fp-lead-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The whole card is the click target; the title link stretches over it */
+.fp-lead-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.fp-lead-title a:focus-visible {
+  outline: none;
+}
+
+.fp-lead:has(.fp-lead-title a:focus-visible) {
+  outline: 2px solid #ffb84d;
+  outline-offset: 3px;
+}
+
+.fp-lead-excerpt {
+  margin: 0 0 var(--spacing-sm);
+  color: #b8c0d4;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fp-lead-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: auto 0 0;
+  font-size: var(--font-size-xs);
+  color: #8a93ad;
+}
+
+.fp-lead-cta {
+  margin-left: auto;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #ffb84d;
+  transition: transform var(--transition-fast);
+}
+
+.fp-lead:hover .fp-lead-cta {
+  transform: translateX(3px);
+}
+
+/* Quick links and section nav sit closer under the card */
+.fp-hero-blackhole .fp-hero-latest {
+  margin-top: var(--spacing-md);
+}
+
+.fp-hero-blackhole .fp-pillar-nav {
+  margin-top: var(--spacing-md);
+}
+
+.fp-hero-blackhole .fp-pillar-nav a {
+  padding: 6px 13px;
+  font-size: var(--font-size-xs);
+}
+
+@media (max-width: 640px) {
+  .fp-hero-blackhole {
+    min-height: 0;
+    padding: var(--spacing-xl) 0 var(--spacing-2xl);
+  }
+
+  .fp-lead-cta {
+    margin-left: 0;
+    flex-basis: 100%;
+    margin-top: 4px;
+  }
+}
+
+/* ---- Paper ---- */
+[data-mode="light"] .fp-lead {
+  color: #10162e;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(238, 243, 252, 0.92));
+  border-color: rgba(180, 83, 9, 0.28);
+  box-shadow:
+    0 16px 40px rgba(30, 58, 95, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-mode="light"] .fp-lead:hover,
+[data-mode="light"] .fp-lead:focus-within {
+  border-color: rgba(180, 83, 9, 0.6);
+  box-shadow:
+    0 20px 48px rgba(30, 58, 95, 0.2),
+    0 0 28px rgba(234, 88, 12, 0.14);
+}
+
+[data-mode="light"] .fp-lead-title { color: #10162e; }
+[data-mode="light"] .fp-lead-badge { color: #b45309; }
+[data-mode="light"] .fp-lead-cat { color: #0e7490; }
+[data-mode="light"] .fp-lead-cat:hover { color: #10162e; }
+[data-mode="light"] .fp-lead-excerpt { color: #3b4566; }
+[data-mode="light"] .fp-lead-foot { color: #5b6585; }
+[data-mode="light"] .fp-lead-cta { color: #b45309; }
+[data-mode="light"] .fp-lead:has(.fp-lead-title a:focus-visible) { outline-color: #b45309; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-lead,
+  .fp-lead-media img,
+  .fp-lead-cta {
+    transition: none;
+  }
+
+  .fp-lead:hover,
+  .fp-lead:focus-within {
+    transform: none;
+  }
+
+  .fp-lead:hover .fp-lead-media img {
+    transform: none;
+  }
+
+  .fp-lead-badge.is-new .fp-lead-dot {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   20.0 Hero interactions, phase 1: feed button, read transition
+   ========================================================================== */
+
+/* Accessible twin of the backdrop click. In the copy column's flow on
+   narrow screens; blackhole.js floats it beside the hole on wide ones. */
+.bh-feed-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--spacing-md);
+  padding: 7px 14px 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 184, 77, 0.45);
+  background: rgba(10, 14, 26, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #ffd9a0;
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast), opacity var(--transition-base);
+}
+
+.bh-feed-btn[hidden] {
+  display: none;
+}
+
+.bh-feed-btn.is-floating {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.bh-feed-btn:hover,
+.bh-feed-btn:focus-visible {
+  opacity: 1;
+  color: #ffffff;
+  border-color: #ffb84d;
+  background: rgba(40, 24, 10, 0.7);
+}
+
+.bh-feed-btn:focus-visible {
+  outline: 2px solid #ffb84d;
+  outline-offset: 3px;
+}
+
+/* A tiny black hole: dark core, hot ring */
+.bh-feed-icon {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #05060c;
+  box-shadow: 0 0 0 2px #ffb84d, 0 0 8px 2px rgba(255, 140, 50, 0.6);
+}
+
+.bh-feed-btn.is-pulsing .bh-feed-icon::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid #ffd9a0;
+  animation: bh-feed-ring 900ms ease-out forwards;
+}
+
+@keyframes bh-feed-ring {
+  from { transform: scale(1); opacity: 1; }
+  to   { transform: scale(3.2); opacity: 0; }
+}
+
+[data-mode="light"] .bh-feed-btn {
+  color: #9a3412;
+  border-color: rgba(180, 83, 9, 0.45);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+[data-mode="light"] .bh-feed-btn:hover,
+[data-mode="light"] .bh-feed-btn:focus-visible {
+  color: #10162e;
+  border-color: #b45309;
+  background: #ffffff;
+}
+
+/* Read transition: the card is stretched along the line to the hole
+   and squeezed across it (rotate into that frame, scale, rotate back),
+   drifting toward the hole as it dims. blackhole.js sets the vector. */
+.fp-lead.is-falling {
+  pointer-events: none;
+  transition:
+    transform 340ms cubic-bezier(0.55, 0, 0.85, 0.35),
+    opacity 340ms ease-in,
+    filter 340ms ease-in;
+  transform:
+    translate(var(--bh-dx, 0), var(--bh-dy, 0))
+    rotate(var(--bh-ang, 0rad)) scale(1.22, 0.5) rotate(calc(var(--bh-ang, 0rad) * -1));
+  opacity: 0.25;
+  filter: blur(2px) saturate(1.6) brightness(1.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bh-feed-btn {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   21.0 Black hole: drag
+   ========================================================================== */
+
+/* A backdrop drag winds the spin and tilts the camera */
+.bh-dragging,
+.bh-dragging * {
+  cursor: grabbing !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+
+/* The lensed galaxy can be grabbed: any of its images, arcs included */
+.bh-over-galaxy,
+.bh-over-galaxy.bh-armed {
+  cursor: grab;
+}
+
+.bh-grab-galaxy,
+.bh-grab-galaxy * {
+  cursor: grabbing !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Marker on the lensed galaxy's primary image, shown with the readout */
+.bh-gal-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+
+.bh-gal-tag.is-on {
+  opacity: 1;
+}
+
+.bh-gal-ring {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px dashed rgba(143, 196, 255, 0.6);
+  animation: bh-gal-spin 9s linear infinite;
+}
+
+.bh-gal-label {
+  position: absolute;
+  left: 28px;
+  top: -8px;
+  white-space: nowrap;
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.08em;
+  color: #a9d2ff;
+  text-shadow: 0 1px 6px rgba(5, 8, 18, 0.95);
+}
+
+@keyframes bh-gal-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 1099px) {
+  .bh-gal-tag { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bh-gal-tag { transition: none; }
+  .bh-gal-ring { animation: none; }
+}
