@@ -18,7 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          sparse-checkout: tools
+          sparse-checkout: |
+            tools
+            .github/workflows
       - uses: actions/setup-node@v4
         with:
           node-version: 22
