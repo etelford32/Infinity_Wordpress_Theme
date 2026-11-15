@@ -5,6 +5,13 @@ entries are in release order, newest first.
 
 ## Unreleased (tools only; the theme itself is unchanged)
 
+- **Reliable GA4 reports:** bounded retries and timeouts for reporting reads,
+  safe HTTP diagnostics, and independent traffic/outcome/referral collection.
+  Incomplete reports retain valid sections, label missing data `Unavailable`,
+  and identify coverage in the email subject. They are emailed before the
+  scheduled job flags failure. Tests run without GA credentials or real mail;
+  see `tools/ga4/README.md`.
+
 - **GA4 settings as code** (`tools/ga4-config.mjs`): applies the key
   events ("outcomes") and event-scoped custom dimensions listed per site
   in `tools/ga4-sites.json` to all four properties.

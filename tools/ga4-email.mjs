@@ -90,7 +90,8 @@ if (!key || !to.length) { console.error('RESEND_API_KEY and REPORT_EMAIL_TO must
 
 const title = (md.match(/^# (.+)$/m) || [, 'GA rollup'])[1];
 const headline = (md.match(/^\*\*(.+?)\*\*/m) || [, ''])[1];
-const subject = headline ? `${title}: ${headline}` : title;
+// Partial data must be unmistakable in the inbox, even if some counts are known.
+const subject = /\bINCOMPLETE\b/.test(title) ? title : headline ? `${title}: ${headline}` : title;
 
 const res = await fetch('https://api.resend.com/emails', {
   method: 'POST',

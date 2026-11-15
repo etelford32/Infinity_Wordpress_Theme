@@ -1,0 +1,25 @@
+name: GA4 reporting tests
+
+on:
+  pull_request:
+    paths:
+      - 'tools/ga4/**'
+      - 'tools/ga4-*.mjs'
+      - 'tools/tests/**'
+      - '.github/workflows/ga*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: tools
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tools/tests/*.test.mjs
