@@ -9,6 +9,7 @@
 
 import { createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { GoogleRequestError, requestJson } from './http.mjs';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
@@ -50,29 +51,24 @@ export async function getToken(acct, scope = SCOPE_READ) {
   const signer = createSign('RSA-SHA256');
   signer.update(`${head}.${claims}`);
   const assertion = `${head}.${claims}.${b64url(signer.sign(acct.private_key))}`;
-  const res = await fetch(TOKEN_URL, {
+  const data = await requestJson(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion }),
-  });
-  const data = await res.json();
-  if (!res.ok || !data.access_token) die(`Google sign-in failed: ${data.error_description || data.error || res.status}`);
+  }, { retry: true });
+  if (typeof data.access_token !== 'string' || !data.access_token) throw new GoogleRequestError('MISSING_ACCESS_TOKEN');
   return data.access_token;
 }
 
-export async function api(token, method, url, body) {
-  const res = await fetch(url, {
+export async function api(token, method, url, body, options = {}) {
+  // runReport is a read despite using POST. Never retry Admin API writes.
+  const readOnly = method === 'GET' || (method === 'POST' &&
+    /^https:\/\/analyticsdata\.googleapis\.com\/v1beta\/properties\/\d+:runReport$/.test(url));
+  return requestJson(url, {
     method,
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const err = new Error(data.error?.message || `HTTP ${res.status}`);
-    err.status = res.status;
-    throw err;
-  }
-  return data;
+  }, { ...options, retry: readOnly });
 }
 
 /** Every page of an Admin API list call. */

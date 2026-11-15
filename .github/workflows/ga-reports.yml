@@ -90,24 +90,64 @@ jobs:
           echo "weekly=$([ "$want" = weekly ] || [ "$want" = both ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "Sending: $want"
 
-      - name: Daily rollup
-        if: steps.pick.outputs.daily == 'true'
+      - name: Generate daily rollup
+        id: daily
+        if: ${{ !cancelled() && steps.pick.outputs.daily == 'true' }}
+        continue-on-error: true
         env:
           GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
+        run: node tools/ga4-rollup.mjs --days 1 --compare lastweek --out "$RUNNER_TEMP/daily.md" --json "$RUNNER_TEMP/daily.json"
+
+      - name: Email daily rollup
+        id: daily_email
+        if: ${{ !cancelled() && steps.pick.outputs.daily == 'true' }}
+        continue-on-error: true
+        env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
           REPORT_EMAIL_FROM: ${{ secrets.REPORT_EMAIL_FROM }}
         run: |
-          node tools/ga4-rollup.mjs --days 1 --compare lastweek --out "$RUNNER_TEMP/daily.md"
+          # Exit 2 still writes a useful incomplete report. Fatal setup errors may not.
+          test -f "$RUNNER_TEMP/daily.md"
           node tools/ga4-email.mjs "$RUNNER_TEMP/daily.md"
 
-      - name: Weekly rollup
-        if: steps.pick.outputs.weekly == 'true'
+      - name: Generate weekly rollup
+        id: weekly
+        if: ${{ !cancelled() && steps.pick.outputs.weekly == 'true' }}
+        continue-on-error: true
         env:
           GA_SERVICE_ACCOUNT_KEY: ${{ secrets.GA_SERVICE_ACCOUNT_KEY }}
+        run: node tools/ga4-rollup.mjs --days 7 --compare previous --out "$RUNNER_TEMP/weekly.md" --json "$RUNNER_TEMP/weekly.json"
+
+      - name: Email weekly rollup
+        id: weekly_email
+        if: ${{ !cancelled() && steps.pick.outputs.weekly == 'true' }}
+        continue-on-error: true
+        env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           REPORT_EMAIL_TO: ${{ secrets.REPORT_EMAIL_TO }}
           REPORT_EMAIL_FROM: ${{ secrets.REPORT_EMAIL_FROM }}
         run: |
-          node tools/ga4-rollup.mjs --days 7 --compare previous --out "$RUNNER_TEMP/weekly.md"
+          test -f "$RUNNER_TEMP/weekly.md"
           node tools/ga4-email.mjs "$RUNNER_TEMP/weekly.md"
+
+      - name: Check report completeness and delivery
+        if: ${{ !cancelled() && steps.pick.outcome == 'success' }}
+        env:
+          DAILY_REQUESTED: ${{ steps.pick.outputs.daily }}
+          DAILY_GENERATED: ${{ steps.daily.outcome }}
+          DAILY_SENT: ${{ steps.daily_email.outcome }}
+          WEEKLY_REQUESTED: ${{ steps.pick.outputs.weekly }}
+          WEEKLY_GENERATED: ${{ steps.weekly.outcome }}
+          WEEKLY_SENT: ${{ steps.weekly_email.outcome }}
+        run: |
+          failed=0
+          if [ "$DAILY_REQUESTED" = true ] && { [ "$DAILY_GENERATED" != success ] || [ "$DAILY_SENT" != success ]; }; then
+            echo "::error::Daily report was incomplete, failed to generate, or failed to deliver. Check the private report email."
+            failed=1
+          fi
+          if [ "$WEEKLY_REQUESTED" = true ] && { [ "$WEEKLY_GENERATED" != success ] || [ "$WEEKLY_SENT" != success ]; }; then
+            echo "::error::Weekly report was incomplete, failed to generate, or failed to deliver. Check the private report email."
+            failed=1
+          fi
+          exit "$failed"
