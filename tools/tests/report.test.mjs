@@ -16,6 +16,49 @@ test('a successful empty report remains a measured zero', async () => {
   assert.match(md, /\*\*0 outcomes\*\*/); assert.doesNotMatch(md, /\| Unavailable|INCOMPLETE|## Unavailable/);
 });
 
+test('engagement summary includes absolute engaged sessions, foreground time and views/session', async () => {
+  const results = await collect();
+  const { md, json } = build(sites, results, options);
+  assert.equal(json.sites.hub.current.engagedSessions, 500);
+  assert.equal(json.sites.hub.current.userEngagementDuration, 32000);
+  assert.match(md, /## Engagement quality/);
+  assert.match(md, /32.0s/);
+  assert.match(md, /1.50/);
+  assert.equal(json.acquisition.find((r) => r.site === 'hub').sessionSourceMedium, 'hub.example / referral');
+  assert.equal(json.landingPages.find((r) => r.site === 'hub').landingPage, '/article');
+  assert.match(md, /## Acquisition quality/);
+  assert.match(md, /## Landing-page quality/);
+});
+
+test('acquisition failure is unavailable without erasing traffic or inventing a source', async () => {
+  const results = await collect(async (_, __, url, body) => {
+    if (url.includes('/2:') && body.dimensions?.[0]?.name === 'sessionSourceMedium') {
+      throw new GoogleRequestError('REQUEST_TIMEOUT');
+    }
+    return response(body);
+  });
+  const { md, json } = build(sites, results, options);
+  assert.equal(json.status, 'incomplete');
+  assert.equal(json.coverage.sections.acquisition.available, 3);
+  assert.equal(json.sites.physics.current.sessions, 1000);
+  assert.match(md, /## Acquisition quality/);
+  assert.ok(json.errors.some((e) => e.stage === 'acquisition' && e.site === 'physics'));
+});
+
+test('low-engagement traffic emits a diagnostic, not a bot verdict', async () => {
+  const results = await collect(async (_, __, ___, body) => {
+    const r = response(body);
+    if (!body.dimensions && body.metrics.some((m) => m.name === 'activeUsers')) {
+      for (const row of r.rows) row.metricValues[body.metrics.findIndex((m) => m.name === 'engagedSessions')].value = '8';
+    }
+    return r;
+  });
+  const { md, json } = build(sites, results, options);
+  assert.equal(json.qualityAlerts.length, 4);
+  assert.match(md, /Traffic-quality checks/);
+  assert.match(md, /server logs before attributing this to people or bots/);
+});
+
 test('three failed properties never become zero outcomes or an all-sites subtotal', async () => {
   const results = await collect(async (_, __, url, body) => {
     if (!url.includes('/1:')) throw new GoogleRequestError('HTTP_ERROR', { status: 503, contentType: 'text/html', attempts: 3 });
