@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.21.0');
+define('INFINITY_VERSION', '3.22.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -972,6 +972,7 @@ require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 require_once INFINITY_DIR . '/inc/property-promos.php';
 require_once INFINITY_DIR . '/inc/parkers-sims.php';
 require_once INFINITY_DIR . '/inc/parkers-hub.php';
+require_once INFINITY_DIR . '/inc/etu-hub.php';
 require_once INFINITY_DIR . '/inc/widgets.php';
 require_once INFINITY_DIR . '/inc/mailer.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
@@ -1701,6 +1702,9 @@ function infinity_seo_meta_tags() {
     } else {
         return;
     }
+
+    /** Lets a template supply its own social card image (e.g. the ETU hub). */
+    $image = apply_filters('infinity_og_image', $image);
 
     printf('<meta name="description" content="%s">' . "\n", esc_attr($description));
     printf('<meta property="og:title" content="%s">' . "\n", esc_attr($title));

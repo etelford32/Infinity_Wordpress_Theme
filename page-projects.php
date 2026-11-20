@@ -201,6 +201,11 @@ $infinity_primary_cta = function ($key, $p, $placement) {
                             </a>
                         <?php endif; ?>
                     </div>
+                    <?php if ('etu' === $key && infinity_etu_hub_url()) : ?>
+                        <a class="pj-hub-link" href="<?php echo esc_url(infinity_etu_hub_url()); ?>">
+                            <?php esc_html_e('The trailer, the adaptive AI and how to join the first wave', 'infinity'); ?> &rarr;
+                        </a>
+                    <?php endif; ?>
                     <?php if ('parkers' === $key && infinity_parkers_hub_url()) : ?>
                         <a class="pj-hub-link" href="<?php echo esc_url(infinity_parkers_hub_url()); ?>">
                             <?php

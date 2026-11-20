@@ -3,6 +3,41 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.22.0
+
+- **Explore the Universe 2175 hub page** (`page-explore-the-universe.php`,
+  `inc/etu-hub.php`): a marketing page for the game on elliottelford.com,
+  built like the Parker's Physics hub and reusing its section styles,
+  re-colored to the game's cyan/magenta and set in Oxanium
+  (`assets/css/etu-hub.css`).
+  - **Hero:** the pitch, the wishlist button and a "Join the first wave of
+    pilots" link to ExploreTheUniverse2175.com. The teaser video (or the
+    key art) sits in a ship-viewport frame over a drifting starfield.
+  - **At a glance:** setting, genre, opponents, physics, platform.
+  - **The game:** six feature cards.
+  - **Adaptive AI:** the you fly / they watch / they adapt loop, as steps
+    and as a diagram.
+  - **Under the hood:** the Space Ship Designer and Solar System sims to
+    try now, plus a link to the Parker's Physics hub.
+  - **Soundtrack:** reads the music page's album settings and links to the
+    music page and SoundCloud.
+  - **Two ways in:** the Steam widget and wishlist button, beside the pilot
+    account sign-up.
+  - **Spread the word:** share to X, Reddit and Bluesky, plus copy link.
+  - **Devlog:** posts tagged `explore-the-universe` / `etu-2175`, posts
+    with the game in the title, and posts that link to the game's sites.
+  - **FAQ, then a closing call to action.**
+  - **Tracking:** every link carries GA4/UTM placement tags (`etu_hub_*`).
+  - **Schema:** VideoGame and FAQPage JSON-LD. The key art is the social
+    card image (new `infinity_og_image` filter).
+  - **The teaser** plays muted only while on screen, has a pause button,
+    and doesn't autoplay under reduced motion (`assets/js/etu-hub.js`).
+- **Creating it:** a page with the slug `explore-the-universe` uses the
+  template automatically. An admin notice offers a one-click **Create the
+  game hub page**.
+- **The site now points at the hub:** from the homepage's game band and
+  from the Projects page's game section.
+
 ## 3.21.0
 
 - **Parker's Physics hub page** (`page-parkers-physics.php`,
