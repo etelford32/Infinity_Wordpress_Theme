@@ -3,6 +3,45 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.21.0
+
+- **Parker's Physics hub page** (`page-parkers-physics.php`,
+  `inc/parkers-hub.php`): a page on elliottelford.com for all of Parker's
+  Physics.
+  - **Hero:** the page title, a pitch and a fan of the live sim screenshots.
+  - **"Right now" readouts:** geomagnetic Kp and solar wind from NOAA SWPC,
+    and the latest M4.5+ earthquake from USGS. They're fetched server-side
+    and cached for 10 minutes, and each opens the sim that models it.
+  - **The page's own content**, as written in the editor.
+  - **The Living Earth band**, ending with EarthView.
+  - **The full catalog:** all 63 simulations in five categories, with
+    category chips and search (`assets/js/parkers-hub.js`). Without
+    JavaScript, the whole list shows.
+  - **"How it's built" and "Who it's for"** sections; the latter covers
+    educators, operators and researchers.
+  - **Blog posts that feature the sims**, plus a sign-up call to action.
+  - **Tracking:** every outbound link carries GA4/UTM placement tags
+    (`hub_hero`, `hub_live`, `hub_catalog`, …).
+  - **Schema:** the page emits CollectionPage/ItemList schema with every
+    simulation listed as a free WebApplication.
+- **Creating it:** a page with the slug `parkers-physics` uses the template
+  automatically. An admin notice offers a one-click **Create the hub
+  page**, or pick the "Parker's Physics Hub" template for any page.
+- **Catalog data:** `inc/parkers-catalog.php` is generated from Parker's
+  Physics' `simulations.html` by `tools/build-parkers-catalog.py`. Re-run
+  the script when sims are added.
+- **The site now points at the hub:**
+  - The homepage's "Browse simulations here" button went to the empty
+    `/simulations/` archive ("No items found"). It now goes to the hub,
+    as "Browse all the simulations".
+  - The empty archive itself forwards to the hub once the hub exists.
+  - The Projects page links to the hub from its Parker's Physics section.
+  - In articles, `[parkers_sims]`' "Browse every simulation" link goes to
+    the hub's catalog.
+- Posts that use the sim shortcodes or link to parkersphysics.com are
+  flagged on save, so the hub lists them. Posts tagged `parkers-physics`,
+  or with "Parker's Physics" in the title, are listed too.
+
 ## 3.20.0
 
 - **Living Earth simulations** (`inc/parkers-sims.php`): shortcodes for

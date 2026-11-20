@@ -201,6 +201,14 @@ $infinity_primary_cta = function ($key, $p, $placement) {
                             </a>
                         <?php endif; ?>
                     </div>
+                    <?php if ('parkers' === $key && infinity_parkers_hub_url()) : ?>
+                        <a class="pj-hub-link" href="<?php echo esc_url(infinity_parkers_hub_url()); ?>">
+                            <?php
+                            /* translators: %d: number of simulations */
+                            printf(esc_html__('See all %d simulations and today\'s live readings', 'infinity'), (int) infinity_parkers_catalog_count());
+                            ?> &rarr;
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
 

@@ -385,9 +385,20 @@ function infinity_shortcode_parkers_sims($atts) {
         return '';
     }
 
-    $urls = function_exists('infinity_property_urls') ? infinity_property_urls() : array('parkers' => 'https://parkersphysics.com');
-    $all  = trailingslashit($urls['parkers']) . 'simulations.html';
-    $all  = function_exists('infinity_project_href') ? infinity_project_href($all, sanitize_key($atts['placement']), 'all_sims') : $all;
+    // "Browse every simulation" stays on this site when the hub page
+    // exists (inc/parkers-hub.php); otherwise it goes to the catalog on
+    // Parker's Physics
+    $hub = function_exists('infinity_parkers_hub_url') ? infinity_parkers_hub_url() : '';
+    if ($hub && function_exists('infinity_is_parkers_hub') && infinity_is_parkers_hub()) {
+        $hub = ''; // already on the hub: link out to Parker's Physics
+    }
+    if ($hub) {
+        $all = $hub . '#pph-catalog';
+    } else {
+        $urls = function_exists('infinity_property_urls') ? infinity_property_urls() : array('parkers' => 'https://parkersphysics.com');
+        $all  = trailingslashit($urls['parkers']) . 'simulations.html';
+        $all  = function_exists('infinity_project_href') ? infinity_project_href($all, sanitize_key($atts['placement']), 'all_sims') : $all;
+    }
 
     ob_start();
     ?>
@@ -405,7 +416,7 @@ function infinity_shortcode_parkers_sims($atts) {
             echo infinity_living_earth_next($atts['next'], array('placement' => sanitize_key($atts['placement']))); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in infinity_living_earth_next()
         }
         ?>
-        <a class="pp-sims-all" href="<?php echo esc_url($all); ?>" target="_blank" rel="noopener"<?php infinity_living_earth_link_attrs(sanitize_key($atts['placement']), 'all_sims'); ?>><?php esc_html_e('Browse every Parker\'s Physics simulation', 'infinity'); ?> <span aria-hidden="true">&rarr;</span></a>
+        <a class="pp-sims-all" href="<?php echo esc_url($all); ?>"<?php if (!$hub) : ?> target="_blank" rel="noopener"<?php infinity_living_earth_link_attrs(sanitize_key($atts['placement']), 'all_sims'); endif; ?>><?php esc_html_e('Browse every Parker\'s Physics simulation', 'infinity'); ?> <span aria-hidden="true">&rarr;</span></a>
     </aside>
     <?php
     return trim(ob_get_clean());

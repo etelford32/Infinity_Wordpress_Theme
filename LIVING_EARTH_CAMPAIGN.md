@@ -65,6 +65,28 @@ Also new, with no action needed from you:
 
 ---
 
+## 1b. The Parker's Physics hub page (3.21.0)
+
+The permanent home for Parker's Physics on elliottelford.com. Create it
+once: **Dashboard → "Create the hub page"**, which publishes
+`/parkers-physics/` with a starter paragraph you can rewrite. Then:
+- Add it to the main menu, under Projects next to "Parkers Physics App"
+  or in its place.
+- Link to it from the article's last paragraph ("all 63 simulations").
+- The homepage button, the Projects page, the empty `/simulations/`
+  archive and the article band's "Browse every simulation" link already
+  point to it.
+
+When Parker's Physics adds simulations, refresh the catalog:
+
+```bash
+git clone --depth 1 https://github.com/etelford32/parkersphysics /tmp/pp
+```
+
+```bash
+tools/build-parkers-catalog.py /tmp/pp/simulations.html
+```
+
 ## 2. Article scaffold
 
 Your words go in the gaps. The science notes are anchors to check or

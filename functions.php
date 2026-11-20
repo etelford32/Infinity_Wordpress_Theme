@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Theme version
-define('INFINITY_VERSION', '3.20.0');
+define('INFINITY_VERSION', '3.21.0');
 
 // Theme directory paths
 define('INFINITY_DIR', get_template_directory());
@@ -971,6 +971,7 @@ require_once INFINITY_DIR . '/inc/stripe-api.php';
 require_once INFINITY_DIR . '/inc/analytics-dashboard.php';
 require_once INFINITY_DIR . '/inc/property-promos.php';
 require_once INFINITY_DIR . '/inc/parkers-sims.php';
+require_once INFINITY_DIR . '/inc/parkers-hub.php';
 require_once INFINITY_DIR . '/inc/widgets.php';
 require_once INFINITY_DIR . '/inc/mailer.php';
 require_once INFINITY_DIR . '/inc/subscribe.php';
