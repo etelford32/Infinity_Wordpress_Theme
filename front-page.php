@@ -507,7 +507,7 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                         </a>
                     </div>
                     <?php if (infinity_etu_hub_url()) : ?>
-                        <a class="fp-etu-hub-link" href="<?php echo esc_url(infinity_etu_hub_url()); ?>"><?php esc_html_e('Trailer, features and FAQ: the full game page', 'infinity'); ?> &rarr;</a>
+                        <a class="fp-etu-hub-link" href="<?php echo esc_url(infinity_etu_hub_url()); ?>"><?php esc_html_e('Trailer, bosses, factions and the demo countdown: the full game page', 'infinity'); ?> &rarr;</a>
                     <?php endif; ?>
                     <p class="fp-steam-hype">
                         <?php esc_html_e('Every wishlist moves the launch algorithm — if the simulations on this site light you up, this is the button that funds more of them.', 'infinity'); ?>

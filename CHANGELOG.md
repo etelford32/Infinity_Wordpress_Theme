@@ -6,37 +6,44 @@ entries are in release order, newest first.
 ## 3.22.0
 
 - **Explore the Universe 2175 hub page** (`page-explore-the-universe.php`,
-  `inc/etu-hub.php`): a marketing page for the game on elliottelford.com,
-  built like the Parker's Physics hub and reusing its section styles,
-  re-colored to the game's cyan/magenta and set in Oxanium
-  (`assets/css/etu-hub.css`).
-  - **Hero:** the pitch, the wishlist button and a "Join the first wave of
-    pilots" link to ExploreTheUniverse2175.com. The teaser video (or the
-    key art) sits in a ship-viewport frame over a drifting starfield.
-  - **At a glance:** setting, genre, opponents, physics, platform.
-  - **The game:** six feature cards.
-  - **Adaptive AI:** the you fly / they watch / they adapt loop, as steps
-    and as a diagram.
-  - **Under the hood:** the Space Ship Designer and Solar System sims to
-    try now, plus a link to the Parker's Physics hub.
-  - **Soundtrack:** reads the music page's album settings and links to the
-    music page and SoundCloud.
-  - **Two ways in:** the Steam widget and wishlist button, beside the pilot
-    account sign-up.
-  - **Spread the word:** share to X, Reddit and Bluesky, plus copy link.
-  - **Devlog:** posts tagged `explore-the-universe` / `etu-2175`, posts
-    with the game in the title, and posts that link to the game's sites.
-  - **FAQ, then a closing call to action.**
+  `inc/etu-hub.php`, `assets/css/etu-hub.css`, `assets/js/etu-hub.js`): a
+  cinematic marketing page for the game. All copy comes from the game's own
+  site and Marketing Kit (`etelford32/ETUWebsite`, `docs/MARKETING_KIT.md`),
+  and follows its "claims to avoid".
+  - **Hero:** full-bleed MEGABOT key art, the ETU lettering and "A new
+    galaxy every run. A companion who remembers you." A live countdown to
+    the free Steam demo (Thanksgiving, November 26) flips to "out now" by
+    itself. Then the wishlist button, demo-day sign-up, and the galaxy in
+    four counting numbers.
+  - **Cinematic trailer:** click-to-play from ExploreTheUniverse2175.com.
+  - **Six pillars:** a new galaxy every run, real cosmic danger, quests,
+    bosses, co-op and ship builds.
+  - **Showcase panels:** the Solar Shade, the Crimson Eye (with the Evil
+    Eye loop), the Space Dwarves and the Mycelari.
+  - **Cyl:** her line, her four archetypes and her docked stats.
+  - **Boss gauntlet:** MEGABOT's lines type out as an incoming
+    transmission over the Survival boss order.
+  - **Six factions**, linking to their pages on the game site.
+  - **Real astrophysics:** each phenomenon is paired with the Parker's
+    Physics sim of the same thing.
+  - **Then:** the poster wall (pointer tilt), a three-step demo-day
+    checklist with the Steam widget, soundtrack, Discord, devlog and share
+    links, blog posts, an FAQ, and a closing call to action.
+  - **Behaviour:** sections rise in on scroll. Under reduced motion,
+    nothing animates or autoplays, and without JS nothing is hidden.
+  - **Art:** 17 pieces of key art, posters, emblems and boss sprites, plus
+    the Evil Eye loop, are bundled as WebP/MP4 in `assets/img/etu/`
+    (2.4 MB in total, lazy-loaded).
   - **Tracking:** every link carries GA4/UTM placement tags (`etu_hub_*`).
-  - **Schema:** VideoGame and FAQPage JSON-LD. The key art is the social
-    card image (new `infinity_og_image` filter).
-  - **The teaser** plays muted only while on screen, has a pause button,
-    and doesn't autoplay under reduced motion (`assets/js/etu-hub.js`).
+  - **Schema:** VideoGame JSON-LD (platforms, 1–4 players, publisher,
+    trailer) and FAQPage. The key art is the social card image (new
+    `infinity_og_image` filter).
 - **Creating it:** a page with the slug `explore-the-universe` uses the
   template automatically. An admin notice offers a one-click **Create the
   game hub page**.
-- **The site now points at the hub:** from the homepage's game band and
-  from the Projects page's game section.
+- **Elsewhere on the site:** the homepage's game band and the Projects page
+  link to the hub. The Projects page's game copy no longer says enemies
+  learn your tactics; per the Marketing Kit, Cyl is what learns you.
 
 ## 3.21.0
 

@@ -80,11 +80,10 @@ React frontend for running physics simulations.
   `tools/build-parkers-catalog.py`), audiences, articles and sign-up
   (`page-parkers-physics.php`, `inc/parkers-hub.php`)
 - 🚀 **Explore the Universe 2175 hub** — a page with the slug
-  `explore-the-universe` becomes the game's marketing page: trailer in a
-  ship-viewport frame, at-a-glance specs, features, the adaptive-AI loop,
-  the physics (with Parker's Physics sims to try now), the soundtrack, the
-  two ways in (Steam wishlist + pilot account), share buttons, devlog posts
-  and an FAQ, with VideoGame and FAQPage schema
+  `explore-the-universe` becomes a cinematic game page: key-art hero, live
+  demo countdown, trailer, pillars, showcase panels, Cyl, MEGABOT's boss
+  gauntlet, factions, real-astrophysics tie-ins to Parker's Physics,
+  posters, demo-day checklist and FAQ, all from the game's Marketing Kit
   (`page-explore-the-universe.php`, `inc/etu-hub.php`)
 - 📖 **Reading tools** — "On this page" table of contents (inline, and
   pinned in the sticky sidebar on wide screens), copy-link anchors on every
