@@ -151,10 +151,19 @@ function infinity_parkers_logo_big() {
 function infinity_property_features($key) {
     $urls = infinity_property_urls();
 
+    // Living Earth sims (inc/parkers-sims.php) keep their URLs in one place
+    $sim_url = function ($id, $path) use ($urls) {
+        $sim = function_exists('infinity_living_earth_sim') ? infinity_living_earth_sim($id) : null;
+        return $sim ? $sim['url'] : trailingslashit($urls['parkers']) . $path;
+    };
+
     $defaults = array(
         'parkers' => array(
             array('earth', 'Real-Time Earth Weather', 'Clouds, precipitation, wind, barometrics, storm fronts & the aurora — forecast two weeks out', $urls['parkers'], 'LIVE'),
             array('aurora', 'The Auroracle', 'Aurora forecasts before the sky knows', trailingslashit($urls['parkers']) . 'auroracle.html', 'NEW'),
+            array('glacier', 'Glacier Watch', '48 glaciers tracked from orbit every few days', $sim_url('glacier-watch', 'glacier-watch.html'), 'NEW'),
+            array('smoke', 'Pollution Lab', 'Live PM2.5, hotspot detection & aerosol climate forcing', $sim_url('pollution-lab', 'pollution.html'), 'NEW'),
+            array('core', 'Inner Earth', 'Live earthquakes crossing a true-radius Earth', $sim_url('inner-earth', 'earth-interior.html'), 'NEW'),
             array('satellite', 'LEO Drag Forecasts', 'Space-weather forecasts that hold up during the storm', $urls['parkers'], 'LIVE'),
             array('orbit', 'Solar System Live', 'Every planet exactly where it really is, right now', $urls['parkers'], 'SOON'),
             array('planner', 'Mission Planner', 'Plot real transfers across the real solar system', $urls['parkers'], 'SOON'),

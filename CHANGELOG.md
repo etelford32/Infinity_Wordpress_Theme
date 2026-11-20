@@ -3,6 +3,31 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.20.0
+
+- **Living Earth simulations** (`inc/parkers-sims.php`): shortcodes for
+  featuring Parker's Physics simulations in articles.
+  - `[parkers_sim id="…"]` renders a card for Inner Earth, Glacier Watch,
+    Pollution Lab or Earth Volcanoes. With `embed="1"` it adds a
+    "Run it here" button that loads the live simulation in place
+    (`assets/js/parkers-sims.js`).
+  - `[parkers_sims]` renders the trio as a compact band.
+  - `[climate_loop]` draws the climate feedback-loop diagram: three Earth
+    layers and five numbered links (drives / amplifies / steadies), with
+    a legend that links each one to the sim where it can be watched.
+  - All links carry the GA4 `project_click` attributes and UTM tags. Runs
+    inside the article send `project_intent` (`sim_run_here`).
+  - Posts that use the shortcodes list each sim as a `WebApplication`
+    under `mentions` in their Article JSON-LD.
+  - The stylesheet (`assets/css/parkers-sims.css`) loads only on pages
+    that use the shortcodes.
+  - Each sim's URL and card image are set in a new Customizer section,
+    **Living Earth Simulations**, which also has a site-wide embed switch.
+- The Parker's Physics feature grid on the homepage and /projects now
+  lists Glacier Watch, Pollution Lab and Inner Earth.
+- New icons: `core`, `glacier`, `smoke`.
+- Launch plan and article scaffold: `LIVING_EARTH_CAMPAIGN.md`.
+
 ## Unreleased (tools only; the theme itself is unchanged)
 
 - **Reliable GA4 reports:** bounded retries and timeouts for reporting reads,

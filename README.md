@@ -69,6 +69,11 @@ React frontend for running physics simulations.
   search-as-you-type over posts, pages, projects and topics, with keyboard
   navigation; a plain link to the search page without JS
   (`inc/quick-search.php`)
+- 🌍 **Living Earth simulations** — `[parkers_sim]`, `[parkers_sims]` and
+  `[climate_loop]` feature Parker's Physics' Inner Earth, Glacier Watch and
+  Pollution Lab inside articles: cards that can run the live simulation in
+  place, and a climate feedback-loop diagram, all GA4/UTM-tagged
+  (`inc/parkers-sims.php`, see `LIVING_EARTH_CAMPAIGN.md`)
 - 📖 **Reading tools** — "On this page" table of contents (inline, and
   pinned in the sticky sidebar on wide screens), copy-link anchors on every
   h2/h3, and a reading progress bar (`inc/reading-tools.php`)

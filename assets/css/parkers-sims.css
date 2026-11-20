@@ -1,0 +1,581 @@
+/*
+ * Living Earth: Parker's Physics simulation cards, the trio band and
+ * the climate feedback-loop diagram (inc/parkers-sims.php).
+ * Loaded only on posts and pages that use the shortcodes.
+ */
+
+/* ---- One simulation --------------------------------------------- */
+
+.pp-sim {
+  --sim-accent: var(--color-accent-tertiary);
+  margin: var(--spacing-xl) 0;
+  border: 1px solid color-mix(in srgb, var(--sim-accent) 35%, transparent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--color-bg-secondary) 88%, var(--sim-accent));
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pp-sim:hover,
+.pp-sim:focus-within {
+  border-color: var(--sim-accent);
+  box-shadow: 0 10px 34px color-mix(in srgb, var(--sim-accent) 22%, transparent);
+}
+
+@media (min-width: 720px) {
+  .pp-sim:not(.pp-sim--compact):not(.is-running) {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+  /* Side by side, the picture runs the full height of the text */
+  .pp-sim:not(.pp-sim--compact):not(.is-running) .pp-sim-stage {
+    aspect-ratio: auto;
+    height: 100%;
+  }
+}
+
+.pp-sim-stage {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  min-height: 180px;
+  background:
+    radial-gradient(120% 90% at 30% 20%, color-mix(in srgb, var(--sim-accent) 38%, transparent), transparent 60%),
+    radial-gradient(80% 80% at 85% 90%, color-mix(in srgb, var(--color-accent-secondary) 30%, transparent), transparent 65%),
+    var(--color-bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pp-sim.is-running .pp-sim-stage {
+  aspect-ratio: 16 / 10;
+  min-height: 420px;
+}
+
+.pp-sim-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 0;
+  transition: transform var(--transition-slow);
+}
+
+.pp-sim:hover .pp-sim-poster {
+  transform: scale(1.03);
+}
+
+.pp-sim-art .inf-icon {
+  width: 96px;
+  height: 96px;
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--sim-accent) 60%, transparent));
+}
+
+.pp-sim-live {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(10, 14, 26, 0.72);
+  color: #e2e8f0;
+  font: 600 0.7rem/1.6 var(--font-family-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+}
+
+.pp-sim-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+  animation: pp-sim-pulse 2s ease-out infinite;
+}
+
+@keyframes pp-sim-pulse {
+  70% { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.pp-sim-run {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--sim-accent);
+  border-radius: var(--radius-full);
+  background: rgba(10, 14, 26, 0.8);
+  color: #fff;
+  font: 600 0.9rem/1.2 var(--font-family-primary);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.pp-sim-run:hover,
+.pp-sim-run:focus-visible {
+  background: color-mix(in srgb, var(--sim-accent) 45%, rgba(10, 14, 26, 0.85));
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.pp-sim-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000;
+}
+
+.pp-sim-body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.pp-sim-body > p {
+  margin: 0;
+}
+
+.pp-sim-kicker {
+  font: 600 0.72rem/1.4 var(--font-family-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sim-accent);
+}
+
+.entry-content .pp-sim-title,
+.pp-sim-title {
+  font: 700 1.35rem/1.25 var(--font-family-display);
+  color: var(--color-text-primary);
+}
+
+.pp-sim-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pp-sim-title a:hover {
+  color: var(--sim-accent);
+}
+
+.pp-sim-tagline {
+  color: var(--color-text-secondary);
+  font-size: 0.97rem;
+  line-height: 1.55;
+}
+
+.entry-content .pp-sim-measures,
+.pp-sim-measures {
+  list-style: none;
+  margin: 0.2rem 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pp-sim-measures li {
+  margin: 0;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--sim-accent) 40%, transparent);
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.pp-sim-loop {
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+  border-left: 3px solid var(--sim-accent);
+  padding-left: 0.75rem;
+}
+
+.pp-sim-loop strong {
+  color: var(--color-text-primary);
+}
+
+.pp-sim-cta {
+  margin-top: auto;
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--sim-accent);
+  color: #0a0e1a;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.entry-content a.pp-sim-cta,
+.entry-content a.pp-sim-cta:hover {
+  color: #0a0e1a;
+  text-decoration: none;
+}
+
+.pp-sim-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--sim-accent) 45%, transparent);
+}
+
+.pp-sim-error {
+  padding: var(--spacing-md);
+  border: 1px dashed var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+}
+
+/* ---- The trio band ----------------------------------------------- */
+
+.pp-sims {
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 25%, transparent);
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--color-accent-tertiary) 12%, transparent), transparent 60%),
+    var(--color-bg-secondary);
+}
+
+.pp-sims-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+}
+
+.pp-sims-head p {
+  margin: 0;
+}
+
+.pp-sims-mark img {
+  display: block;
+  border-radius: var(--radius-md);
+}
+
+.pp-sims-title {
+  font: 700 1.2rem/1.3 var(--font-family-display);
+  color: var(--color-text-primary);
+}
+
+.pp-sims-intro {
+  margin-top: 4px !important;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.pp-sims-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.pp-sims-grid .pp-sim {
+  margin: 0;
+}
+
+.pp-sim--compact .pp-sim-stage {
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+}
+
+.pp-sim--compact .pp-sim-art .inf-icon {
+  width: 64px;
+  height: 64px;
+}
+
+.pp-sim--compact .pp-sim-body {
+  padding: var(--spacing-md);
+}
+
+.pp-sim--compact .pp-sim-title {
+  font-size: 1.08rem;
+}
+
+.pp-sim--compact .pp-sim-tagline {
+  font-size: 0.88rem;
+}
+
+.pp-sim--compact .pp-sim-cta {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+.entry-content a.pp-sims-all,
+.pp-sims-all {
+  display: inline-block;
+  margin-top: var(--spacing-md);
+  color: var(--color-accent-tertiary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pp-sims-all:hover {
+  text-decoration: underline;
+}
+
+/* ---- The climate loop diagram -------------------------------------- */
+
+.climate-loop {
+  --cl-drives: #818cf8;
+  --cl-amplifies: #fb923c;
+  --cl-steadies: #38bdf8;
+  margin: var(--spacing-xl) 0;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 25%, transparent);
+  background:
+    radial-gradient(70% 60% at 50% 45%, color-mix(in srgb, var(--color-accent-primary) 10%, transparent), transparent 70%),
+    var(--color-bg-secondary);
+}
+
+[data-theme="light-playful"] .climate-loop,
+[data-theme="science-light"] .climate-loop {
+  --cl-drives: #4f46e5;
+  --cl-amplifies: #c2410c;
+  --cl-steadies: #0369a1;
+}
+
+.entry-content .climate-loop-title,
+.climate-loop-title {
+  margin: 0 0 var(--spacing-sm);
+  text-align: center;
+  font: 700 1.2rem/1.3 var(--font-family-display);
+  color: var(--color-text-primary);
+}
+
+.climate-loop-svg {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.cl-edge {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.cl-edge.cl-drives { stroke: var(--cl-drives); }
+.cl-edge.cl-amplifies { stroke: var(--cl-amplifies); }
+/* Steadying links are dotted; the others become long dashes only while
+   they flow, so the two still read apart */
+.cl-edge.cl-steadies { stroke: var(--cl-steadies); stroke-dasharray: 3 8; }
+
+.cl-head.cl-drives path { fill: var(--cl-drives); }
+.cl-head.cl-amplifies path { fill: var(--cl-amplifies); }
+.cl-head.cl-steadies path { fill: var(--cl-steadies); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cl-edge.cl-drives,
+  .cl-edge.cl-amplifies {
+    stroke-dasharray: 13 5;
+    animation: cl-flow 1.4s linear infinite;
+  }
+  .cl-edge.cl-amplifies {
+    animation-duration: 0.9s;
+  }
+  .cl-edge.cl-steadies {
+    animation: cl-flow-dots 2.4s linear infinite;
+  }
+}
+
+@keyframes cl-flow {
+  to { stroke-dashoffset: -36; }
+}
+
+@keyframes cl-flow-dots {
+  to { stroke-dashoffset: -22; }
+}
+
+.cl-node {
+  cursor: pointer;
+  color: var(--sim-accent);
+}
+
+.cl-node-ring {
+  fill: var(--color-bg-primary);
+  stroke: var(--sim-accent);
+  stroke-width: 2.5;
+  transition: stroke-width var(--transition-fast), filter var(--transition-fast);
+}
+
+.cl-node:hover .cl-node-ring,
+.cl-node:focus-visible .cl-node-ring {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 10px var(--sim-accent));
+}
+
+.cl-node:focus-visible {
+  outline: none;
+}
+
+.cl-node-label {
+  fill: var(--color-text-primary);
+  font: 700 20px var(--font-family-display);
+}
+
+.cl-node-sphere {
+  fill: var(--sim-accent);
+  font: 600 12px var(--font-family-display);
+  letter-spacing: 0.12em;
+}
+
+[data-theme="light-playful"] .cl-node-sphere,
+[data-theme="science-light"] .cl-node-sphere {
+  fill: var(--color-text-secondary);
+}
+
+.cl-badge circle {
+  fill: var(--color-bg-primary);
+  stroke-width: 2.5;
+}
+
+.cl-badge text {
+  fill: var(--color-text-primary);
+  font: 700 14px var(--font-family-display);
+}
+
+.cl-badge.cl-drives circle { stroke: var(--cl-drives); }
+.cl-badge.cl-amplifies circle { stroke: var(--cl-amplifies); }
+.cl-badge.cl-steadies circle { stroke: var(--cl-steadies); }
+
+.climate-loop-caption {
+  margin-top: var(--spacing-md);
+}
+
+.entry-content .climate-loop-key,
+.climate-loop-key {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 14px;
+  margin: 0 0 var(--spacing-md);
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.cl-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cl-key::before {
+  content: "";
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.cl-key.cl-drives { color: var(--cl-drives); }
+.cl-key.cl-amplifies { color: var(--cl-amplifies); }
+.cl-key.cl-steadies { color: var(--cl-steadies); }
+
+.entry-content .climate-loop-links,
+.climate-loop-links {
+  margin: 0;
+  padding-left: 1.6rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.climate-loop-links li {
+  margin: 0;
+  padding-left: 0.3rem;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.climate-loop-links li::marker {
+  font-weight: 700;
+  font-family: var(--font-family-display);
+}
+
+.climate-loop-links li.cl-drives::marker { color: var(--cl-drives); }
+.climate-loop-links li.cl-amplifies::marker { color: var(--cl-amplifies); }
+.climate-loop-links li.cl-steadies::marker { color: var(--cl-steadies); }
+
+.climate-loop-links strong {
+  color: var(--color-text-primary);
+}
+
+.cl-kind {
+  display: inline-block;
+  margin: 0 6px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid currentColor;
+}
+
+.cl-drives .cl-kind { color: var(--cl-drives); }
+.cl-amplifies .cl-kind { color: var(--cl-amplifies); }
+.cl-steadies .cl-kind { color: var(--cl-steadies); }
+
+.cl-where {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.87rem;
+}
+
+.cl-where a {
+  color: var(--color-accent-tertiary);
+  font-weight: 600;
+}
+
+@media (max-width: 520px) {
+  .pp-sims,
+  .climate-loop {
+    padding: var(--spacing-md);
+  }
+  .pp-sim-body {
+    padding: var(--spacing-md);
+  }
+  .pp-sim.is-running .pp-sim-stage {
+    min-height: 70vh;
+    aspect-ratio: auto;
+  }
+}
+
+/* Light modes: the accent hues are tuned for the dark sky, so text set
+   in them is darkened toward the page's ink to keep its contrast */
+[data-theme="light-playful"] .pp-sim-kicker,
+[data-theme="science-light"] .pp-sim-kicker {
+  color: color-mix(in srgb, var(--sim-accent) 45%, #1e1b4b);
+}
+
+[data-theme="light-playful"] .cl-where a,
+[data-theme="light-playful"] .pp-sims-all,
+[data-theme="science-light"] .cl-where a,
+[data-theme="science-light"] .pp-sims-all {
+  color: var(--color-accent-primary);
+}
