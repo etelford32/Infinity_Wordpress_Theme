@@ -36,8 +36,25 @@ entries are in release order, newest first.
   - **Then:** the poster wall (pointer tilt), a three-step demo-day
     checklist with the Steam widget, soundtrack, Discord, devlog and share
     links, blog posts, an FAQ, and a closing call to action.
-  - **Behaviour:** sections rise in on scroll. Under reduced motion,
-    nothing animates or autoplays, and without JS nothing is hidden.
+  - **Motion:**
+    - The hero arrives at warp speed on a canvas starfield that settles to
+      a drift, steered by the pointer, with engine sparks trailing the
+      cursor. The canvas pauses whenever the hero is off screen.
+    - The official lettering slams in word by word, with a lens flare and
+      a hit-shake when UNIVERSE lands. 2175 flickers on, and a glint
+      sweeps across the exact letter shapes.
+    - Pointer and scroll parallax.
+    - Section headings decode from scrambled glyphs.
+    - Every card tilts in 3D under a cursor spotlight.
+    - The showcase art wipes in and drifts with scroll.
+    - MEGABOT's section fires a red alarm and shake on entry, runs a laser
+      sweep, and glitches its boss cards in.
+    - Cyl has orbiting lights.
+    - Countdown digits glitch-flip as they change.
+    - Buttons shine, and clicks burst into sparks.
+    - Factions get a scanner sweep on hover.
+  - **Accessibility:** under reduced motion, nothing animates or
+    autoplays, and without JS nothing is hidden.
   - **Art:** 17 pieces of key art, posters, emblems and boss sprites, plus
     the Evil Eye loop, are bundled as WebP/MP4 in `assets/img/etu/`
     (2.4 MB in total, lazy-loaded).

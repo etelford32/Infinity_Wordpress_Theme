@@ -38,11 +38,17 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
     <?php while (have_posts()) : the_post(); ?>
 
     <!-- ================= Hero ================= -->
+    <script>
+    /* Set before first paint so the intro animations start from their first frame; never under reduced motion */
+    if (!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) { document.documentElement.classList.add('etuh-motion'); }
+    </script>
     <header class="etuh-hero" data-project-block="etu" data-placement="etu_hub_hero">
         <div class="etuh-hero-bg" aria-hidden="true">
             <img src="<?php echo esc_url(infinity_etu_hub_art()); ?>" alt="" width="1122" height="760" fetchpriority="high" decoding="async">
         </div>
         <div class="etuh-stars" aria-hidden="true"></div>
+        <canvas class="etuh-warp" aria-hidden="true"></canvas>
+        <div class="etuh-flare" aria-hidden="true"></div>
         <div class="etuh-scan" aria-hidden="true"></div>
 
         <div class="container etuh-hero-inner">
@@ -50,10 +56,10 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
             <p class="etuh-presents"><?php esc_html_e('Telford Projects presents', 'infinity'); ?></p>
             <?php the_title('<h1 class="etuh-lockup"><span class="screen-reader-text">', '</span>'); ?>
                 <span class="etuh-lockup-art" aria-hidden="true">
-                    <img class="etuh-lockup-explore" src="<?php echo esc_url(infinity_etu_type('explore')); ?>" alt="" width="1152" height="186" fetchpriority="high" decoding="async">
+                    <span class="etuh-word etuh-lockup-explore" style="--m:url('<?php echo esc_url(infinity_etu_type('explore')); ?>')"><img src="<?php echo esc_url(infinity_etu_type('explore')); ?>" alt="" width="1152" height="186" fetchpriority="high" decoding="async"></span>
                     <span class="etuh-lockup-the"><span>The</span></span>
-                    <img class="etuh-lockup-universe" src="<?php echo esc_url(infinity_etu_type('universe')); ?>" alt="" width="1201" height="195" fetchpriority="high" decoding="async">
-                    <img class="etuh-lockup-year" src="<?php echo esc_url(infinity_etu_type('2175')); ?>" alt="" width="582" height="192" decoding="async">
+                    <span class="etuh-word etuh-lockup-universe" style="--m:url('<?php echo esc_url(infinity_etu_type('universe')); ?>')"><img src="<?php echo esc_url(infinity_etu_type('universe')); ?>" alt="" width="1201" height="195" fetchpriority="high" decoding="async"></span>
+                    <span class="etuh-word etuh-lockup-year" style="--m:url('<?php echo esc_url(infinity_etu_type('2175')); ?>')"><img src="<?php echo esc_url(infinity_etu_type('2175')); ?>" alt="" width="582" height="192" decoding="async"></span>
                 </span>
             </h1>
             <p class="etuh-tagline"><?php esc_html_e('A new galaxy every run. A companion who remembers you.', 'infinity'); ?></p>
@@ -180,6 +186,8 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         <section class="etuh-cyl" aria-labelledby="etuh-cyl-heading">
             <div class="container etuh-cyl-inner">
                 <div class="etuh-cyl-art" data-reveal>
+                    <span class="etuh-orbit etuh-orbit-a" aria-hidden="true"></span>
+                    <span class="etuh-orbit etuh-orbit-b" aria-hidden="true"></span>
                     <img src="<?php echo esc_url(infinity_etu_img('cyl.webp')); ?>" alt="<?php esc_attr_e('Cyl, a crystal intelligence in a drone harness, glowing violet beside a spiral galaxy', 'infinity'); ?>" loading="lazy" decoding="async" width="1450" height="941">
                     <img class="etuh-cyl-sigil" src="<?php echo esc_url(infinity_etu_img('lumari-sigil.webp')); ?>" alt="" loading="lazy" decoding="async" width="400" height="400">
                 </div>
@@ -208,6 +216,8 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
 
         <!-- ================= Boss gauntlet ================= -->
         <section class="etuh-gauntlet" aria-labelledby="etuh-boss-heading">
+            <span class="etuh-laser" aria-hidden="true"></span>
+            <span class="etuh-alarm" aria-hidden="true"></span>
             <div class="container">
                 <img class="etuh-type-megabot" src="<?php echo esc_url(infinity_etu_type('megabot')); ?>" alt="" width="1188" height="195" loading="lazy" decoding="async" data-reveal>
                 <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Survival', 'infinity'); ?></p>

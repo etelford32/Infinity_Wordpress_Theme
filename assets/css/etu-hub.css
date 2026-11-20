@@ -284,6 +284,9 @@
   filter: drop-shadow(0 0 26px rgba(34, 211, 238, 0.35)) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6));
 }
 
+.etuh-word { display: block; position: relative; }
+.etuh-word img { width: 100%; }
+
 .etuh-lockup-explore { width: min(86vw, 620px); }
 .etuh-lockup-universe { width: min(92vw, 680px); }
 .etuh-lockup-year { width: min(46vw, 320px); margin-top: 2px; }
@@ -312,17 +315,6 @@
 }
 
 .etuh-lockup-the::after { transform: scaleX(-1); }
-
-@media (prefers-reduced-motion: no-preference) {
-  .etuh-lockup-art img {
-    animation: etuh-charge 5s ease-in-out infinite;
-  }
-  .etuh-lockup-universe { animation-delay: 0.4s !important; }
-  .etuh-lockup-year { animation-delay: 0.8s !important; }
-  @keyframes etuh-charge {
-    50% { filter: drop-shadow(0 0 40px rgba(34, 211, 238, 0.6)) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6)) brightness(1.08); }
-  }
-}
 
 /* Sprite-font words inside section headings */
 .etuh-typeset {
@@ -782,7 +774,7 @@
 
 .etuh-cyl-art { position: relative; }
 
-.etuh-cyl-art > img:first-child {
+.etuh-cyl-art > img:not(.etuh-cyl-sigil) {
   display: block;
   width: 100%;
   height: auto;
@@ -1393,18 +1385,18 @@
 
 .etuh-js [data-reveal] {
   opacity: 0;
-  transform: translateY(26px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  translate: 0 34px;
+  transition: opacity 0.8s ease, translate 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
   transition-delay: calc(var(--d, 0) * 90ms);
 }
 
 .etuh-js [data-reveal].is-in {
   opacity: 1;
-  transform: none;
+  translate: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .etuh-js [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .etuh-js [data-reveal] { opacity: 1; translate: none; transition: none; }
   .etuh-poster { transform: none !important; }
 }
 
@@ -1421,3 +1413,439 @@
 
 
 .etuh-phys .etuh-pillar-icon { align-self: flex-start; }
+
+/* =====================================================================
+   MOTION
+   Two gates:
+   - .etuh-motion (set on <html> by an inline script before first paint,
+     never under reduced motion) runs the pure-CSS intro, which ends in
+     its final state even if JS never loads;
+   - .etuh-js (set on the article by etu-hub.js) runs anything that waits
+     for JS: reveals, wipes, tilt, the alarm.
+   Everything animates transform/opacity/clip-path only.
+   ===================================================================== */
+
+/* ---- Hero: warp canvas, parallax, scroll-away -------------------- */
+
+.etuh-warp {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.etuh-hero.has-warp .etuh-stars { display: none; }
+
+.etuh-motion .etuh-hero-bg {
+  transform: translate3d(calc(var(--px, 0) * -22px), calc(var(--py, 0) * -14px + var(--sy, 0) * 120px), 0) scale(calc(1.02 + var(--sy, 0) * 0.15));
+  will-change: transform;
+}
+
+.etuh-motion .etuh-hero-inner {
+  transform: translate3d(calc(var(--px, 0) * 12px), calc(var(--py, 0) * 8px - var(--sy, 0) * 90px), 0);
+  opacity: calc(1 - var(--sy, 0) * 1.4);
+  will-change: transform, opacity;
+}
+
+/* Lens flare that fires when UNIVERSE lands */
+.etuh-flare {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 41%;
+  height: 4px;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 50%, #fff, rgba(165, 243, 252, 0.9) 20%, rgba(34, 211, 238, 0.4) 50%, transparent 75%);
+  box-shadow: 0 0 40px 10px rgba(34, 211, 238, 0.35);
+  mix-blend-mode: screen;
+}
+
+.etuh-motion .etuh-flare { animation: etuh-flare 1.4s 0.95s ease-out both; }
+
+@keyframes etuh-flare {
+  0% { opacity: 0; transform: scaleX(0.05); }
+  18% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.3) scaleY(0.4); }
+}
+
+/* ---- Hero intro: the official lettering slams in ------------------ */
+
+@keyframes etuh-slam {
+  0% { opacity: 0; transform: scale(2.1) translateY(-14px); filter: blur(16px) brightness(3); }
+  50% { opacity: 1; transform: scale(0.96); filter: blur(0) brightness(1.9); }
+  72% { transform: scale(1.02); filter: brightness(1.2); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes etuh-flicker {
+  0%, 6% { opacity: 0; }
+  8% { opacity: 1; }
+  11% { opacity: 0.15; }
+  15% { opacity: 1; }
+  19% { opacity: 0.35; }
+  26%, 100% { opacity: 1; }
+}
+
+@keyframes etuh-drop {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.8); filter: brightness(3) blur(6px); }
+  60% { opacity: 1; filter: brightness(1.6) blur(0); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+@keyframes etuh-rise {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes etuh-unspace {
+  from { opacity: 0; letter-spacing: 1.6em; }
+  to { opacity: 0.85; }
+}
+
+@keyframes etuh-rule-l { from { transform: scaleX(0); } }
+@keyframes etuh-rule-r { from { transform: scaleX(0); } to { transform: scaleX(-1); } }
+
+@keyframes etuh-shake {
+  0%, 100% { transform: none; }
+  15% { transform: translate(-6px, 3px); }
+  30% { transform: translate(5px, -4px); }
+  45% { transform: translate(-4px, -2px); }
+  60% { transform: translate(3px, 3px); }
+  80% { transform: translate(-2px, 1px); }
+}
+
+.etuh-motion .etuh-logo { animation: etuh-drop 0.9s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.etuh-motion .etuh-presents { animation: etuh-unspace 1.1s 0.25s ease-out both; }
+.etuh-motion .etuh-lockup-explore { animation: etuh-slam 0.85s 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.etuh-motion .etuh-lockup-universe { animation: etuh-slam 0.85s 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.etuh-motion .etuh-lockup-year { animation: etuh-flicker 1.3s 1.35s linear both; }
+.etuh-motion .etuh-lockup-the { animation: etuh-rise 0.6s 0.7s ease-out both; }
+.etuh-motion .etuh-lockup-the::before { transform-origin: right; animation: etuh-rule-l 0.9s 0.75s cubic-bezier(0.7, 0, 0.2, 1) both; }
+.etuh-motion .etuh-lockup-the::after { transform-origin: left; animation: etuh-rule-r 0.9s 0.75s cubic-bezier(0.7, 0, 0.2, 1) both; }
+.etuh-motion .etuh-lockup-art { animation: etuh-shake 0.45s 1.08s linear both; }
+.etuh-motion .etuh-tagline { animation: etuh-rise 0.7s 1.6s ease-out both; }
+.etuh-motion .etuh-pitch { animation: etuh-rise 0.7s 1.75s ease-out both; }
+.etuh-motion .etuh-demo { animation: etuh-rise 0.7s 1.9s ease-out both; }
+.etuh-motion .etuh-hero-actions { animation: etuh-rise 0.7s 2.05s ease-out both; }
+.etuh-motion .etuh-numbers { animation: etuh-rise 0.8s 2.2s ease-out both; }
+
+/* A glint sweeps across the letters, masked to their exact shapes */
+.etuh-word::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  -webkit-mask: var(--m) center / 100% 100% no-repeat;
+  mask: var(--m) center / 100% 100% no-repeat;
+  background: linear-gradient(105deg, transparent 38%, rgba(224, 250, 255, 0.95) 50%, transparent 62%) 150% 0 / 260% 100% no-repeat;
+  mix-blend-mode: screen;
+}
+
+.etuh-motion .etuh-word::after { animation: etuh-glint 7s ease-in-out infinite; }
+.etuh-motion .etuh-lockup-explore::after { animation-delay: 2.4s; }
+.etuh-motion .etuh-lockup-universe::after { animation-delay: 2.6s; }
+.etuh-motion .etuh-lockup-year::after { animation-delay: 2.8s; }
+
+@keyframes etuh-glint {
+  0% { opacity: 1; background-position: 150% 0; }
+  22% { opacity: 1; background-position: -50% 0; }
+  23%, 100% { opacity: 0; background-position: -50% 0; }
+}
+
+/* Countdown digits glitch-flip as they change */
+.etuh-clock b.is-tick { animation: etuh-tick 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+@keyframes etuh-tick {
+  0% { opacity: 0; transform: translateY(-55%) skewX(-12deg); text-shadow: -3px 0 #f97316, 3px 0 #22d3ee; }
+  55% { opacity: 1; transform: translateY(8%); }
+  100% { transform: none; text-shadow: none; }
+}
+
+/* Numbers flash when their count lands */
+.etuh-num b.is-done { animation: etuh-land 0.7s ease-out; }
+
+@keyframes etuh-land {
+  0% { text-shadow: 0 0 0 transparent; }
+  30% { text-shadow: 0 0 30px #a5f3fc, 0 0 60px #22d3ee; color: #ecfeff; }
+}
+
+/* ---- Buttons: shine sweep ----------------------------------------- */
+
+.etuh .etuh-btn { position: relative; }
+
+.etuh-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+  transform: translateX(-130%);
+}
+
+.etuh-motion .etuh-btn:hover::after {
+  transform: translateX(130%);
+  transition: transform 0.75s ease;
+}
+
+.etuh-motion .etuh-btn-glow::after,
+.etuh-motion .etuh-btn-red::after { animation: etuh-shine 4.5s 3s ease-in-out infinite; }
+
+@keyframes etuh-shine {
+  0% { transform: translateX(-130%); }
+  25%, 100% { transform: translateX(130%); }
+}
+
+/* Click sparks (spawned by etu-hub.js) */
+.etuh-spark {
+  position: fixed;
+  z-index: 9999;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: #ecfeff;
+  box-shadow: 0 0 10px 3px rgba(34, 211, 238, 0.9);
+}
+
+/* ---- Cards: 3D tilt + cursor spotlight ---------------------------- */
+
+.etuh-phys,
+.etuh-card { position: relative; }
+
+.etuh-js :is(.etuh-pillar, .etuh-phys, .etuh-step, .etuh-boss, .etuh-card) {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease, box-shadow 0.3s ease, opacity 0.8s ease, translate 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.etuh-js :is(.etuh-pillar, .etuh-phys, .etuh-step, .etuh-boss, .etuh-card).is-hot {
+  --lift: -6px;
+  transition: transform 0.08s linear, border-color 0.2s ease, box-shadow 0.3s ease, opacity 0.8s ease, translate 0.8s ease;
+}
+
+.etuh-js :is(.etuh-pillar, .etuh-phys, .etuh-step, .etuh-card)::after,
+.etuh-js .etuh-boss::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), rgba(34, 211, 238, 0.2), transparent 60%);
+}
+
+.etuh-js .etuh-boss::before {
+  background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), rgba(239, 68, 68, 0.28), transparent 60%);
+}
+
+.etuh-js .is-hot::after,
+.etuh-js .etuh-boss.is-hot::before { opacity: 1; }
+
+.etuh-js .etuh-pillar.is-hot { border-color: rgba(34, 211, 238, 0.8); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(34, 211, 238, 0.2); }
+
+.etuh-js .etuh-pillar.is-hot .etuh-pillar-n { -webkit-text-stroke-color: var(--c-cyan); text-shadow: 0 0 18px rgba(34, 211, 238, 0.6); }
+
+.etuh-js .etuh-pillar-icon { transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.etuh-js .is-hot .etuh-pillar-icon { transform: translateZ(30px) scale(1.12) rotate(-6deg); }
+
+/* ---- Showcase panels: wipe in, drift on scroll -------------------- */
+
+.etuh-js .etuh-panel-media {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.3s cubic-bezier(0.75, 0, 0.2, 1);
+}
+
+.etuh-js .etuh-panel-flip .etuh-panel-media { clip-path: inset(0 0 0 100%); }
+
+.etuh-js .etuh-panel.is-in .etuh-panel-media { clip-path: inset(0 0 0 0); }
+
+.etuh-js .etuh-panel-img {
+  transform: translate3d(0, calc(var(--p, 0) * -60px), 0) scale(1.16);
+  will-change: transform;
+}
+
+.etuh-js .etuh-panel-copy {
+  opacity: 0;
+  translate: 60px 0;
+  transition: opacity 0.8s 0.55s ease, translate 0.9s 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.etuh-js .etuh-panel-flip .etuh-panel-copy { translate: -60px 0; }
+
+.etuh-js .etuh-panel.is-in .etuh-panel-copy { opacity: 1; translate: none; }
+
+/* The accent bar on each panel charges across */
+.etuh-js .etuh-panel-copy::before {
+  width: 0;
+  transition: width 0.9s 1.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.etuh-js .etuh-panel.is-in .etuh-panel-copy::before { width: 120px; }
+
+/* Panels themselves don't fade: their parts do */
+.etuh-js .etuh-panel[data-reveal] { opacity: 1; translate: none; }
+
+/* ---- Cyl: orbiting light ------------------------------------------ */
+
+.etuh-orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 112%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(167, 139, 250, 0.28);
+  transform: translate(-50%, -50%) rotate(-14deg) scaleY(0.36);
+  pointer-events: none;
+}
+
+.etuh-orbit-b {
+  width: 92%;
+  border-color: rgba(232, 121, 249, 0.22);
+  transform: translate(-50%, -50%) rotate(22deg) scaleY(0.3);
+}
+
+.etuh-orbit::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 0, #fff 0 4px, rgba(196, 181, 253, 0.95) 5px, rgba(167, 139, 250, 0.4) 9px, transparent 14px);
+}
+
+.etuh-orbit-b::before {
+  background: radial-gradient(circle at 50% 0, #fff 0 3px, rgba(240, 171, 252, 0.95) 4px, rgba(232, 121, 249, 0.35) 8px, transparent 12px);
+}
+
+.etuh-motion .etuh-orbit::before { animation: etuh-spin 9s linear infinite; }
+.etuh-motion .etuh-orbit-b::before { animation-duration: 6s; animation-direction: reverse; }
+
+.etuh-motion .etuh-cyl-art > img:not(.etuh-cyl-sigil) { animation: etuh-breathe 6s ease-in-out infinite; }
+
+@keyframes etuh-breathe {
+  50% { box-shadow: 0 0 120px rgba(167, 139, 250, 0.55); }
+}
+
+/* ---- MEGABOT: laser sweep, alarm, glitching boss cards ------------- */
+
+.etuh-gauntlet { overflow: hidden; isolation: isolate; }
+.etuh-gauntlet > .container { position: relative; z-index: 1; }
+
+.etuh-laser {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  height: 2px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--c-red) 15%, #fff 50%, var(--c-red) 85%, transparent);
+  box-shadow: 0 0 22px 5px rgba(239, 68, 68, 0.55);
+}
+
+.etuh-motion .etuh-laser { animation: etuh-laser 6s 1s linear infinite; }
+
+@keyframes etuh-laser {
+  0% { opacity: 0; transform: translateY(0); }
+  4% { opacity: 0.85; }
+  46% { opacity: 0.85; transform: translateY(var(--h, 1100px)); }
+  50%, 100% { opacity: 0; transform: translateY(var(--h, 1100px)); }
+}
+
+.etuh-alarm {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 50% 30%, rgba(239, 68, 68, 0.45), transparent 70%),
+    repeating-linear-gradient(-45deg, rgba(239, 68, 68, 0.06) 0 18px, transparent 18px 36px);
+}
+
+.etuh-gauntlet.is-alarm .etuh-alarm { animation: etuh-alarm 1.8s ease-out; }
+.etuh-gauntlet.is-alarm > .container { animation: etuh-shake 0.5s 0.1s linear; }
+
+@keyframes etuh-alarm {
+  0%, 30%, 60% { opacity: 1; }
+  15%, 45% { opacity: 0.15; }
+  100% { opacity: 0; }
+}
+
+.etuh-motion .etuh-type-megabot { animation: etuh-evil 5s 2s steps(1) infinite; }
+
+@keyframes etuh-evil {
+  0%, 86%, 100% { opacity: 1; transform: none; }
+  88% { opacity: 0.4; transform: translateX(-4px) skewX(-8deg); }
+  90% { opacity: 1; transform: translateX(3px); }
+  92% { opacity: 0.6; transform: none; }
+}
+
+.etuh-js .etuh-boss.is-in { animation: etuh-glitch-in 0.75s calc(var(--d, 0) * 200ms + 0.4s) both; }
+
+@keyframes etuh-glitch-in {
+  0% { opacity: 0; clip-path: inset(0 0 100% 0); filter: brightness(3) hue-rotate(40deg); }
+  20% { opacity: 1; clip-path: inset(10% 0 55% 0); translate: -12px 0; }
+  35% { clip-path: inset(60% 0 5% 0); translate: 10px 0; }
+  50% { clip-path: inset(0 0 30% 0); translate: -4px 0; filter: brightness(1.6); }
+  70% { clip-path: inset(0 0 0 0); translate: 2px 0; }
+  100% { opacity: 1; clip-path: inset(0 0 0 0); translate: none; filter: none; }
+}
+
+.etuh-js .etuh-boss-final.is-in img { animation: etuh-throb 2.6s 1.6s ease-in-out infinite; }
+
+@keyframes etuh-throb {
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 24px rgba(239, 68, 68, 0.8)); }
+}
+
+/* ---- Factions: scanner sweep on hover ----------------------------- */
+
+.etuh-faction::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -45%;
+  height: 45%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.22) 80%, rgba(165, 243, 252, 0.7) 98%, transparent);
+}
+
+.etuh-motion .etuh-faction:hover::before { animation: etuh-scan 1.1s ease-in-out; }
+
+@keyframes etuh-scan {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0.6; transform: translateY(330%); }
+}
+
+.etuh-motion .etuh-faction-copy { transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.etuh-motion .etuh-faction:hover .etuh-faction-copy { transform: translateY(-8px); }
+
+/* ---- Final CTA: ignition ------------------------------------------- */
+
+.etuh-motion .etuh-final-bg img { animation: etuh-kenburns 26s ease-in-out infinite alternate; }
+
+.etuh-js .etuh-final-inner.is-in .etuh-final-title img { animation: etuh-slam 0.9s 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.etuh-js .etuh-final-inner.is-in .etuh-final-sub { animation: etuh-unspace 1s 0.9s ease-out both; }
+.etuh-js .etuh-final-inner.is-in .etuh-logo-final { animation: etuh-drop 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* ---- Section headings decode (etu-hub.js scrambles their text) ----- */
+
+.etuh-h2.is-decoding { text-shadow: -2px 0 rgba(232, 121, 249, 0.6), 2px 0 rgba(34, 211, 238, 0.6); }
+
+/* Everything off for reduced motion, whatever set it */
+@media (prefers-reduced-motion: reduce) {
+  .etuh *, .etuh *::before, .etuh *::after { animation: none !important; }
+  .etuh-js .etuh-panel-media { clip-path: none; }
+  .etuh-js .etuh-panel-copy { opacity: 1; translate: none; }
+  .etuh-warp { display: none; }
+}
