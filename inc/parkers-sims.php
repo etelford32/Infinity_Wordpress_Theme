@@ -11,6 +11,8 @@
  *                                      (ids="a,b,c" title="..." to vary)
  *   [climate_loop]                     the feedback-loop diagram that ties
  *                                      the three together, nodes linking out
+ *   [parkers_next]                     "Next stop" banner (EarthView by
+ *                                      default); [parkers_sims] ends with it
  *
  * Every outbound link carries the GA4 project_click attributes
  * (data-project="parkers", placement "article") and UTM tags through
@@ -82,6 +84,22 @@ function infinity_living_earth_sims() {
             'accent'   => '#a3e635',
             'path'     => 'pollution.html',
         ),
+        // The next destination after the trio ([parkers_next]): the
+        // whole planet on one globe
+        'earthview' => array(
+            'title'    => __('EarthView', 'infinity'),
+            'sphere'   => __('The whole planet', 'infinity'),
+            'tagline'  => __('Live weather, aurora odds, ISS passes and this week\'s best night for your location, on a 3D Earth wrapped in its magnetosphere and the solar wind.', 'infinity'),
+            'measures' => array(
+                __('Global weather and storm fronts', 'infinity'),
+                __('Aurora odds from NOAA SWPC', 'infinity'),
+                __('Magnetosphere and solar wind', 'infinity'),
+            ),
+            'loop'     => __('Where the layers meet: the air, the ice and the ground under one sky, and the space weather above it.', 'infinity'),
+            'icon'     => 'earth',
+            'accent'   => '#818cf8',
+            'path'     => 'earth.html',
+        ),
         // Not in the default trio; [parkers_sim id="volcanoes"] or
         // [parkers_sims ids="inner-earth,volcanoes,..."] brings it in
         'volcanoes' => array(
@@ -106,6 +124,9 @@ function infinity_living_earth_sims() {
         $custom        = get_option('infinity_sim_' . str_replace('-', '_', $id) . '_url', '');
         $sim['url']    = $custom ? $custom : $base . $sim['path'];
         $sim['poster'] = get_option('infinity_sim_' . str_replace('-', '_', $id) . '_poster', '');
+        // Screenshots of the live pages bundled with the theme
+        // (assets/img/sims/<id>.webp), used when nothing else is set
+        $sim['bundled'] = file_exists(INFINITY_DIR . '/assets/img/sims/' . $id . '.webp') ? INFINITY_URI . '/assets/img/sims/' . $id . '.webp' : '';
     }
     unset($sim);
 
@@ -131,7 +152,8 @@ function infinity_living_earth_sim($id) {
 /**
  * Poster image for a card: shortcode attribute (attachment id or URL),
  * then the Customizer, then a media-library file named after the sim
- * (e.g. glacier-watch.jpg). Empty means the drawn fallback art.
+ * (e.g. glacier-watch.jpg), then the screenshot bundled with the theme.
+ * Empty means the drawn fallback art.
  */
 function infinity_living_earth_poster($sim, $override = '') {
     if ($override) {
@@ -147,7 +169,8 @@ function infinity_living_earth_poster($sim, $override = '') {
     if (!empty($sim['poster'])) {
         return $sim['poster'];
     }
-    return function_exists('infinity_media_search_image') ? infinity_media_search_image($sim['id']) : '';
+    $found = function_exists('infinity_media_search_image') ? infinity_media_search_image($sim['id']) : '';
+    return $found ? $found : (isset($sim['bundled']) ? $sim['bundled'] : '');
 }
 
 /**
@@ -202,11 +225,18 @@ function infinity_living_earth_card($sim, $args = array()) {
     ?>
     <figure class="<?php echo esc_attr($classes); ?>" style="--sim-accent: <?php echo esc_attr($sim['accent']); ?>" data-project="parkers" data-placement="<?php echo esc_attr($placement); ?>" data-cta="<?php echo esc_attr($cta); ?>" data-project-block="parkers">
         <div class="pp-sim-stage"<?php if ($embed) : ?> data-sim-embed="<?php echo esc_url($sim['url']); ?>" data-sim-title="<?php echo esc_attr($sim['title']); ?>"<?php endif; ?>>
-            <?php if ($poster) : ?>
-                <img class="pp-sim-poster" src="<?php echo esc_url($poster); ?>" alt="" loading="lazy" decoding="async">
-            <?php else : ?>
-                <span class="pp-sim-art" aria-hidden="true"><?php infinity_icon($sim['icon'], 64); ?></span>
-            <?php endif; ?>
+            <?php
+            // The picture links back to the live page too. The title and
+            // the button already give keyboard and screen-reader users
+            // that link, so this one stays out of the tab order.
+            ?>
+            <a class="pp-sim-stage-link" href="<?php echo esc_url(infinity_living_earth_href($sim, $placement, $cta . '_image')); ?>" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"<?php infinity_living_earth_link_attrs($placement, $cta . '_image'); ?>>
+                <?php if ($poster) : ?>
+                    <img class="pp-sim-poster" src="<?php echo esc_url($poster); ?>" alt="" width="1280" height="800" loading="lazy" decoding="async">
+                <?php else : ?>
+                    <span class="pp-sim-art"><?php infinity_icon($sim['icon'], 64); ?></span>
+                <?php endif; ?>
+            </a>
             <span class="pp-sim-live"><span class="pp-sim-live-dot" aria-hidden="true"></span><?php esc_html_e('Live data', 'infinity'); ?></span>
             <?php if ($embed) : ?>
                 <button type="button" class="pp-sim-run">
@@ -258,7 +288,7 @@ function infinity_shortcode_parkers_sim($atts) {
     $sim = infinity_living_earth_sim($atts['id']);
     if (!$sim) {
         return current_user_can('edit_posts')
-            ? '<p class="pp-sim-error">' . esc_html(sprintf(__('Unknown simulation "%s". Try inner-earth, glacier-watch, pollution-lab or volcanoes.', 'infinity'), $atts['id'])) . '</p>'
+            ? '<p class="pp-sim-error">' . esc_html(sprintf(__('Unknown simulation "%s". Try inner-earth, glacier-watch, pollution-lab, earthview or volcanoes.', 'infinity'), $atts['id'])) . '</p>'
             : '';
     }
 
@@ -272,6 +302,67 @@ function infinity_shortcode_parkers_sim($atts) {
 add_shortcode('parkers_sim', 'infinity_shortcode_parkers_sim');
 
 /**
+ * The "next stop" banner: where to send a reader who has seen the
+ * trio. EarthView by default, the whole planet on one live globe.
+ */
+function infinity_living_earth_next($id = 'earthview', $args = array()) {
+    $sim = infinity_living_earth_sim($id);
+    if (!$sim) {
+        return '';
+    }
+    $args = wp_parse_args($args, array(
+        'title'     => __('Next stop: the whole planet at once', 'infinity'),
+        'text'      => '',
+        'placement' => 'article_next',
+    ));
+    $placement = sanitize_key($args['placement']);
+    $cta       = 'next_' . str_replace('-', '_', $sim['id']);
+    $href      = infinity_living_earth_href($sim, $placement, $cta);
+    $poster    = infinity_living_earth_poster($sim);
+    $text      = $args['text'] ? $args['text'] : $sim['tagline'];
+
+    ob_start();
+    ?>
+    <aside class="pp-next" style="--sim-accent: <?php echo esc_attr($sim['accent']); ?>" aria-label="<?php echo esc_attr($args['title']); ?>" data-project="parkers" data-placement="<?php echo esc_attr($placement); ?>" data-cta="<?php echo esc_attr($cta); ?>" data-project-block="parkers">
+        <a class="pp-next-media" href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true"<?php infinity_living_earth_link_attrs($placement, $cta . '_image'); ?>>
+            <?php if ($poster) : ?>
+                <img src="<?php echo esc_url($poster); ?>" alt="" width="1280" height="800" loading="lazy" decoding="async">
+            <?php else : ?>
+                <span class="pp-sim-art"><?php infinity_icon($sim['icon'], 64); ?></span>
+            <?php endif; ?>
+        </a>
+        <div class="pp-next-body">
+            <p class="pp-next-kicker"><?php echo esc_html($args['title']); ?></p>
+            <p class="pp-next-title"><a href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener"<?php infinity_living_earth_link_attrs($placement, $cta); ?>><?php echo esc_html($sim['title']); ?></a></p>
+            <p class="pp-next-text"><?php echo esc_html($text); ?></p>
+            <a class="pp-sim-cta" href="<?php echo esc_url($href); ?>" target="_blank" rel="noopener"<?php infinity_living_earth_link_attrs($placement, $cta); ?>>
+                <?php
+                /* translators: %s: simulation name */
+                printf(esc_html__('Go to %s', 'infinity'), esc_html($sim['title']));
+                ?>
+                <span aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
+    </aside>
+    <?php
+    return trim(ob_get_clean());
+}
+
+/**
+ * [parkers_next id="earthview" title="..." text="..."]
+ */
+function infinity_shortcode_parkers_next($atts) {
+    $atts = shortcode_atts(array(
+        'id'        => 'earthview',
+        'title'     => __('Next stop: the whole planet at once', 'infinity'),
+        'text'      => '',
+        'placement' => 'article_next',
+    ), $atts, 'parkers_next');
+    return infinity_living_earth_next($atts['id'], $atts);
+}
+add_shortcode('parkers_next', 'infinity_shortcode_parkers_next');
+
+/**
  * [parkers_sims ids="inner-earth,glacier-watch,pollution-lab" title="..."]
  */
 function infinity_shortcode_parkers_sims($atts) {
@@ -280,6 +371,7 @@ function infinity_shortcode_parkers_sims($atts) {
         'title'     => __('Watch the Earth change, live', 'infinity'),
         'intro'     => __('Three free instruments on Parker\'s Physics, each reading a different layer of the planet from live data.', 'infinity'),
         'placement' => 'article_band',
+        'next'      => 'earthview',
     ), $atts, 'parkers_sims');
 
     $cards = array();
@@ -308,6 +400,11 @@ function infinity_shortcode_parkers_sims($atts) {
             </div>
         </div>
         <div class="pp-sims-grid"><?php echo implode('', $cards); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in infinity_living_earth_card() ?></div>
+        <?php
+        if ($atts['next']) {
+            echo infinity_living_earth_next($atts['next'], array('placement' => sanitize_key($atts['placement']))); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in infinity_living_earth_next()
+        }
+        ?>
         <a class="pp-sims-all" href="<?php echo esc_url($all); ?>" target="_blank" rel="noopener"<?php infinity_living_earth_link_attrs(sanitize_key($atts['placement']), 'all_sims'); ?>><?php esc_html_e('Browse every Parker\'s Physics simulation', 'infinity'); ?> <span aria-hidden="true">&rarr;</span></a>
     </aside>
     <?php
@@ -513,6 +610,15 @@ function infinity_living_earth_sims_in($content) {
                 $ids = array_merge($ids, array_map('trim', explode(',', $list)));
             }
         }
+    }
+    if (has_shortcode($content, 'parkers_next')) {
+        $ids[] = 'earthview';
+        if (preg_match_all('/\[parkers_next[^\]]*\bid="([^"]+)"/', $content, $m)) {
+            $ids = array_merge($ids, $m[1]);
+        }
+    }
+    if (has_shortcode($content, 'parkers_sims') && false === strpos($content, 'next=""')) {
+        $ids[] = 'earthview';
     }
     if (preg_match_all('/\[parkers_sim\b[^\]]*?\bid="([^"]+)"/', $content, $m)) {
         $ids = array_merge($ids, $m[1]);

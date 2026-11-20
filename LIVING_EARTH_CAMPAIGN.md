@@ -10,7 +10,8 @@ which placements turn readers into Parker's Physics sign-ups.
 | Inner Earth | Geosphere | https://parkersphysics.com/earth-interior.html |
 | Glacier Watch | Cryosphere | https://parkersphysics.com/glacier-watch.html |
 | Pollution Lab | Atmosphere | https://parkersphysics.com/pollution.html |
-| Earth Volcanoes *(optional 4th)* | Geosphere → atmosphere | https://parkersphysics.com/volcanoes.html |
+| EarthView *(next stop)* | The whole planet | https://parkersphysics.com/earth.html |
+| Earth Volcanoes *(optional)* | Geosphere → atmosphere | https://parkersphysics.com/volcanoes.html |
 
 Earth Volcanoes isn't one of the three, but it's the clearest link from
 the inside of the planet to the climate, since it runs a Monte-Carlo of
@@ -27,14 +28,25 @@ All of this is in `inc/parkers-sims.php`. Paste the shortcodes into a
 |---|---|---|
 | `[climate_loop]` | The feedback-loop diagram: three spheres, five numbered arrows (drives / amplifies + / steadies −), a legend with a "Watch it in…" link for each arrow, and nodes that link to each sim | Near the top, right after the thesis |
 | `[parkers_sim id="glacier-watch" embed="1"]` | A full card: image, "Live data" badge, what the sim measures, its role in the loop, and an "Open" button. `embed="1"` adds **Run it here**, which loads the live sim inside the article | One per section, as each sim comes up |
-| `[parkers_sims]` | A compact band of all three, plus a "Browse every simulation" link | The end of the article, and any later climate post |
+| `[parkers_sims]` | A compact band of all three, then a **Next stop: EarthView** banner and a "Browse every simulation" link | The end of the article, and any later climate post |
+| `[parkers_next]` | The **Next stop** banner on its own: EarthView's screenshot, what it shows, and a "Go to EarthView" button. `id="…"` points it at another sim, and `title="…"` / `text="…"` change the copy | Anywhere you want to hand readers on, e.g. after the loop diagram |
 
 Options:
-- `image="123"` (attachment ID) or `image="https://…"` sets a card's image.
-  You can also set one per sim under **Customize → Living Earth Simulations**,
-  or upload a media file named `glacier-watch.jpg`, `inner-earth.jpg` or
-  `pollution-lab.jpg`. Without an image the card draws its icon on a
-  gradient. **Real screenshots will convert better; take them.**
+- **Card images.** Screenshots of the live pages, taken 20 Nov 2026, ship
+  with the theme in `assets/img/sims/`:
+  - `inner-earth.webp`: the M5.1 Vanuatu quake's waves crossing the cutaway Earth
+  - `glacier-watch.webp`: Columbia Glacier in 3D
+  - `pollution-lab.webp`: live PM2.5 hotspots and the CAMS time series
+  - `earthview.webp`: the weather globe
+
+  Any of these can be replaced. In priority order: `image="123"`
+  (attachment ID) or `image="https://…"` on the shortcode, then a per-sim
+  image under **Customize → Living Earth Simulations**, then a media file
+  named after the sim (e.g. `glacier-watch.jpg`). The bundled screenshot is
+  used when none of those is set.
+- **Every image links back** to its sim on Parker's Physics, as do the
+  title and the button.
+- `[parkers_sims next=""]` drops the EarthView banner from the band.
 - `[parkers_sims ids="inner-earth,volcanoes,glacier-watch,pollution-lab" title="…"]`
   changes the set or the heading.
 - `placement="…"` on any shortcode renames the GA4/UTM placement. Give a
@@ -114,7 +126,7 @@ assumptions.]
 ## Watch it yourself
 [One-line call to action.]
 
-[parkers_sims]
+[parkers_sims]   ← ends with the "Next stop: EarthView" banner
 ```
 
 Two details:
@@ -138,8 +150,9 @@ Two details:
    globe) and set it as the post's header video. The theme serves it as a
    lazy video loop and adds it to the VideoObject schema
    (`inc/post-media.php`).
-4. **Featured image = OG card.** Use a 1200×630 still with all three sims.
-   It's the share image on every platform.
+4. **Featured image = OG card.** `assets/img/sims/living-earth-share.jpg`
+   (1200×630, the three sims side by side) is ready. Upload it and set it
+   as the post's featured image; it's the share image on every platform.
 5. **Internal links.** Link the article from older posts on climate,
    weather, aurora and Earth science. Add `[parkers_sims]` to the end of
    those posts too; each use gets its own placement in GA4.
@@ -182,7 +195,11 @@ Every link from these components is already tagged:
 - **GA4 on elliottelford.com:**
   - `project_click` with `project=parkers`, a `placement`
     (`article`, `article_band`, `article_loop`, or your own) and a `cta`
-    naming the sim (`sim_glacier_watch`, `loop_inner_earth`, …).
+    naming the sim and the element clicked:
+    - `sim_glacier_watch` for a card's title or button
+    - `sim_glacier_watch_image` for a card's image
+    - `loop_inner_earth` for a node in the loop diagram
+    - `next_earthview` for the next-stop banner
   - `project_intent` with `intent=sim_run_here` when a reader runs a sim
     inside the article.
   - Block-view events from `data-project-block` give you seen → clicked

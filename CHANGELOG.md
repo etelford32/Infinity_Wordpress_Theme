@@ -25,6 +25,16 @@ entries are in release order, newest first.
     **Living Earth Simulations**, which also has a site-wide embed switch.
 - The Parker's Physics feature grid on the homepage and /projects now
   lists Glacier Watch, Pollution Lab and Inner Earth.
+- **Screenshots of the live sims** in `assets/img/sims/` (Inner Earth,
+  Glacier Watch, Pollution Lab, EarthView; WebP, 1280×800, 35–80 KB) are
+  the default card images. Each image links back to its sim on Parker's
+  Physics. `living-earth-share.jpg` (1200×630) is ready to use as a
+  featured or share image.
+- **EarthView as the next destination:** `[parkers_next]` renders a
+  "Next stop" banner (EarthView by default), and `[parkers_sims]` now ends
+  with it (`next=""` turns it off). The homepage "Real-Time Earth Weather"
+  feature now links to EarthView (`earth.html`) instead of the Parker's
+  Physics homepage.
 - New icons: `core`, `glacier`, `smoke`.
 - Launch plan and article scaffold: `LIVING_EARTH_CAMPAIGN.md`.
 

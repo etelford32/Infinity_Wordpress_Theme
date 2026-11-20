@@ -159,7 +159,7 @@ function infinity_property_features($key) {
 
     $defaults = array(
         'parkers' => array(
-            array('earth', 'Real-Time Earth Weather', 'Clouds, precipitation, wind, barometrics, storm fronts & the aurora — forecast two weeks out', $urls['parkers'], 'LIVE'),
+            array('earth', 'Real-Time Earth Weather', 'Clouds, precipitation, wind, barometrics, storm fronts & the aurora — forecast two weeks out', $sim_url('earthview', 'earth.html'), 'LIVE'),
             array('aurora', 'The Auroracle', 'Aurora forecasts before the sky knows', trailingslashit($urls['parkers']) . 'auroracle.html', 'NEW'),
             array('glacier', 'Glacier Watch', '48 glaciers tracked from orbit every few days', $sim_url('glacier-watch', 'glacier-watch.html'), 'NEW'),
             array('smoke', 'Pollution Lab', 'Live PM2.5, hotspot detection & aerosol climate forcing', $sim_url('pollution-lab', 'pollution.html'), 'NEW'),

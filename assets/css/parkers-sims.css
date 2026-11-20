@@ -54,6 +54,20 @@
   min-height: 420px;
 }
 
+.pp-sim-stage-link {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+}
+
+.pp-sim-live,
+.pp-sim-run {
+  z-index: 1;
+}
+
 .pp-sim-poster {
   position: absolute;
   inset: 0;
@@ -332,6 +346,103 @@
   text-decoration: underline;
 }
 
+/* ---- Next stop (EarthView) --------------------------------------- */
+
+.pp-next {
+  --sim-accent: var(--color-accent-primary);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: var(--spacing-lg) 0 0;
+  border: 1px solid color-mix(in srgb, var(--sim-accent) 45%, transparent);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background:
+    radial-gradient(100% 140% at 100% 0%, color-mix(in srgb, var(--sim-accent) 22%, transparent), transparent 60%),
+    var(--color-bg-primary);
+}
+
+@media (min-width: 640px) {
+  .pp-next {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+}
+
+.pp-sims .pp-next {
+  margin-top: var(--spacing-md);
+}
+
+.pp-next-media {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 170px;
+  overflow: hidden;
+  background: #000;
+}
+
+.pp-next-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.pp-next:hover .pp-next-media img {
+  transform: scale(1.04);
+}
+
+.pp-next-body {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pp-next-body > p {
+  margin: 0;
+}
+
+.pp-next-kicker {
+  font: 600 0.72rem/1.4 var(--font-family-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sim-accent);
+}
+
+.entry-content .pp-next-title,
+.pp-next-title {
+  font: 700 1.3rem/1.25 var(--font-family-display);
+  color: var(--color-text-primary);
+}
+
+.pp-next-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pp-next-title a:hover {
+  color: var(--sim-accent);
+}
+
+.pp-next-text {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.pp-next .pp-sim-cta {
+  margin-top: 0.4rem;
+}
+
+[data-theme="light-playful"] .pp-next-kicker,
+[data-theme="science-light"] .pp-next-kicker {
+  color: color-mix(in srgb, var(--sim-accent) 55%, #1e1b4b);
+}
+
 /* ---- The climate loop diagram -------------------------------------- */
 
 .climate-loop {
@@ -578,4 +689,17 @@
 [data-theme="science-light"] .cl-where a,
 [data-theme="science-light"] .pp-sims-all {
   color: var(--color-accent-primary);
+}
+
+/* Article image rules (max-width, height: auto) must not shrink the
+   cover images back to their intrinsic ratio */
+.entry-content .pp-sim .pp-sim-poster,
+.entry-content .pp-next .pp-next-media img,
+.pp-sim .pp-sim-poster,
+.pp-next .pp-next-media img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  border-radius: 0;
+  box-shadow: none;
 }
