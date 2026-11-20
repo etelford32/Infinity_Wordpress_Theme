@@ -113,6 +113,16 @@ function infinity_etu_site_link($path, $placement, $cta) {
     return infinity_project_href(trailingslashit($urls['etu']) . ltrim($path, '/'), $placement, $cta);
 }
 
+/**
+ * The official ETU title typography and logo, theme-relative. The words
+ * are rendered from the game's sprite font (ETUWebsite
+ * scripts/render-title.py, the same glyphs, kerning and spacing as the
+ * game site); the logo is the official ETU lettering cut off its black.
+ */
+function infinity_etu_type($name) {
+    return INFINITY_URI . '/assets/img/etu/type/' . $name . '.webp';
+}
+
 /** Bundled art, theme-relative. */
 function infinity_etu_img($name) {
     return INFINITY_URI . '/assets/img/etu/' . $name;

@@ -10,7 +10,14 @@ entries are in release order, newest first.
   cinematic marketing page for the game. All copy comes from the game's own
   site and Marketing Kit (`etelford32/ETUWebsite`, `docs/MARKETING_KIT.md`),
   and follows its "claims to avoid".
-  - **Hero:** full-bleed MEGABOT key art, the ETU lettering and "A new
+  - **Official typography and logo:** the hero title is the official
+    lockup (EXPLORE, a ruled THE, UNIVERSE, 2175), rendered from the
+    game's own sprite font by ETUWebsite's `scripts/render-title.py`, so
+    the glyphs, kerning and spacing match the game site. The ETU logo is
+    the official lettering cut off its black. Both also mark the MEGABOT
+    section (in red), "Fly with CYL" and the closing "Thrust or bust".
+    Files: `assets/img/etu/type/`.
+  - **Hero:** full-bleed MEGABOT key art and "A new
     galaxy every run. A companion who remembers you." A live countdown to
     the free Steam demo (Thanksgiving, November 26) flips to "out now" by
     itself. Then the wishlist button, demo-day sign-up, and the galaxy in

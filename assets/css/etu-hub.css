@@ -252,47 +252,98 @@
   opacity: 0.85;
 }
 
-.etuh-emblem {
-  width: clamp(150px, 22vw, 240px);
+/* ---- Official logo and title lockup ---------------------------------
+   The words are the game's own sprite-font renders (assets/img/etu/type),
+   stacked like the official title art: EXPLORE, a ruled THE, UNIVERSE as
+   the hero line, then 2175. */
+
+.etuh-logo {
+  display: block;
+  width: clamp(140px, 16vw, 210px);
   height: auto;
-  filter: drop-shadow(0 0 24px rgba(34, 211, 238, 0.55));
+  margin: 0 auto var(--spacing-sm);
+  filter: drop-shadow(0 0 22px rgba(34, 211, 238, 0.35));
 }
 
-.etuh-title {
+.etuh-lockup {
   margin: var(--spacing-sm) 0 var(--spacing-md);
-  font-family: var(--etuh-font);
-  font-weight: 800;
-  line-height: 0.92;
+  width: 100%;
+}
+
+.etuh-lockup-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 0.8vw, 10px);
+}
+
+.etuh-lockup-art img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  filter: drop-shadow(0 0 26px rgba(34, 211, 238, 0.35)) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6));
+}
+
+.etuh-lockup-explore { width: min(86vw, 620px); }
+.etuh-lockup-universe { width: min(92vw, 680px); }
+.etuh-lockup-year { width: min(46vw, 320px); margin-top: 2px; }
+
+.etuh-lockup-the {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: min(86vw, 620px);
+  font: 600 clamp(0.95rem, 2.2vw, 1.5rem)/1 var(--etuh-font);
+  letter-spacing: 0.7em;
   text-transform: uppercase;
-  color: #fff;
+  color: #e6f6ff;
+  text-shadow: 0 0 14px rgba(34, 211, 238, 0.8);
 }
 
-.etuh-title > span[aria-hidden] { display: flex; flex-direction: column; align-items: center; }
+.etuh-lockup-the span { margin-right: -0.7em; }
 
-.etuh-title-a {
-  font-size: clamp(1.3rem, 3.6vw, 2.4rem);
-  letter-spacing: 0.42em;
-  margin-right: -0.42em;
-  color: var(--c-cyan-soft);
+.etuh-lockup-the::before,
+.etuh-lockup-the::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--c-cyan) 60%, #e0faff);
+  box-shadow: 0 0 10px var(--c-cyan);
 }
 
-.etuh-title-b {
-  font-size: clamp(3.2rem, 12vw, 8.5rem);
-  letter-spacing: 0.04em;
-  background: linear-gradient(180deg, #ffffff 10%, #cffafe 45%, var(--c-cyan) 70%, #0e7490);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 28px rgba(34, 211, 238, 0.45)) drop-shadow(0 4px 0 rgba(8, 47, 73, 0.9));
+.etuh-lockup-the::after { transform: scaleX(-1); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .etuh-lockup-art img {
+    animation: etuh-charge 5s ease-in-out infinite;
+  }
+  .etuh-lockup-universe { animation-delay: 0.4s !important; }
+  .etuh-lockup-year { animation-delay: 0.8s !important; }
+  @keyframes etuh-charge {
+    50% { filter: drop-shadow(0 0 40px rgba(34, 211, 238, 0.6)) drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6)) brightness(1.08); }
+  }
 }
 
-.etuh-title-c {
-  font-size: clamp(1.6rem, 5vw, 3.4rem);
-  letter-spacing: 0.6em;
-  margin-right: -0.6em;
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--c-cyan);
-  text-shadow: 0 0 22px rgba(34, 211, 238, 0.6);
+/* Sprite-font words inside section headings */
+.etuh-typeset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+
+.etuh-type-cyl {
+  height: clamp(2.6rem, 6vw, 4.2rem);
+  width: auto;
+  filter: drop-shadow(0 0 18px rgba(167, 139, 250, 0.6));
+}
+
+.etuh-type-megabot {
+  display: block;
+  width: min(100%, 560px);
+  height: auto;
+  margin-bottom: var(--spacing-md);
+  filter: hue-rotate(155deg) saturate(1.6) drop-shadow(0 0 28px rgba(239, 68, 68, 0.55));
 }
 
 .etuh-tagline {
@@ -1306,12 +1357,28 @@
 }
 
 .etuh-final-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: var(--spacing-md) 0 var(--spacing-sm);
-  font: 800 clamp(2rem, 6vw, 4rem)/1.05 var(--etuh-font);
-  text-transform: uppercase;
-  color: #fff;
-  text-shadow: 0 0 40px rgba(249, 115, 22, 0.55);
 }
+
+.etuh-final-title img {
+  width: min(92vw, 820px);
+  height: auto;
+  filter: drop-shadow(0 0 30px rgba(249, 115, 22, 0.45));
+}
+
+.etuh-final-sub {
+  margin-top: 8px;
+  font: 700 clamp(1rem, 2.4vw, 1.5rem)/1 var(--etuh-font);
+  letter-spacing: 0.6em;
+  margin-right: -0.6em;
+  text-transform: uppercase;
+  color: #fed7aa;
+}
+
+.etuh-logo-final { width: clamp(180px, 24vw, 300px); }
 
 .etuh-final-inner > p {
   max-width: 34rem;
@@ -1352,7 +1419,5 @@
   .etuh-transmission { padding: 14px; }
 }
 
-/* The ETU lettering is cut on black: screen it onto the page */
-.etuh-emblem { mix-blend-mode: screen; }
 
 .etuh-phys .etuh-pillar-icon { align-self: flex-start; }

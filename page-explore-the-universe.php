@@ -46,9 +46,16 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         <div class="etuh-scan" aria-hidden="true"></div>
 
         <div class="container etuh-hero-inner">
+            <img class="etuh-logo" src="<?php echo esc_url(infinity_etu_type('etu-logo')); ?>" alt="" width="760" height="356" decoding="async">
             <p class="etuh-presents"><?php esc_html_e('Telford Projects presents', 'infinity'); ?></p>
-            <img class="etuh-emblem" src="<?php echo esc_url(INFINITY_URI . '/assets/img/etu-type.webp'); ?>" alt="" width="480" height="200" decoding="async">
-            <?php the_title('<h1 class="etuh-title"><span class="screen-reader-text">', '</span><span aria-hidden="true"><span class="etuh-title-a">Explore the</span> <span class="etuh-title-b">Universe</span> <span class="etuh-title-c">2175</span></span></h1>'); ?>
+            <?php the_title('<h1 class="etuh-lockup"><span class="screen-reader-text">', '</span>'); ?>
+                <span class="etuh-lockup-art" aria-hidden="true">
+                    <img class="etuh-lockup-explore" src="<?php echo esc_url(infinity_etu_type('explore')); ?>" alt="" width="1152" height="186" fetchpriority="high" decoding="async">
+                    <span class="etuh-lockup-the"><span>The</span></span>
+                    <img class="etuh-lockup-universe" src="<?php echo esc_url(infinity_etu_type('universe')); ?>" alt="" width="1201" height="195" fetchpriority="high" decoding="async">
+                    <img class="etuh-lockup-year" src="<?php echo esc_url(infinity_etu_type('2175')); ?>" alt="" width="582" height="192" decoding="async">
+                </span>
+            </h1>
             <p class="etuh-tagline"><?php esc_html_e('A new galaxy every run. A companion who remembers you.', 'infinity'); ?></p>
             <p class="etuh-pitch"><?php esc_html_e('Quests, bosses, black holes and solar storms in an open-galaxy space action-RPG, with Cyl, a crystal AI who learns who you are. Solo, or co-op for up to four pilots.', 'infinity'); ?></p>
 
@@ -178,7 +185,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
                 </div>
                 <div class="etuh-cyl-copy" data-reveal>
                     <p class="etuh-eyebrow"><?php esc_html_e('Your companion', 'infinity'); ?></p>
-                    <h2 class="etuh-h2" id="etuh-cyl-heading"><?php esc_html_e('Fly with Cyl', 'infinity'); ?></h2>
+                    <h2 class="etuh-h2 etuh-typeset" id="etuh-cyl-heading"><span class="screen-reader-text"><?php esc_html_e('Fly with Cyl', 'infinity'); ?></span><span aria-hidden="true"><?php esc_html_e('Fly with', 'infinity'); ?></span> <img src="<?php echo esc_url(infinity_etu_type('cyl')); ?>" alt="" width="489" height="199" loading="lazy" decoding="async" class="etuh-type-cyl"></h2>
                     <blockquote class="etuh-quote">“<?php esc_html_e('Names have power. Tell me yours.', 'infinity'); ?>”</blockquote>
                     <p><?php esc_html_e('Cyl is the last of the Lumari, a crystal intelligence riding on your hull. She fights beside you, recharges your shields, calls the space weather and teaches you the astronomy behind it.', 'infinity'); ?></p>
                     <p><?php esc_html_e('She asks who you are and remembers your answers, growing into a different companion because of them.', 'infinity'); ?></p>
@@ -202,6 +209,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         <!-- ================= Boss gauntlet ================= -->
         <section class="etuh-gauntlet" aria-labelledby="etuh-boss-heading">
             <div class="container">
+                <img class="etuh-type-megabot" src="<?php echo esc_url(infinity_etu_type('megabot')); ?>" alt="" width="1188" height="195" loading="lazy" decoding="async" data-reveal>
                 <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Survival', 'infinity'); ?></p>
                 <h2 class="etuh-h2" id="etuh-boss-heading" data-reveal><?php esc_html_e('He sends the others first', 'infinity'); ?></h2>
                 <p class="etuh-lede" data-reveal><?php esc_html_e('Every robot you destroy, every station you wake and every trade route you open reaches MEGABOT. When he finally moves, he decides: raid the last station you brought online, or hunt you down.', 'infinity'); ?></p>
@@ -414,8 +422,8 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         <section class="etuh-final" aria-labelledby="etuh-cta-heading" data-project="etu" data-placement="etu_hub_footer" data-project-block="etu">
             <div class="etuh-final-bg" aria-hidden="true"><img src="<?php echo esc_url(infinity_etu_img('solar-shade.webp')); ?>" alt="" loading="lazy" decoding="async"></div>
             <div class="container etuh-final-inner" data-reveal>
-                <img class="etuh-emblem" src="<?php echo esc_url(INFINITY_URI . '/assets/img/etu-type.webp'); ?>" alt="" width="480" height="200" loading="lazy" decoding="async">
-                <h2 class="etuh-final-title" id="etuh-cta-heading"><?php esc_html_e('Thrust or bust, flyboy.', 'infinity'); ?></h2>
+                <img class="etuh-logo etuh-logo-final" src="<?php echo esc_url(infinity_etu_type('etu-logo')); ?>" alt="" width="760" height="356" loading="lazy" decoding="async">
+                <h2 class="etuh-final-title" id="etuh-cta-heading"><span class="screen-reader-text"><?php esc_html_e('Thrust or bust, flyboy.', 'infinity'); ?></span><img src="<?php echo esc_url(infinity_etu_type('thrust-or-bust')); ?>" alt="" width="1400" height="133" loading="lazy" decoding="async"><span class="etuh-final-sub" aria-hidden="true"><?php esc_html_e('flyboy.', 'infinity'); ?></span></h2>
                 <p><?php esc_html_e('The galaxy is new. The machines are not. Wishlist now and fly the free demo on Steam.', 'infinity'); ?></p>
                 <div class="etuh-hero-actions">
                     <?php infinity_etu_wishlist_cta(array('campaign' => 'etu_hub_footer')); ?>
