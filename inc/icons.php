@@ -34,6 +34,12 @@ function infinity_icon_paths() {
         'leaf' => '<path d="M19.8 4.2C12 4.6 6.4 7.6 5.2 13.2c-.7 3.2 1 6 4.2 6.6 5.6 1 9.6-4.6 10.4-15.6z"/><path d="M5.8 20.2C9 15 13 11 17.6 7.8"/>',
         'wall' => '<path d="M3 6.4h18v12H3z"/><path d="M3 10.4h18M3 14.4h18M8 6.4v4M14 6.4v4M6 10.4v4M12 10.4v4M18 10.4v4M9 14.4v4M15 14.4v4"/>',
         'clipboard' => '<rect x="5" y="4.4" width="14" height="16.6" rx="2"/><path d="M9 4.4a3 3 0 0 1 6 0"/><path d="M8.6 11l2.2 2.2 4.6-4.6M8.6 16.6h6.8"/>',
+        // Living Earth sims (inc/parkers-sims.php): a planet cut open to
+        // its core, a glacier tongue calving into water, and a smokestack
+        // plume drifting into a cloud
+        'core' => '<path d="M12 3a9 9 0 1 0 9 9h-9V3z"/><path d="M12 7.4a4.6 4.6 0 1 0 4.6 4.6H12V7.4z"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><path d="M15 3.6a9 9 0 0 1 5.4 5.4"/>',
+        'glacier' => '<path d="M2.8 15.4 8 6.2l2.6 3.4 2-2.6 4.4 6.6"/><path d="M8 6.2l1 4.2-2 2.4M12.6 7l.6 3.6"/><path d="M17 13.6h3.6l-1.4 1.8"/><path d="M2.6 18.4c1.6 0 1.6 1 3.2 1s1.6-1 3.2-1 1.6 1 3.2 1 1.6-1 3.2-1 1.6 1 3.2 1 1.6-1 2.8-1"/>',
+        'smoke' => '<path d="M5 21.2V12.4h3.4v8.8M12.2 21.2v-6.6h3.4v6.6M3.4 21.2h17.2"/><path d="M6.6 9.6c0-2 1.6-2.4 1.6-4 0-1.2 1.2-2.2 2.6-2.2 1 0 1.6.4 2.2 1 .6-.6 1.4-.8 2.2-.6 1.6.4 2.2 2 1.6 3.4 1.4.2 2.4 1.2 2.4 2.6 0 1.6-1.2 2.6-2.8 2.6h-1.2"/><path d="M13.8 12.4c-.2-1.2.6-1.8.6-2.8"/>',
         'project' => '<path d="M12 2.8 21 7.4 12 12 3 7.4 12 2.8z"/><path d="M3 12.2 12 16.8 21 12.2"/><path d="M3 16.8 12 21.4 21 16.8"/>',
         /*
          * Devanagari OM. Traced against the real glyph rather than

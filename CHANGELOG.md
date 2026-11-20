@@ -3,6 +3,80 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.21.0
+
+- **Parker's Physics hub page** (`page-parkers-physics.php`,
+  `inc/parkers-hub.php`): a page on elliottelford.com for all of Parker's
+  Physics.
+  - **Hero:** the page title, a pitch and a fan of the live sim screenshots.
+  - **"Right now" readouts:** geomagnetic Kp and solar wind from NOAA SWPC,
+    and the latest M4.5+ earthquake from USGS. They're fetched server-side
+    and cached for 10 minutes, and each opens the sim that models it.
+  - **The page's own content**, as written in the editor.
+  - **The Living Earth band**, ending with EarthView.
+  - **The full catalog:** all 63 simulations in five categories, with
+    category chips and search (`assets/js/parkers-hub.js`). Without
+    JavaScript, the whole list shows.
+  - **"How it's built" and "Who it's for"** sections; the latter covers
+    educators, operators and researchers.
+  - **Blog posts that feature the sims**, plus a sign-up call to action.
+  - **Tracking:** every outbound link carries GA4/UTM placement tags
+    (`hub_hero`, `hub_live`, `hub_catalog`, …).
+  - **Schema:** the page emits CollectionPage/ItemList schema with every
+    simulation listed as a free WebApplication.
+- **Creating it:** a page with the slug `parkers-physics` uses the template
+  automatically. An admin notice offers a one-click **Create the hub
+  page**, or pick the "Parker's Physics Hub" template for any page.
+- **Catalog data:** `inc/parkers-catalog.php` is generated from Parker's
+  Physics' `simulations.html` by `tools/build-parkers-catalog.py`. Re-run
+  the script when sims are added.
+- **The site now points at the hub:**
+  - The homepage's "Browse simulations here" button went to the empty
+    `/simulations/` archive ("No items found"). It now goes to the hub,
+    as "Browse all the simulations".
+  - The empty archive itself forwards to the hub once the hub exists.
+  - The Projects page links to the hub from its Parker's Physics section.
+  - In articles, `[parkers_sims]`' "Browse every simulation" link goes to
+    the hub's catalog.
+- Posts that use the sim shortcodes or link to parkersphysics.com are
+  flagged on save, so the hub lists them. Posts tagged `parkers-physics`,
+  or with "Parker's Physics" in the title, are listed too.
+
+## 3.20.0
+
+- **Living Earth simulations** (`inc/parkers-sims.php`): shortcodes for
+  featuring Parker's Physics simulations in articles.
+  - `[parkers_sim id="…"]` renders a card for Inner Earth, Glacier Watch,
+    Pollution Lab or Earth Volcanoes. With `embed="1"` it adds a
+    "Run it here" button that loads the live simulation in place
+    (`assets/js/parkers-sims.js`).
+  - `[parkers_sims]` renders the trio as a compact band.
+  - `[climate_loop]` draws the climate feedback-loop diagram: three Earth
+    layers and five numbered links (drives / amplifies / steadies), with
+    a legend that links each one to the sim where it can be watched.
+  - All links carry the GA4 `project_click` attributes and UTM tags. Runs
+    inside the article send `project_intent` (`sim_run_here`).
+  - Posts that use the shortcodes list each sim as a `WebApplication`
+    under `mentions` in their Article JSON-LD.
+  - The stylesheet (`assets/css/parkers-sims.css`) loads only on pages
+    that use the shortcodes.
+  - Each sim's URL and card image are set in a new Customizer section,
+    **Living Earth Simulations**, which also has a site-wide embed switch.
+- The Parker's Physics feature grid on the homepage and /projects now
+  lists Glacier Watch, Pollution Lab and Inner Earth.
+- **Screenshots of the live sims** in `assets/img/sims/` (Inner Earth,
+  Glacier Watch, Pollution Lab, EarthView; WebP, 1280×800, 35–80 KB) are
+  the default card images. Each image links back to its sim on Parker's
+  Physics. `living-earth-share.jpg` (1200×630) is ready to use as a
+  featured or share image.
+- **EarthView as the next destination:** `[parkers_next]` renders a
+  "Next stop" banner (EarthView by default), and `[parkers_sims]` now ends
+  with it (`next=""` turns it off). The homepage "Real-Time Earth Weather"
+  feature now links to EarthView (`earth.html`) instead of the Parker's
+  Physics homepage.
+- New icons: `core`, `glacier`, `smoke`.
+- Launch plan and article scaffold: `LIVING_EARTH_CAMPAIGN.md`.
+
 ## Unreleased (tools only; the theme itself is unchanged)
 
 - **Reliable GA4 reports:** bounded retries and timeouts for reporting reads,

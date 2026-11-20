@@ -529,8 +529,8 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                         <a class="fp-btn-primary fp-btn-big" href="<?php echo esc_url(infinity_project_href($parkers_url, 'home_parkers_band', 'primary')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('parkers', 'home_parkers_band', 'primary'); ?>>
                             <?php esc_html_e('Explore Earth Weather in Real-Time', 'infinity'); ?> &rarr;
                         </a>
-                        <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url(home_url('/simulations/')); ?>">
-                            <?php esc_html_e('Browse simulations here', 'infinity'); ?>
+                        <a class="fp-btn-secondary fp-btn-big" href="<?php echo esc_url(infinity_parkers_hub_url() ?: home_url('/simulations/')); ?>">
+                            <?php esc_html_e('Browse all the simulations', 'infinity'); ?>
                         </a>
                     </div>
                     <?php infinity_render_feature_grid('parkers', __("Parker's Physics features", 'infinity'), 'home_parkers_band'); ?>

@@ -307,3 +307,16 @@ body:has(.site-header.sticky-header) .pj-project {
     transform: none;
   }
 }
+
+/* Parker's Physics: the on-site hub (page-parkers-physics.php) */
+.pj-hub-link {
+  display: inline-block;
+  margin-top: var(--spacing-md);
+  color: var(--color-accent-tertiary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pj-hub-link:hover {
+  text-decoration: underline;
+}
