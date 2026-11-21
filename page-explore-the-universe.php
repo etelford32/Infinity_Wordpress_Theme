@@ -62,7 +62,11 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
                     <span class="etuh-word etuh-lockup-year" style="--m:url('<?php echo esc_url(infinity_etu_type('2175')); ?>')"><img src="<?php echo esc_url(infinity_etu_type('2175')); ?>" alt="" width="582" height="192" decoding="async"></span>
                 </span>
             </h1>
-            <p class="etuh-tagline"><?php esc_html_e('A new galaxy every run. A companion who remembers you.', 'infinity'); ?></p>
+            <?php $infinity_tags = infinity_etu_hub_taglines(); ?>
+            <p class="etuh-tagline">
+                <span class="screen-reader-text"><?php echo esc_html(implode(' ', $infinity_tags)); ?></span>
+                <span class="etuh-tagline-rotor" aria-hidden="true" data-lines="<?php echo esc_attr(wp_json_encode($infinity_tags)); ?>"><?php echo esc_html($infinity_tags[0]); ?></span>
+            </p>
             <p class="etuh-pitch"><?php esc_html_e('Quests, bosses, black holes and solar storms in an open-galaxy space action-RPG, with Cyl, a crystal AI who learns who you are. Solo, or co-op for up to four pilots.', 'infinity'); ?></p>
 
             <div class="etuh-demo" data-etuh-countdown data-at="<?php echo esc_attr(infinity_etu_demo_at()); ?>"<?php echo $infinity_live ? ' data-live' : ''; ?>>
@@ -109,6 +113,18 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         </div>
     </header>
 
+    <div class="etuh-ticker" aria-hidden="true">
+        <div class="etuh-ticker-track">
+            <?php for ($infinity_rep = 0; $infinity_rep < 2; $infinity_rep++) : ?>
+                <span class="etuh-ticker-run">
+                    <?php foreach ($infinity_tags as $infinity_tag) : ?>
+                        <span class="etuh-ticker-item"><?php echo esc_html(rtrim($infinity_tag, '.')); ?></span><span class="etuh-ticker-sep">✦</span>
+                    <?php endforeach; ?>
+                </span>
+            <?php endfor; ?>
+        </div>
+    </div>
+
     <div class="etuh-body">
 
         <?php if (trim(get_the_content())) : ?>
@@ -120,7 +136,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         <!-- ================= Trailer ================= -->
         <section class="etuh-section container" id="etuh-trailer" aria-labelledby="etuh-trailer-heading" data-reveal>
             <p class="etuh-eyebrow"><?php esc_html_e('Cinematic trailer', 'infinity'); ?></p>
-            <h2 class="etuh-h2" id="etuh-trailer-heading"><?php esc_html_e('Space is beautiful, and it wants you dead', 'infinity'); ?></h2>
+            <h2 class="etuh-h2" id="etuh-trailer-heading"><?php esc_html_e('Be the hero in a galaxy at war', 'infinity'); ?></h2>
             <div class="etuh-theater" data-trailer="<?php echo esc_url(infinity_etu_trailer_url()); ?>" data-fallback="<?php echo esc_url(infinity_etu_site_link('', 'etu_hub_trailer', 'trailer_fallback')); ?>">
                 <img class="etuh-theater-poster" src="<?php echo esc_url(infinity_etu_img('hero-megabot-chase.webp')); ?>" alt="<?php esc_attr_e('A lone white fighter banks away from the colossal MEGABOT in front of a burning star', 'infinity'); ?>" loading="lazy" decoding="async" width="1122" height="760">
                 <button type="button" class="etuh-theater-play" data-project="etu" data-placement="etu_hub_trailer" data-cta="play_trailer">
@@ -142,8 +158,8 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
 
         <!-- ================= Pillars ================= -->
         <section class="etuh-section container" aria-labelledby="etuh-pillars-heading">
-            <p class="etuh-eyebrow" data-reveal><?php esc_html_e('What is in the game', 'infinity'); ?></p>
-            <h2 class="etuh-h2" id="etuh-pillars-heading" data-reveal><?php esc_html_e('Chart the unknown. Break what lives there.', 'infinity'); ?></h2>
+            <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Your mission', 'infinity'); ?></p>
+            <h2 class="etuh-h2" id="etuh-pillars-heading" data-reveal><?php esc_html_e('Chart a course for the unknown', 'infinity'); ?></h2>
             <div class="etuh-pillars">
                 <?php foreach (infinity_etu_hub_features() as $i => $f) : ?>
                     <div class="etuh-pillar" data-reveal style="--d:<?php echo (int) $i; ?>">
@@ -220,9 +236,9 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
             <span class="etuh-alarm" aria-hidden="true"></span>
             <div class="container">
                 <img class="etuh-type-megabot" src="<?php echo esc_url(infinity_etu_type('megabot')); ?>" alt="" width="1188" height="195" loading="lazy" decoding="async" data-reveal>
-                <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Survival', 'infinity'); ?></p>
-                <h2 class="etuh-h2" id="etuh-boss-heading" data-reveal><?php esc_html_e('He sends the others first', 'infinity'); ?></h2>
-                <p class="etuh-lede" data-reveal><?php esc_html_e('Every robot you destroy, every station you wake and every trade route you open reaches MEGABOT. When he finally moves, he decides: raid the last station you brought online, or hunt you down.', 'infinity'); ?></p>
+                <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Survival · The Machine Empire', 'infinity'); ?></p>
+                <h2 class="etuh-h2" id="etuh-boss-heading" data-reveal><?php esc_html_e('Escape MEGABOT\'s influence', 'infinity'); ?></h2>
+                <p class="etuh-lede" data-reveal><?php esc_html_e('His reach is everywhere. Every robot you destroy, every station you wake and every trade route you open reaches MEGABOT. He sends the others first. When he finally moves, he decides: raid the last station you brought online, or hunt you down.', 'infinity'); ?></p>
 
                 <figure class="etuh-transmission" data-reveal>
                     <figcaption><span class="etuh-rec" aria-hidden="true"></span> <?php esc_html_e('Incoming transmission · MEGABOT', 'infinity'); ?></figcaption>
@@ -248,8 +264,8 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
 
         <!-- ================= Factions ================= -->
         <section class="etuh-section container" aria-labelledby="etuh-fac-heading">
-            <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Factions', 'infinity'); ?></p>
-            <h2 class="etuh-h2" id="etuh-fac-heading" data-reveal><?php esc_html_e('Truce before teeth', 'infinity'); ?></h2>
+            <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Factions · Truce before teeth', 'infinity'); ?></p>
+            <h2 class="etuh-h2" id="etuh-fac-heading" data-reveal><?php esc_html_e('A galaxy at war. Pick your allies.', 'infinity'); ?></h2>
             <p class="etuh-lede" data-reveal><?php esc_html_e('Send envoys, pay tribute, seal alliances, call ceasefires or go to war. An alliance always angers someone.', 'infinity'); ?></p>
             <div class="etuh-factions">
                 <?php foreach (infinity_etu_hub_factions() as $i => $f) : ?>
@@ -296,7 +312,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         <!-- ================= Poster wall ================= -->
         <section class="etuh-section container" aria-labelledby="etuh-art-heading">
             <p class="etuh-eyebrow" data-reveal><?php esc_html_e('Key art', 'infinity'); ?></p>
-            <h2 class="etuh-h2" id="etuh-art-heading" data-reveal><?php esc_html_e('Pick a side. Hang it on your wall.', 'infinity'); ?></h2>
+            <h2 class="etuh-h2" id="etuh-art-heading" data-reveal><?php esc_html_e('Join the rebellion. Hang it on your wall.', 'infinity'); ?></h2>
             <div class="etuh-posters">
                 <?php
                 $infinity_posters = array(
@@ -370,7 +386,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
                 </div>
                 <div class="etuh-card etuh-community" data-reveal>
                     <p class="etuh-eyebrow"><?php esc_html_e('Signal boost', 'infinity'); ?></p>
-                    <h2 class="etuh-h3"><?php esc_html_e('Know a pilot? Send them the coordinates.', 'infinity'); ?></h2>
+                    <h2 class="etuh-h3"><?php esc_html_e('Recruit your wingmates', 'infinity'); ?></h2>
                     <p><?php esc_html_e('Independent games launch on word of mouth. Join the Discord, follow the devlog, and share this with a friend who loves space games.', 'infinity'); ?></p>
                     <div class="etuh-row">
                         <a class="pph-chip" href="<?php echo esc_url(infinity_etu_site_link('discord', 'etu_hub_share', 'discord')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'etu_hub_share', 'discord'); ?>><?php esc_html_e('Join the Discord', 'infinity'); ?></a>
@@ -379,7 +395,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
                     </div>
                     <div class="etuh-row etuh-share-row">
                         <?php
-                        $infinity_share_text = __('I\'m an astrophysicist making a space game where every black hole is different. Explore the Universe 2175: free demo on Steam.', 'infinity');
+                        $infinity_share_text = __('Discover new worlds, escape MEGABOT\'s influence and rebel against the evil robots. Explore the Universe 2175: free demo on Steam.', 'infinity');
                         foreach (infinity_etu_share_links(get_permalink(), $infinity_share_text) as $infinity_net => $infinity_s) :
                             ?>
                             <a class="pph-chip etuh-share-btn" href="<?php echo esc_url($infinity_s[1]); ?>" target="_blank" rel="noopener" data-project="etu" data-placement="etu_hub_share" data-cta="<?php echo esc_attr('share_' . $infinity_net); ?>"><?php echo esc_html($infinity_s[0]); ?></a>
@@ -433,8 +449,8 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
             <div class="etuh-final-bg" aria-hidden="true"><img src="<?php echo esc_url(infinity_etu_img('solar-shade.webp')); ?>" alt="" loading="lazy" decoding="async"></div>
             <div class="container etuh-final-inner" data-reveal>
                 <img class="etuh-logo etuh-logo-final" src="<?php echo esc_url(infinity_etu_type('etu-logo')); ?>" alt="" width="760" height="356" loading="lazy" decoding="async">
-                <h2 class="etuh-final-title" id="etuh-cta-heading"><span class="screen-reader-text"><?php esc_html_e('Thrust or bust, flyboy.', 'infinity'); ?></span><img src="<?php echo esc_url(infinity_etu_type('thrust-or-bust')); ?>" alt="" width="1400" height="133" loading="lazy" decoding="async"><span class="etuh-final-sub" aria-hidden="true"><?php esc_html_e('flyboy.', 'infinity'); ?></span></h2>
-                <p><?php esc_html_e('The galaxy is new. The machines are not. Wishlist now and fly the free demo on Steam.', 'infinity'); ?></p>
+                <h2 class="etuh-final-title" id="etuh-cta-heading"><span class="screen-reader-text"><?php esc_html_e('Rebel against the evil robots.', 'infinity'); ?></span><img src="<?php echo esc_url(infinity_etu_type('rebel')); ?>" alt="" width="1400" height="254" loading="lazy" decoding="async"><span class="etuh-final-sub" aria-hidden="true"><?php esc_html_e('Thrust or bust, flyboy.', 'infinity'); ?></span></h2>
+                <p><?php esc_html_e('Discover new worlds. Escape MEGABOT\'s influence. Be the hero the galaxy needs. Wishlist now and fly the free demo on Steam.', 'infinity'); ?></p>
                 <div class="etuh-hero-actions">
                     <?php infinity_etu_wishlist_cta(array('campaign' => 'etu_hub_footer')); ?>
                     <a class="etuh-btn etuh-btn-glow" href="<?php echo esc_url(infinity_etu_site_link('', 'etu_hub_footer', 'home')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'etu_hub_footer', 'home'); ?>><?php esc_html_e('Visit ExploreTheUniverse2175.com', 'infinity'); ?> <span aria-hidden="true">&rarr;</span></a>

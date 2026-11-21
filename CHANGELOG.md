@@ -10,6 +10,19 @@ entries are in release order, newest first.
   cinematic marketing page for the game. All copy comes from the game's own
   site and Marketing Kit (`etelford32/ETUWebsite`, `docs/MARKETING_KIT.md`),
   and follows its "claims to avoid".
+  - **Taglines:** "Discover new worlds. Chart a course for the unknown.
+    Escape MEGABOT's influence. Be the hero in a galaxy at war. Rebel
+    against the evil robots."
+    - The hero decodes from one line to the next, burning red on the
+      MEGABOT and evil-robot lines; it holds still while the hero is off
+      screen.
+    - A ticker band under the hero carries all five.
+    - The section headings follow them, and the closing title reads "Rebel
+      against the evil robots" in the official lettering.
+    - Edit them in one place: `infinity_etu_hub_taglines()`.
+    - The homepage game band, the Projects page, the promo widget, the
+      share text, the schema description and the page excerpt use the
+      same lines.
   - **Official typography and logo:** the hero title is the official
     lockup (EXPLORE, a ruled THE, UNIVERSE, 2175), rendered from the
     game's own sprite font by ETUWebsite's `scripts/render-title.py`, so

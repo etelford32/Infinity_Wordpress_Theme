@@ -129,6 +129,20 @@ function infinity_etu_img($name) {
 }
 
 /**
+ * The game's taglines, in story order: explore, then resist. The hero
+ * cycles through them and the ticker band repeats them.
+ */
+function infinity_etu_hub_taglines() {
+    return apply_filters('infinity_etu_hub_taglines', array(
+        __('Discover new worlds.', 'infinity'),
+        __('Chart a course for the unknown.', 'infinity'),
+        __('Escape MEGABOT\'s influence.', 'infinity'),
+        __('Be the hero in a galaxy at war.', 'infinity'),
+        __('Rebel against the evil robots.', 'infinity'),
+    ));
+}
+
+/**
  * The galaxy in four numbers (ETUWebsite src/app/page.tsx NUMBERS).
  */
 function infinity_etu_hub_numbers() {
@@ -146,10 +160,10 @@ function infinity_etu_hub_numbers() {
  */
 function infinity_etu_hub_features() {
     return apply_filters('infinity_etu_hub_features', array(
-        array('earth', __('A New Galaxy Every Run', 'infinity'), __('Spiral arms, nebulae, pulsars and thousands of worlds.', 'infinity'), __('Generated fresh from a seed every run, across sixteen themed regions, from fungal jungles to the frozen Outer Rim.', 'infinity')),
-        array('sun', __('Real Cosmic Danger', 'infinity'), __('Slingshot around black holes. Outrun solar storms.', 'infinity'), __('Flares and coronal mass ejections follow real observations, and no two black holes look or behave the same.', 'infinity')),
+        array('earth', __('Discover New Worlds', 'infinity'), __('A new spiral galaxy every run, with thousands of worlds.', 'infinity'), __('Generated fresh from a seed every run, across sixteen themed regions, from fungal jungles to the frozen Outer Rim.', 'infinity')),
+        array('sun', __('Chart a Course for the Unknown', 'infinity'), __('Slingshot around black holes. Outrun solar storms.', 'infinity'), __('Flares and coronal mass ejections follow real observations, and no two black holes look or behave the same.', 'infinity')),
         array('spark', __('Quests and a Buried Mystery', 'infinity'), __('Wake ancient stations and earn the trust of strange allies.', 'infinity'), __('Dwarves, bear kings and fungal queens. Follow the Khepri Signal with Cyl to learn why her people, the Lumari, were erased.', 'infinity')),
-        array('core', __('Bosses Built to Be Broken', 'infinity'), __('Strip MEGABOT\'s armour plate by plate.', 'infinity'), __('Escape the Null Architect\'s prison rooms. Outlast a new boss every few minutes. MEGABOT remembers what you did to his empire.', 'infinity')),
+        array('core', __('Break the Machine Empire', 'infinity'), __('Strip MEGABOT\'s armour plate by plate.', 'infinity'), __('Escape the Null Architect\'s prison rooms. Outlast a new boss every few minutes. MEGABOT remembers what you did to his empire.', 'infinity')),
         array('ship', __('Bring a Squad', 'infinity'), __('Co-op Survival for up to four pilots.', 'infinity'), __('Fill the empty seats with AI wingmates: Vega flies escort, Orion hunts and Lyra patches you up.', 'infinity')),
         array('rocket', __('Build Your Ship', 'infinity'), __('Twenty-nine abilities and three doctrines.', 'infinity'), __('Quantum Lattice, Plasma Furnace or Event Horizon reshape your lasers, missiles, mines, shields and thrusters together.', 'infinity')),
     ));
@@ -383,7 +397,7 @@ function infinity_etu_hub_schema() {
         'url'                 => trailingslashit($urls['etu']),
         'sameAs'              => array($steam, get_permalink()),
         'image'               => infinity_etu_img('hero-megabot-chase.webp'),
-        'description'         => __('Explore a new galaxy every run: quests, bosses, black holes and solar storms, with a crystal AI companion who learns who you are.', 'infinity'),
+        'description'         => __('Discover new worlds, chart a course for the unknown and rebel against the evil robots: an open-galaxy space action-RPG with a new galaxy every run, real black holes and solar storms, and a crystal AI companion who learns who you are.', 'infinity'),
         'genre'               => array('Action RPG', 'Space', 'Exploration', 'Procedural Generation', 'Sci-fi'),
         'gamePlatform'        => array('Windows', 'macOS', 'Linux'),
         'operatingSystem'     => 'Windows, macOS, Linux',
@@ -463,7 +477,7 @@ function infinity_etu_create_hub() {
             'post_status'  => 'publish',
             'post_title'   => 'Explore the Universe 2175',
             'post_name'    => 'explore-the-universe',
-            'post_excerpt' => __('A new galaxy every run. A companion who remembers you. Explore the Universe 2175 is an open-galaxy space action-RPG with real black holes, solar storms and bosses built to be broken. Free demo on Steam.', 'infinity'),
+            'post_excerpt' => __('Discover new worlds. Chart a course for the unknown. Escape MEGABOT\'s influence. Be the hero in a galaxy at war, and rebel against the evil robots. Explore the Universe 2175: free demo on Steam.', 'infinity'),
             'post_content' => "<!-- wp:paragraph -->\n<p>" . esc_html__("Explore the Universe 2175 is the game I'm building at Telford Projects: an open-galaxy space adventure where the black holes, the solar storms and the orbits are real astrophysics. Here's everything in it, and how to fly it first.", 'infinity') . "</p>\n<!-- /wp:paragraph -->",
             'meta_input'   => array('_wp_page_template' => 'page-explore-the-universe.php'),
         ), true);

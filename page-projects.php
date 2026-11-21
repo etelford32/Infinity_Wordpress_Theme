@@ -37,7 +37,7 @@ $infinity_projects = apply_filters('infinity_projects', array(
         'icon'      => 'rocket',
         'intent'    => __('I want to play', 'infinity'),
         'intent_sub'=> __('An open-galaxy space action-RPG', 'infinity'),
-        'pitch'     => __('A new galaxy every run. A companion who remembers you. Quests, bosses, black holes and solar storms, with Cyl, a crystal AI who learns who you are.', 'infinity'),
+        'pitch'     => __('Discover new worlds and chart a course for the unknown. Escape MEGABOT\'s influence, be the hero in a galaxy at war, and rebel against the evil robots, with Cyl, a crystal AI who learns who you are.', 'infinity'),
         'proof'     => array(
             __('Real black holes, solar flares and orbits: the same physics that runs the simulations on this site', 'infinity'),
             __('Cyl, a companion who learns who you are, and MEGABOT, who remembers what you did to his empire', 'infinity'),

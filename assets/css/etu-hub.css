@@ -1849,3 +1849,85 @@
   .etuh-js .etuh-panel-copy { opacity: 1; translate: none; }
   .etuh-warp { display: none; }
 }
+
+/* ---- Taglines: hero rotor + ticker band ---------------------------- */
+
+.etuh-tagline {
+  min-height: 1.35em;
+  font-size: clamp(1.25rem, 2.8vw, 1.85rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.etuh-tagline-rotor {
+  display: inline-block;
+  background: linear-gradient(90deg, #ffffff, #a5f3fc 55%, #f0abfc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 16px rgba(34, 211, 238, 0.45));
+}
+
+.etuh-tagline-rotor.is-decoding { filter: drop-shadow(-2px 0 rgba(232, 121, 249, 0.8)) drop-shadow(2px 0 rgba(34, 211, 238, 0.8)); }
+
+/* The "evil robots" and MEGABOT lines burn red */
+.etuh-tagline-rotor.is-threat {
+  background-image: linear-gradient(90deg, #fff1f2, #fca5a5 50%, #f97316);
+  filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.55));
+}
+
+.etuh-ticker {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding: 14px 0;
+  border-top: 1px solid rgba(34, 211, 238, 0.3);
+  border-bottom: 1px solid rgba(34, 211, 238, 0.3);
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.12), rgba(167, 139, 250, 0.1), rgba(239, 68, 68, 0.12));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.etuh-ticker-track {
+  display: flex;
+  width: max-content;
+}
+
+.etuh-ticker-run {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.etuh-ticker-item {
+  padding: 0 22px;
+  font: 800 clamp(0.95rem, 1.8vw, 1.25rem)/1 var(--etuh-font);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #e6f6ff;
+  text-shadow: 0 0 14px rgba(34, 211, 238, 0.55);
+}
+
+.etuh-ticker-item:nth-child(4n + 1) { color: var(--c-cyan-soft); }
+.etuh-ticker-item:nth-child(n + 5):nth-child(-n + 10) { color: #fecaca; text-shadow: 0 0 14px rgba(239, 68, 68, 0.6); }
+
+.etuh-ticker-sep {
+  font-size: 0.9rem;
+  color: var(--c-magenta);
+  text-shadow: 0 0 10px var(--c-magenta);
+}
+
+.etuh-motion .etuh-ticker-track { animation: etuh-ticker 38s linear infinite; }
+.etuh-ticker:hover .etuh-ticker-track { animation-play-state: paused; }
+
+@keyframes etuh-ticker { to { transform: translateX(-50%); } }
+
+/* Without motion: one static, wrapping run */
+@media (prefers-reduced-motion: reduce) {
+  .etuh-ticker-track { width: auto; flex-wrap: wrap; justify-content: center; }
+  .etuh-ticker-run + .etuh-ticker-run { display: none; }
+  .etuh-ticker-run { flex-wrap: wrap; justify-content: center; row-gap: 8px; }
+}
+
+.etuh-final-title img { width: min(94vw, 900px); }

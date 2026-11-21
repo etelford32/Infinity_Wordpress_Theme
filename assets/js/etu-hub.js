@@ -285,7 +285,7 @@
         b.classList.add('is-done');
         return;
       }
-      var start = performance.now() + 2300; // after the hero intro lands
+      var start = Math.max(performance.now(), t0 + 2300); // after the hero intro lands, never later
       var dur = 1500;
       var step = function (t) {
         var p = Math.max(0, Math.min(1, (t - start) / dur));
@@ -326,6 +326,57 @@
       };
       requestAnimationFrame(step);
     }, { threshold: 0.6 });
+  }
+
+  /* ================= Hero tagline rotor ================= */
+  var rotor = root.querySelector('.etuh-tagline-rotor');
+  if (rotor) {
+    var tags = [];
+    try { tags = JSON.parse(rotor.getAttribute('data-lines')) || []; } catch (e) {}
+    if (tags.length > 1) {
+      var ti = 0;
+      var CH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+<>/';
+      var threat = function (t) { return /megabot|robot/i.test(t); };
+      var show = function (text) {
+        rotor.classList.toggle('is-threat', threat(text));
+        if (!motion) {
+          rotor.textContent = text;
+          return;
+        }
+        var from = rotor.textContent;
+        var len = Math.max(from.length, text.length);
+        var start = performance.now();
+        var dur = 700;
+        rotor.classList.add('is-decoding');
+        var step = function (t) {
+          var p = Math.min(1, (t - start) / dur);
+          var solved = Math.floor(len * p);
+          var out = '';
+          for (var i = 0; i < len; i++) {
+            var c = text.charAt(i);
+            if (i < solved) out += c;
+            else if (c === ' ') out += ' ';
+            else if (i < text.length || Math.random() > p) out += CH.charAt((Math.random() * CH.length) | 0);
+          }
+          rotor.textContent = out;
+          if (p < 1) requestAnimationFrame(step);
+          else {
+            rotor.textContent = text;
+            rotor.classList.remove('is-decoding');
+          }
+        };
+        requestAnimationFrame(step);
+      };
+      var cycle = function () {
+        // Only advance while the hero is on screen and the tab is visible
+        if (heroOn && !document.hidden) {
+          ti = (ti + 1) % tags.length;
+          show(tags[ti]);
+        }
+        setTimeout(cycle, 3400);
+      };
+      setTimeout(cycle, motion ? 4200 : 4000); // let the intro land first
+    }
   }
 
   /* ================= Card tilt + spotlight ================= */
