@@ -499,13 +499,16 @@ $infinity_lead_pillar = $infinity_lead_ids ? infinity_post_pillar($infinity_lead
                     <p class="fp-kicker"><?php esc_html_e('Now on Steam', 'infinity'); ?></p>
                     <h2 class="fp-section-title" id="fp-steam-heading"><?php echo esc_html($steam_label); ?> 2175</h2>
                     <p class="fp-section-intro">
-                        <?php esc_html_e('The year is 2175 and the frontier is open. Command your own ship in a living galaxy built on real orbital mechanics — the same physics running in the simulations on this site. Wishlist it on Steam, then create a free account to follow development and fly with the first wave of pilots.', 'infinity'); ?>
+                        <?php esc_html_e('Discover new worlds. Chart a course for the unknown. Escape MEGABOT\'s influence and be the hero in a galaxy at war, in a new galaxy every run, built on the same real physics as the simulations on this site. Wishlist it on Steam and fly the free demo.', 'infinity'); ?>
                     </p>
                     <div class="fp-band-actions">
                         <?php infinity_etu_wishlist_cta(array('campaign' => 'homepage_band')); ?>                        <a class="fp-btn-secondary" href="<?php echo esc_url(infinity_project_href($etu_site_url, 'home_etu_band', 'secondary')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'home_etu_band', 'secondary'); ?>>
                             <?php esc_html_e('Sign up at ExploreTheUniverse2175.com', 'infinity'); ?>
                         </a>
                     </div>
+                    <?php if (infinity_etu_hub_url()) : ?>
+                        <a class="fp-etu-hub-link" href="<?php echo esc_url(infinity_etu_hub_url()); ?>"><?php esc_html_e('Trailer, bosses, factions and the demo countdown: the full game page', 'infinity'); ?> &rarr;</a>
+                    <?php endif; ?>
                     <p class="fp-steam-hype">
                         <?php esc_html_e('Every wishlist moves the launch algorithm — if the simulations on this site light you up, this is the button that funds more of them.', 'infinity'); ?>
                     </p>

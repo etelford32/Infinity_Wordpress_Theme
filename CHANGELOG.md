@@ -3,6 +3,85 @@
 Versions map to the `Version:` header in `style.css`. Dates are omitted;
 entries are in release order, newest first.
 
+## 3.22.0
+
+- **Explore the Universe 2175 hub page** (`page-explore-the-universe.php`,
+  `inc/etu-hub.php`, `assets/css/etu-hub.css`, `assets/js/etu-hub.js`): a
+  cinematic marketing page for the game. All copy comes from the game's own
+  site and Marketing Kit (`etelford32/ETUWebsite`, `docs/MARKETING_KIT.md`),
+  and follows its "claims to avoid".
+  - **Taglines:** "Discover new worlds. Chart a course for the unknown.
+    Escape MEGABOT's influence. Be the hero in a galaxy at war. Rebel
+    against the evil robots."
+    - The hero decodes from one line to the next, burning red on the
+      MEGABOT and evil-robot lines; it holds still while the hero is off
+      screen.
+    - A ticker band under the hero carries all five.
+    - The section headings follow them, and the closing title reads "Rebel
+      against the evil robots" in the official lettering.
+    - Edit them in one place: `infinity_etu_hub_taglines()`.
+    - The homepage game band, the Projects page, the promo widget, the
+      share text, the schema description and the page excerpt use the
+      same lines.
+  - **Official typography and logo:** the hero title is the official
+    lockup (EXPLORE, a ruled THE, UNIVERSE, 2175), rendered from the
+    game's own sprite font by ETUWebsite's `scripts/render-title.py`, so
+    the glyphs, kerning and spacing match the game site. The ETU logo is
+    the official lettering cut off its black. Both also mark the MEGABOT
+    section (in red), "Fly with CYL" and the closing "Thrust or bust".
+    Files: `assets/img/etu/type/`.
+  - **Hero:** full-bleed MEGABOT key art and "A new
+    galaxy every run. A companion who remembers you." A live countdown to
+    the free Steam demo (Thanksgiving, November 26) flips to "out now" by
+    itself. Then the wishlist button, demo-day sign-up, and the galaxy in
+    four counting numbers.
+  - **Cinematic trailer:** click-to-play from ExploreTheUniverse2175.com.
+  - **Six pillars:** a new galaxy every run, real cosmic danger, quests,
+    bosses, co-op and ship builds.
+  - **Showcase panels:** the Solar Shade, the Crimson Eye (with the Evil
+    Eye loop), the Space Dwarves and the Mycelari.
+  - **Cyl:** her line, her four archetypes and her docked stats.
+  - **Boss gauntlet:** MEGABOT's lines type out as an incoming
+    transmission over the Survival boss order.
+  - **Six factions**, linking to their pages on the game site.
+  - **Real astrophysics:** each phenomenon is paired with the Parker's
+    Physics sim of the same thing.
+  - **Then:** the poster wall (pointer tilt), a three-step demo-day
+    checklist with the Steam widget, soundtrack, Discord, devlog and share
+    links, blog posts, an FAQ, and a closing call to action.
+  - **Motion:**
+    - The hero arrives at warp speed on a canvas starfield that settles to
+      a drift, steered by the pointer, with engine sparks trailing the
+      cursor. The canvas pauses whenever the hero is off screen.
+    - The official lettering slams in word by word, with a lens flare and
+      a hit-shake when UNIVERSE lands. 2175 flickers on, and a glint
+      sweeps across the exact letter shapes.
+    - Pointer and scroll parallax.
+    - Section headings decode from scrambled glyphs.
+    - Every card tilts in 3D under a cursor spotlight.
+    - The showcase art wipes in and drifts with scroll.
+    - MEGABOT's section fires a red alarm and shake on entry, runs a laser
+      sweep, and glitches its boss cards in.
+    - Cyl has orbiting lights.
+    - Countdown digits glitch-flip as they change.
+    - Buttons shine, and clicks burst into sparks.
+    - Factions get a scanner sweep on hover.
+  - **Accessibility:** under reduced motion, nothing animates or
+    autoplays, and without JS nothing is hidden.
+  - **Art:** 17 pieces of key art, posters, emblems and boss sprites, plus
+    the Evil Eye loop, are bundled as WebP/MP4 in `assets/img/etu/`
+    (2.4 MB in total, lazy-loaded).
+  - **Tracking:** every link carries GA4/UTM placement tags (`etu_hub_*`).
+  - **Schema:** VideoGame JSON-LD (platforms, 1–4 players, publisher,
+    trailer) and FAQPage. The key art is the social card image (new
+    `infinity_og_image` filter).
+- **Creating it:** a page with the slug `explore-the-universe` uses the
+  template automatically. An admin notice offers a one-click **Create the
+  game hub page**.
+- **Elsewhere on the site:** the homepage's game band and the Projects page
+  link to the hub. The Projects page's game copy no longer says enemies
+  learn your tactics; per the Marketing Kit, Cyl is what learns you.
+
 ## 3.21.0
 
 - **Parker's Physics hub page** (`page-parkers-physics.php`,

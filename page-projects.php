@@ -36,16 +36,16 @@ $infinity_projects = apply_filters('infinity_projects', array(
         'status'    => __('Wishlist open on Steam', 'infinity'),
         'icon'      => 'rocket',
         'intent'    => __('I want to play', 'infinity'),
-        'intent_sub'=> __('A 2D space sci-fi game with adaptive AI', 'infinity'),
-        'pitch'     => __('Command your own ship in a living galaxy. The year is 2175, the frontier is open, and the ships, factions and pirates learn how you play and adapt to it.', 'infinity'),
+        'intent_sub'=> __('An open-galaxy space action-RPG', 'infinity'),
+        'pitch'     => __('Discover new worlds and chart a course for the unknown. Escape MEGABOT\'s influence, be the hero in a galaxy at war, and rebel against the evil robots, with Cyl, a crystal AI who learns who you are.', 'infinity'),
         'proof'     => array(
-            __('Real orbital mechanics: the same physics that runs the simulations on this site', 'infinity'),
-            __('Machine-learning opponents that change their tactics to counter yours', 'infinity'),
+            __('Real black holes, solar flares and orbits: the same physics that runs the simulations on this site', 'infinity'),
+            __('Cyl, a companion who learns who you are, and MEGABOT, who remembers what you did to his empire', 'infinity'),
             __('Every wishlist pushes the launch up Steam’s discovery queue', 'infinity'),
         ),
         'primary'   => 'wishlist',
         'secondary' => array(
-            'label' => __('Join the first wave at ExploreTheUniverse2175.com', 'infinity'),
+            'label' => __('Sign up for the free demo at ExploreTheUniverse2175.com', 'infinity'),
             'url'   => $infinity_urls['etu'],
         ),
         'media'     => array('type' => $infinity_etu_video ? 'video' : 'img', 'src' => $infinity_etu_video ?: $infinity_etu_art, 'poster' => $infinity_etu_art),
@@ -201,6 +201,11 @@ $infinity_primary_cta = function ($key, $p, $placement) {
                             </a>
                         <?php endif; ?>
                     </div>
+                    <?php if ('etu' === $key && infinity_etu_hub_url()) : ?>
+                        <a class="pj-hub-link" href="<?php echo esc_url(infinity_etu_hub_url()); ?>">
+                            <?php esc_html_e('The trailer, the bosses, the factions and the free demo countdown', 'infinity'); ?> &rarr;
+                        </a>
+                    <?php endif; ?>
                     <?php if ('parkers' === $key && infinity_parkers_hub_url()) : ?>
                         <a class="pj-hub-link" href="<?php echo esc_url(infinity_parkers_hub_url()); ?>">
                             <?php

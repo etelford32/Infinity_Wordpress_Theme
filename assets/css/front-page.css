@@ -918,3 +918,16 @@
   .bh-gal-tag { transition: none; }
   .bh-gal-ring { animation: none; }
 }
+
+/* Homepage ETU band: link to the game hub (inc/etu-hub.php) */
+.fp-etu-hub-link {
+  display: inline-block;
+  margin-top: var(--spacing-md);
+  font-weight: 600;
+  color: var(--color-accent-tertiary);
+  text-decoration: none;
+}
+
+.fp-etu-hub-link:hover {
+  text-decoration: underline;
+}

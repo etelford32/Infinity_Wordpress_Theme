@@ -295,7 +295,7 @@ function infinity_etu_promo_card() {
             <h3 class="promo-title"><?php esc_html_e('Explore the Universe 2175', 'infinity'); ?></h3>
         </div>
         <p class="promo-copy">
-            <?php esc_html_e('Command your own ship in a living galaxy. The year is 2175 — the frontier is open, and the first wave of pilots is signing up now.', 'infinity'); ?>
+            <?php esc_html_e('Discover new worlds. Escape MEGABOT\'s influence. Rebel against the evil robots. Fly the free demo on Steam.', 'infinity'); ?>
         </p>
         <?php infinity_etu_wishlist_cta(array('size' => 'md', 'campaign' => 'promo_card')); ?>
         <a class="promo-btn promo-btn-outline" href="<?php echo esc_url(infinity_project_href($urls['etu'], 'widget', 'promo_card')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'widget', 'promo_card'); ?>>
