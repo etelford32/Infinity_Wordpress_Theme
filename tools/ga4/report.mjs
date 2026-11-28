@@ -15,7 +15,7 @@ export function failure(error, stage, propertyId) {
 }
 
 export function unavailable(site, error) {
-  return { summary: null, inbound: null, outcomes: null, outbound: site.hub ? null : [], errors: [error] };
+  return { summary: null, acquisition: null, landing: null, inbound: null, outcomes: null, outbound: site.hub ? null : [], errors: [error] };
 }
 
 function rows(report, body) {
@@ -49,7 +49,7 @@ function rows(report, body) {
 const siteForSource = (sites, source) => sites.find((x) => (source || '').toLowerCase().includes(x.match));
 
 export async function siteReport(token, site, sites, periods, request = api) {
-  const out = { summary: null, inbound: null, outcomes: [], outbound: [], errors: [] };
+  const out = { summary: null, acquisition: null, landing: null, inbound: null, outcomes: [], outbound: [], errors: [] };
   const fromOf = (src) => siteForSource(sites, src)?.key || '';
   async function query(field, stage, body, convert) {
     try {
@@ -63,13 +63,33 @@ export async function siteReport(token, site, sites, periods, request = api) {
 
   await query('summary', 'traffic', {
     dateRanges: periods.both,
-    metrics: ['activeUsers', 'sessions', 'engagedSessions'].map((name) => ({ name })),
+    metrics: ['activeUsers', 'sessions', 'engagedSessions', 'newUsers', 'screenPageViews', 'userEngagementDuration'].map((name) => ({ name })),
   }, (records) => {
-    const zero = () => ({ activeUsers: 0, sessions: 0, engagedSessions: 0 });
+    const zero = () => ({ activeUsers: 0, sessions: 0, engagedSessions: 0, newUsers: 0, screenPageViews: 0, userEngagementDuration: 0 });
     const summary = { current: zero(), previous: zero() };
     for (const r of records) summary[r.dateRange || 'current'] = r;
     return summary;
   });
+
+  // Diagnostic breakdowns are session-scoped. Use the landing page PATH,
+  // not a path with query parameters, to avoid emailing tokens or PII.
+  const qualityMetrics = ['sessions', 'engagedSessions', 'userEngagementDuration'].map((name) => ({ name }));
+  const bySessions = [{ metric: { metricName: 'sessions' }, desc: true }];
+  await query('acquisition', 'acquisition', {
+    dateRanges: [periods.current],
+    dimensions: [{ name: 'sessionSourceMedium' }],
+    metrics: qualityMetrics,
+    orderBys: bySessions,
+    limit: 10000,
+  }, (records) => records);
+
+  await query('landing', 'landing pages', {
+    dateRanges: [periods.current],
+    dimensions: [{ name: 'landingPage' }],
+    metrics: qualityMetrics,
+    orderBys: bySessions,
+    limit: 10000,
+  }, (records) => records);
 
   const siblings = sites.filter((x) => x.key !== site.key);
   if (!siblings.length) out.inbound = [];
@@ -117,7 +137,12 @@ export function table(head, body, empty = 'Nothing in this period.') {
 }
 const HUB_CLICKS = ['project_click', 'wishlist_click'];
 const campaignOf = (r) => (r.sessionCampaignName && !r.sessionCampaignName.startsWith('(') ? r.sessionCampaignName : '(no utm_campaign)');
-const fields = { traffic: 'summary', referrals: 'inbound', outcomes: 'outcomes', outbound: 'outbound' };
+const fields = { traffic: 'summary', acquisition: 'acquisition', landing: 'landing', referrals: 'inbound', outcomes: 'outcomes', outbound: 'outbound' };
+const activeSeconds = (seconds, sessions) =>
+  seconds == null || sessions == null ? 'Unavailable' : sessions ? (seconds / sessions).toFixed(1) + 's' : '–';
+const perSession = (count, sessions) =>
+  count == null || sessions == null ? 'Unavailable' : sessions ? (count / sessions).toFixed(2) : '–';
+const safeLabel = (value) => String(value ?? '(not set)').replace(/[|*\r\n]/g, ' ').slice(0, 90);
 
 export function build(sites, results, { days, compare, period, title, generated = new Date().toISOString() }) {
   const by = Object.fromEntries(sites.map((s) => [s.key, s]));
@@ -135,7 +160,7 @@ export function build(sites, results, { days, compare, period, title, generated 
   const errors = sites.flatMap((s) => (results[s.key]?.errors || []).map((e) => ({ site: s.key, ...e })));
   const { cur, prev } = period;
   const md = [];
-  const json = { generated, days, compare, period: { current: cur, previous: prev }, status: complete ? 'complete' : 'incomplete', coverage, errors, sites: {}, outcomes: [], handoffs: [], placements: [], matrix: [] };
+  const json = { generated, days, compare, period: { current: cur, previous: prev }, status: complete ? 'complete' : 'incomplete', coverage, errors, sites: {}, outcomes: [], handoffs: [], placements: [], matrix: [], acquisition: [], landingPages: [], qualityAlerts: [] };
   const baseTitle = title || `${days === 1 ? 'Daily rollup' : days === 7 ? 'Weekly rollup' : `${days}-day rollup`} — ${cur}`;
   md.push(`# ${baseTitle}${complete ? '' : ` — INCOMPLETE (${coverage.completeSites}/${sites.length} sites complete)`}`);
   if (!complete) {
@@ -169,7 +194,8 @@ export function build(sites, results, { days, compare, period, title, generated 
   md.push(`_Change is against ${prev}. "From hub" means visitors ${hub?.name || 'the hub'} sent. Outcomes are the events listed per site in tools/ga4-sites.json. Steam wishlists themselves are only in Steamworks; these count wishlist clicks._\n`);
 
   md.push('## Traffic');
-  const totals = { current: { activeUsers: 0, sessions: 0, engagedSessions: 0 }, previous: { activeUsers: 0, sessions: 0, engagedSessions: 0 } };
+  const blank = () => ({ activeUsers: 0, sessions: 0, engagedSessions: 0, newUsers: 0, screenPageViews: 0, userEngagementDuration: 0 });
+  const totals = { current: blank(), previous: blank() };
   const trafficRows = sites.map((s) => {
     const summary = results[s.key]?.summary;
     const c = summary?.current, p = summary?.previous;
@@ -184,6 +210,58 @@ export function build(sites, results, { days, compare, period, title, generated 
   md.push(table(['Site', 'Users', 'Change', 'Sessions', 'Change', 'Engaged'], trafficRows));
   md.push('_All-sites users are summed across properties, so someone who visits two sites counts twice. Totals are unavailable when any traffic query fails._\n');
 
+  // An engagement rate alone hides whether the number of genuinely
+  // engaged sessions grew. Keep both the numerator and the denominator.
+  md.push('## Engagement quality');
+  const qualityRows = sites.map((s) => {
+    const v = results[s.key]?.summary?.current;
+    if (v?.sessions >= 50 && v.engagedSessions / v.sessions < 0.05) {
+      json.qualityAlerts.push({ site: s.key, type: 'low-engagement-traffic', sessions: v.sessions, engagedSessions: v.engagedSessions });
+    }
+    return [s.name, num(v?.engagedSessions), ratio(v?.engagedSessions, v?.sessions),
+      activeSeconds(v?.userEngagementDuration, v?.sessions),
+      perSession(v?.screenPageViews, v?.sessions), num(v?.newUsers)];
+  });
+  if (c) qualityRows.push(['**All sites**', num(c.engagedSessions), ratio(c.engagedSessions, c.sessions),
+    activeSeconds(c.userEngagementDuration, c.sessions),
+    perSession(c.screenPageViews, c.sessions), num(c.newUsers)]);
+  md.push(table(['Site', 'Engaged sessions', 'Rate', 'Active time/session', 'Views/session', 'New users'], qualityRows));
+  md.push('_Active time/session is GA4 foreground engagement duration divided by sessions, not elapsed page-open time. Small-sample rates should not drive decisions._\n');
+
+  // Show the segments responsible for volume, with their quality alongside.
+  // Daily email is intentionally concise; JSON retains all returned rows.
+  for (const spec of [
+    { field: 'acquisition', key: 'acquisition', dim: 'sessionSourceMedium', label: 'Source / medium', title: '## Acquisition quality' },
+    { field: 'landing', key: 'landingPages', dim: 'landingPage', label: 'Landing page path', title: '## Landing-page quality' },
+  ]) {
+    md.push(spec.title);
+    const segmentRows = [];
+    for (const s of sites) {
+      const vals = results[s.key]?.[spec.field];
+      if (vals == null) {
+        segmentRows.push([s.name, 'Unavailable', 'Unavailable', 'Unavailable', 'Unavailable']);
+        continue;
+      }
+      json[spec.key].push(...vals.map((row) => ({ site: s.key, ...row })));
+      for (const row of [...vals].sort((a, b) => b.sessions - a.sessions).slice(0, 3)) {
+        segmentRows.push([s.name, safeLabel(row[spec.dim]), num(row.sessions),
+          ratio(row.engagedSessions, row.sessions),
+          activeSeconds(row.userEngagementDuration, row.sessions)]);
+      }
+    }
+    md.push(table(['Site', spec.label, 'Sessions', 'Eng. rate', 'Active time/session'], segmentRows));
+    md.push('_Top 3 per property by session count; engagement figures are descriptive, not automated-traffic verdicts._\n');
+  }
+
+  if (json.qualityAlerts.length) {
+    md.push('### Traffic-quality checks');
+    for (const a of json.qualityAlerts) {
+      md.push('- **' + by[a.site].name + '**: ' + num(a.sessions) + ' sessions but ' +
+        num(a.engagedSessions) + ' engaged (' + ratio(a.engagedSessions, a.sessions) +
+        '). Check source/medium, landing pages, and server logs before attributing this to people or bots.');
+    }
+  }
+
   if (hub) {
     md.push(`## Hand-offs from ${hub.name}`);
     const outb = results[hub.key]?.outbound;
@@ -197,7 +275,7 @@ export function build(sites, results, { days, compare, period, title, generated 
       return [d.name, num(seen), num(clicks), ratio(clicks, seen), num(arrived), ratio(arrived, clicks), num(engaged), num(outcomes)];
     });
     md.push(table(['Project', 'Seen', 'Clicks', 'Click rate', 'Arrived', 'Arrival rate', 'Engaged', 'Outcomes there'], handRows));
-    md.push(`_Seen and Clicks are measured on ${hub.name}; Arrived and Outcomes on the project's own property. Unavailable input makes the corresponding rate unavailable._\n`);
+    md.push(`_Seen counts only instrumented project blocks; article-link clicks may have no Seen event. Clicks are measured on ${hub.name}, but arrivals are attributed sessions in separate GA4 properties, not matched people or guaranteed click-throughs. Treat click and arrival rates as diagnostic estimates, not a verified funnel._\n`);
 
     md.push('### Which placement sent them');
     const place = new Map();
