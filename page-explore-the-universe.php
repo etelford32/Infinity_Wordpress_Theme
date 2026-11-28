@@ -76,7 +76,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
                         <?php
                         echo $infinity_live
                             ? esc_html__('The free demo is out now on Steam', 'infinity')
-                            : esc_html__('Free demo lands on Steam · Thanksgiving Day, Nov 26', 'infinity');
+                            : esc_html(sprintf(__('Free demo lands on Steam · %s', 'infinity'), infinity_etu_demo_date('l, M j')));
                         ?>
                     </span>
                 </p>
@@ -334,7 +334,7 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
         <!-- ================= Demo-day checklist ================= -->
         <section class="etuh-launch" id="etuh-join" aria-labelledby="etuh-join-heading" data-project="etu" data-placement="etu_hub_join">
             <div class="container">
-                <p class="etuh-eyebrow" data-reveal><?php echo $infinity_live ? esc_html__('The demo is live', 'infinity') : esc_html__('Demo day: Thanksgiving, November 26', 'infinity'); ?></p>
+                <p class="etuh-eyebrow" data-reveal><?php echo $infinity_live ? esc_html__('The demo is live', 'infinity') : esc_html(sprintf(__('Demo day: %s', 'infinity'), infinity_etu_demo_date())); ?></p>
                 <h2 class="etuh-h2" id="etuh-join-heading" data-reveal><?php echo $infinity_live ? esc_html__('Three steps and you are flying', 'infinity') : esc_html__('Three steps and you are ready for demo day', 'infinity'); ?></h2>
                 <ol class="etuh-steps">
                     <li class="etuh-step" data-reveal style="--d:0">
@@ -351,8 +351,8 @@ $infinity_signup_path = $infinity_live ? 'demo' : 'login?mode=signup&redirect=%2
                     </li>
                     <li class="etuh-step" data-reveal style="--d:2">
                         <span class="etuh-step-n">3</span>
-                        <h3><?php echo $infinity_live ? esc_html__('Play the free demo', 'infinity') : esc_html__('Play on November 26', 'infinity'); ?></h3>
-                        <p><?php echo $infinity_live ? esc_html__('The demo is out now on Steam. Download it and fly.', 'infinity') : esc_html__('The free demo lands on Steam on Thanksgiving Day. Bring friends: co-op takes up to four pilots.', 'infinity'); ?></p>
+                        <h3><?php echo $infinity_live ? esc_html__('Play the free demo', 'infinity') : esc_html(sprintf(__('Play on %s', 'infinity'), infinity_etu_demo_date('F j'))); ?></h3>
+                        <p><?php echo $infinity_live ? esc_html__('The demo is out now on Steam. Download it and fly.', 'infinity') : esc_html(sprintf(__('The free demo lands on Steam on %s. Bring friends: co-op takes up to four pilots.', 'infinity'), infinity_etu_demo_date())); ?></p>
                         <a class="etuh-btn etuh-btn-ghost" href="<?php echo esc_url($infinity_steam('etu_hub_join_play')); ?>" target="_blank" rel="noopener"<?php infinity_project_attrs('etu', 'etu_hub_join', 'steam_store'); ?>><?php esc_html_e('Open the Steam page', 'infinity'); ?> <span aria-hidden="true">&rarr;</span></a>
                     </li>
                 </ol>

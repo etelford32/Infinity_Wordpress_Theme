@@ -96,7 +96,20 @@ function infinity_etu_music_url() {
  * infinity_etu_demo_at to move it.
  */
 function infinity_etu_demo_at() {
-    return (string) get_option('infinity_etu_demo_at', '2026-11-26T18:00:00Z');
+    $default = '2026-12-01T18:00:00Z';
+    $saved = (string) get_option('infinity_etu_demo_at', $default);
+    $timestamp = strtotime($saved);
+    // Treat a saved copy of the superseded Thanksgiving schedule as stale.
+    // Preserve other valid, deliberate overrides.
+    if (false === $timestamp || $timestamp === strtotime('2026-11-26T18:00:00Z')) {
+        return $default;
+    }
+    return gmdate('Y-m-d\\TH:i:s\\Z', $timestamp);
+}
+
+/** Date copy follows the same timestamp, in the campaign's Pacific timezone. */
+function infinity_etu_demo_date($format = 'l, F j') {
+    return wp_date($format, strtotime(infinity_etu_demo_at()), new DateTimeZone('America/Los_Angeles'));
 }
 
 function infinity_etu_demo_live() {
@@ -295,7 +308,7 @@ function infinity_etu_hub_physics() {
 function infinity_etu_hub_faq() {
     $demo = infinity_etu_demo_live()
         ? __('The free demo is out now on Steam. Download it and fly.', 'infinity')
-        : __('The free demo lands on Steam on Thanksgiving Day, November 26. Steam Playtest sign-ups are open now on the store page, and Early Access follows in 2027.', 'infinity');
+        : sprintf(__('The free demo lands on Steam on %s. Steam Playtest sign-ups are open now on the store page, and Early Access follows in 2027.', 'infinity'), infinity_etu_demo_date());
     return apply_filters('infinity_etu_hub_faq', array(
         __('What is Explore the Universe 2175?', 'infinity') => __('An open-galaxy space action-RPG from Telford Projects. Every run generates a new spiral galaxy full of quests, bosses and real celestial phenomena, and you explore it with Cyl, a crystal AI companion who learns who you are.', 'infinity'),
         __('When can I play?', 'infinity')                    => $demo,
