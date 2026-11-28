@@ -6,17 +6,27 @@
         <div class="container">
             <?php infinity_footer_widgets(); ?>
 
-            <nav class="footer-navigation" role="navigation" aria-label="<?php esc_attr_e('Footer Menu', 'infinity'); ?>">
-                <?php
-                wp_nav_menu(array(
-                    'theme_location' => 'footer',
-                    'menu_id'        => 'footer-menu',
-                    'menu_class'     => 'footer-menu',
-                    'container'      => false,
-                    'depth'          => 1,
-                    'fallback_cb'    => false,
-                ));
-                ?>
+            <?php if (has_nav_menu('footer')) : ?>
+                <nav class="footer-navigation" role="navigation" aria-label="<?php esc_attr_e('Footer Menu', 'infinity'); ?>">
+                    <?php
+                    wp_nav_menu(array(
+                        'theme_location' => 'footer',
+                        'menu_id'        => 'footer-menu',
+                        'menu_class'     => 'footer-menu',
+                        'container'      => false,
+                        'depth'          => 1,
+                        'fallback_cb'    => false,
+                    ));
+                    ?>
+                </nav>
+            <?php endif; ?>
+
+            <?php // Keep legal links available even when no Footer Menu is assigned. ?>
+            <nav class="footer-navigation" aria-label="<?php esc_attr_e('Legal information', 'infinity'); ?>">
+                <ul class="footer-menu">
+                    <li><a href="<?php echo esc_url('https://elliottelford.com/privacy-policy/'); ?>"><?php esc_html_e('Privacy Policy', 'infinity'); ?></a></li>
+                    <li><a href="<?php echo esc_url('https://elliottelford.com/terms-and-conditions/'); ?>"><?php esc_html_e('Terms of Use', 'infinity'); ?></a></li>
+                </ul>
             </nav>
 
             <?php if (get_theme_mod('infinity_footer_family_links', true)) : ?>
